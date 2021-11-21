@@ -115,7 +115,7 @@ default development accounts of the local development network.
 This concludes the configuration of Hardhat. Now we can move on to the smart contract development.
 
 <details>
-    <summary>Your `hardhat.config.js` should look like this:</summary>
+    <summary>Your hardhat.config.js should look like this:</summary>
 
     require("@nomiclabs/hardhat-waffle");
 
@@ -222,7 +222,7 @@ because we made the `helloWorld` variable public and store the result. We compar
 With that, our test is ready to be run.
 
 <details>
-    <summary>Your `test/HelloWorld.js` should look like this:</summary>
+    <summary>Your test/HelloWorld.js should look like this:</summary>
 
     const { expect } = require("chai");
 
@@ -319,7 +319,7 @@ output the value returned by the `helloWorld()` getter to the terminal. We do it
 ```
 
 <details>
-    <summary>Your `script/deploy.js` should look like this:</summary>
+    <summary>Your script/deploy.js should look like this:</summary>
 
     async function main() {
         const [deployer] = await ethers.getSigners();

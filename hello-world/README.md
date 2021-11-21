@@ -12,7 +12,7 @@
 
 ## About
 
-This is a basic example how to setup your Hardhat development environment as well as testing and
+This is a basic example on how to setup your Hardhat development environment as well as testing and
 deployment configuration to be compatible with Acala EVM+. It contains a rudimentary
 [HelloWorld](./contracts/HelloWorld.sol) smart contract and the required configurations and scripts
 in order to test and deploy it.
@@ -22,7 +22,7 @@ in order to test and deploy it.
 Assuming you have your local tooling [ready to develop](https://hardhat.org/tutorial/setting-up-the-environment.html)
 with Hardhat, we can jump right into creating a new Hardhat project.
 
-1. Open a terminal windon in a directory where you want your hello-world example to reside and
+1. Open a terminal window in a directory where you want your hello-world example to reside and
 create a directory for it and then initialize a yarn project within it, as well as add Hardhat as a
 development dependency, with the following commands:
 
@@ -104,7 +104,7 @@ networks: {
 ```
 
 Let's break this configuration down a bit:
-- The port `3330` used in the node url is the port provided by the
+- The port `3330` used in the node URL is the port provided by the
 [ETH-RPC adapter](https://github.com/AcalaNetwork/bodhi.js/tree/master/eth-rpc-adapter), which is
 connected to our local development network.
 - `mnemonic` used in the `accounts` section represents derivation mnemonic used to derive the
@@ -148,7 +148,7 @@ query: `Hello World!`. To do that, we have to create a directory called `contrac
 mkdir contracts && touch contracts/HelloWorld.sol
 ```
 
-As the example is prety simple, we won't be going into too much detail on ho it is structured. We
+As the example is pretty simple, we won't be going into too much detail on how it is structured. We
 are using Solidity version `0.8.9` and it contains a public `helloWorld` variable, to which we
 assign the value `Hello World!`. It is important to set the visibility of this variable to public,
 so that the compiler builds a getter function for it. The following code should be copy-pasted into
@@ -179,7 +179,7 @@ contains the compiled smart contract.
 
 ## Add a test
 
-To add a test, for the smart contract we just created, create a `test` directory and within it a
+To add a test, for the smart contract we just created, create a `test` directory and, within it, a
 `HelloWorld.js` file:
 
 ```
@@ -192,7 +192,7 @@ On the first line of the test, import the `expect` from `chai` dependency:
 const { expect } = require("chai");
 ```
 
-We will be wrapping or test within a `describe` block, so add it below the import statement:
+We will be wrapping oru test within a `describe` block, so add it below the import statement:
 
 ```
 describe("HelloWorld contract", async function () {
@@ -200,7 +200,12 @@ describe("HelloWorld contract", async function () {
 });
 ```
 
-Within the `describe` block, we first get the contract factory and then deploy it. Once the smart contract is deployed, we can call the `helloWorld()` function, that was automatically generated because we made the `helloWorld` variable public and store the result. We compare that result to the `Hello World!` string and if everything is in order, our test should pass. Adding these steps to the `describe` block, requires us to place them within the `it` block, which we in turn place within the `describe` block:
+Within the `describe` block, we first get the contract factory and then deploy it. Once the smart
+contract is deployed, we can call the `helloWorld()` function, that was automatically generated
+because we made the `helloWorld` variable public and store the result. We compare that result to the
+`Hello World!` string and if everything is in order, our test should pass. Adding these steps to the
+`describe` block, requires us to place them within the `it` block, which we in turn place within the
+`describe` block:
 
 ```
     it("returns the right value after the contract is deployed", async function () {
@@ -235,7 +240,10 @@ With that, our test is ready to be run.
 
 </details>
 
-To be able to run the tests, we will add two additional scripts to the `package.json`. One to run the test in the Hardhat's built-in network (this is a very fast option) and one to run the tests on a local development network. This way you can verify the expected behaviour on Acala EVM+. Add these two lines to the `scripts` section of your `package.json`:
+To be able to run the tests, we will add two additional scripts to the `package.json`. One to run
+the test in the Hardhat's built-in network (this is a very fast option) and one to run the tests on
+a local development network. This way you can verify the expected behaviour on Acala EVM+. Add these
+two lines to the `scripts` section of your `package.json`:
 
 ```
     "test": "hardhat test",
@@ -270,7 +278,7 @@ $ hardhat test
 ## Add a script
 
 Finally let's add a script that deploys the example smart contract. To do this, we first have to add
-a `scripts` direactory and place `deploy.js` within it:
+a `scripts` directory and place `deploy.js` within it:
 
 ```
 mkdir scripts && touch scripts/deploy.js
@@ -292,12 +300,12 @@ main()
   });
 ```
 
-Our deploy script will reside in the definition (`async function main`). First we will define get
+Our deploy script will reside in the definition (`async function main()`). First we will get
 the address of the account which will be used to deploy the smart contract. Then we get the
-`HelloWorld.sol` to the contract factory and deploy it, asigning the deployed smart contract to the
-`instance` variable. Assigning the `instance`variable is optional and is only done, so that we can
-output the value returned by the `helloWorld()` getter to the terminal. We do it by callin
-`helloWorld()` from instance and outputing the result using `console.log()`:
+`HelloWorld.sol` to the contract factory and deploy it and assign the deployed smart contract to the
+`instance` variable. Assigning the `instance` variable is optional and is only done, so that we can
+output the value returned by the `helloWorld()` getter to the terminal. We do it by calling
+`helloWorld()` from instance and outputting the result using `console.log()`:
 
 ```
   const [deployer] = await ethers.getSigners();
@@ -333,7 +341,10 @@ output the value returned by the `helloWorld()` getter to the terminal. We do it
 
 </details>
 
-All that is left to do is update the `scripts` section in the `package.json` with the `deploy` and `deploy-mandala` scripts. Once again, we are adding two scripts, so that we can deploy to the built-in network as well as local development network. To add theses two scripts to your projects plase the following two lines within `scripts` section of the `package.json`:
+All that is left to do, is update the `scripts` section in the `package.json` with the `deploy` and
+`deploy-mandala` scripts. Once again, we are adding two scripts, so that we can deploy to the
+built-in network as well as the local development network. To add theses two scripts to your
+project, place the following two lines within `scripts` section of the `package.json`:
 
 ```
     "deploy": "hardhat run scripts/deploy.js",
@@ -355,7 +366,7 @@ Stored value: Hello World!
 
 ## Summary
 
-We have initiated an empty Hardhat project and configured it to work with Acala EVM+. We added
-`HelloWorld.sol` smart contract, that can be compiled using `yarn build` and wrote tests for it
-which can be run using `yarn test` or `yarn test-mandala`. Additionally we added the deploy script
+We have initiated an empty Hardhat project and configured it to work with Acala EVM+. We added a
+`HelloWorld.sol` smart contract, that can be compiled using `yarn build`, and wrote tests for it,
+which can be run using `yarn test` or `yarn test-mandala`. Additionally we added the deploy script,
 that can be run using `yarn deploy` or `yarn deploy-mandala`.

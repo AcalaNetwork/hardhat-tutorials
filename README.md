@@ -13,3 +13,6 @@ how to setup a local development network.
 
 1. [hello-world](./hello-world/README.md): This tutorial contains instructions on how to setup a
 simple Hardhat project that is compatible, deployable and testable with Acala EVM+.
+
+2. [echo](./echo/README.md): This tutorial builds upon the previous one and adds return values to
+the function calls, events and changes of storage variables.

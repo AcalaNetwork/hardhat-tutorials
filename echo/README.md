@@ -5,7 +5,7 @@
 - [About](#about)
 - [Smart contract](#smart-contract)
 - [Test](#test)
-- [Script](#script)
+- [Deploy script](#deploy-script)
 - [Summary](#summary)
 
 ## About
@@ -160,7 +160,7 @@ adapter has enough time to return the required information:
 We can now add the following test cases to our describe block:
 
 1. The contract should update the `echo` variable when `scream()` is called.
-2. When the `echo` variable is called, the `NewEcho` should be emitted.
+2. When the `echo` variable is changed, the `NewEcho` should be emitted.
 3. The `echoCount` should be incremented when new string is saved to the `echo` variable.
 4. The `scream()` function should return the input value.
 
@@ -276,7 +276,7 @@ $ hardhat test --network mandala
 ✨  Done in 102.01s.
 ```
 
-## Script
+## Deploy script
 
 This deployment script will deploy the contract and output the value of the `echo` variable.
 

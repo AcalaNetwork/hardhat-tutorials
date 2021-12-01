@@ -16,3 +16,6 @@ simple Hardhat project that is compatible, deployable and testable with Acala EV
 
 2. [echo](./echo/README.md): This tutorial builds upon the previous one and adds return values to
 the function calls, events and changes of storage variables.
+
+3. [token](./token/README.md): This tutorial builds upon the previous ones and adds the ERC20 token
+using OpenZeppelin dependency.

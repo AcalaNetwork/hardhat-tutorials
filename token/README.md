@@ -1,4 +1,4 @@
-# Hardhat example: echo
+# Hardhat example: token
 
 ## Table of contents
 
@@ -152,7 +152,7 @@ contract:
 1. The `name` should equal `Token`.
 2. The `symbol` should equal `TKN`.
 3. The total supply of the smart contract should equal `1234567890`.
-4. The initial balance of the `deployer` accunt should equal `1234567890`.
+4. The initial balance of the `deployer` account should equal `1234567890`.
 5. The `user` account should have `0` balance.
 6. The allowances should be set to `0` when the smart contract is deployed.
 
@@ -287,7 +287,7 @@ The `approve()` example validates the following:
 
 3. `Approval` event should be emitted when giving allowance.
 
-4. Call should be reverted if the address receiving teh allowance is `0x0`.
+4. Call should be reverted if the address receiving the allowance is `0x0`.
 
 These examples should look like this:
 
@@ -420,9 +420,9 @@ The `transferFrom()` example validates the following:
 
 4. Should update allowance.
 
-5. Should revert if trying to transfer more thanm allowance.
+5. Should revert if trying to transfer more than allowance.
 
-6. Should revert when tring to transfer to `0x0` address.
+6. Should revert when trying to transfer to `0x0` address.
 
 7. Should revert when owner doesn't have enough funds.
 

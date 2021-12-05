@@ -41,7 +41,7 @@ describe("Token contract", async function () {
                         expect(await instance.balanceOf(userAddress)).to.equal(0);
                 });
 
-                it("should not assign allowance upond deployment", async function () {
+                it("should not assign allowance upon deployment", async function () {
                         expect(await instance.allowance(deployerAddress, userAddress)).to.equal(0);
                         expect(await instance.allowance(userAddress, deployerAddress)).to.equal(0);
                 });

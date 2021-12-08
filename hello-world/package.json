@@ -12,7 +12,7 @@
     "test-mandala": "hardhat test --network mandala",
     "build": "hardhat compile",
     "deploy": "hardhat run scripts/deploy.js",
-    "deploy-mandala": "TS_NODE_TRANSPILE_ONLY=true hardhat run scripts/deploy.ts --network mandala"
+    "deploy-mandala": "hardhat run scripts/deploy.js --network mandala"
   },
   "devDependencies": {
     "@acala-network/eth-providers": "^2.1.6",

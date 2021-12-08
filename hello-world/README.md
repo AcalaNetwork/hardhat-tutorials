@@ -62,10 +62,10 @@ configuring Harhdat manually:
   Quit
 ```
 
-4. Add `ethers`, `waffle` and `chai` plugins with:
+4. Add `ethers`, `waffle`, `chai` and `eth-providers` plugins with:
 
 ```
-yarn add --dev @nomiclabs/hardhat-ethers ethers @nomiclabs/hardhat-waffle ethereum-waffle chai
+yarn add --dev @nomiclabs/hardhat-ethers ethers @nomiclabs/hardhat-waffle ethereum-waffle chai @acala-network/eth-providers
 ```
 
 ## Configure Hardhat
@@ -97,8 +97,7 @@ networks: {
       mnemonic: 'fox sight canyon orphan hotel grow hedgehog build bless august weather swarm',
       path: "m/44'/60'/0'/0",
     },
-    chainId: 595,
-    gasPrice: 429496729610000, // storage_limit = 100000, validUntil = 10000, 100000 << 32 | 10000
+    chainId: 595
   },
 }
 ```
@@ -110,7 +109,6 @@ connected to our local development network.
 - `mnemonic` used in the `accounts` section represents derivation mnemonic used to derive the
 default development accounts of the local development network.
 - `cahinId` of `595` is the default chain ID of the local development network.
-- `gasPrice` of `429496729610000` is the default gas price of the local development network.
 
 This concludes the configuration of Hardhat. Now we can move on to the smart contract development.
 
@@ -186,10 +184,16 @@ To add a test, for the smart contract we just created, create a `test` directory
 mkdir test && touch test/HelloWorld.js
 ```
 
-On the first line of the test, import the `expect` from `chai` dependency:
+On the first line of the test, import the `expect` from `chai` dependency and
+`calcEthereumTransactionParams` from `eth-providers`. We also set two constants to be used within
+the tests:
 
 ```
 const { expect } = require("chai");
+const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+
+const txFeePerGas = '199999946752';
+const storageByteDeposit = '100000000000000';
 ```
 
 We will be wrapping oru test within a `describe` block, so add it below the import statement:
@@ -200,15 +204,24 @@ describe("HelloWorld contract", async function () {
 });
 ```
 
-Within the `describe` block, we first get the contract factory and then deploy it. Once the smart
-contract is deployed, we can call the `helloWorld()` function, that was automatically generated
-because we made the `helloWorld` variable public and store the result. We compare that result to the
-`Hello World!` string and if everything is in order, our test should pass. Adding these steps to the
-`describe` block, requires us to place them within the `it` block, which we in turn place within the
-`describe` block:
+Within the `describe` block, we set the `ethParams` from the `eth-providers` dependency (we won't be
+using all of them, but they are added to the example for reference), then we first get the contract
+factory and then deploy it. Once the smart contract is deployed, we can call the `helloWorld()`
+function, that was automatically generated because we made the `helloWorld` variable public and
+store the result. We compare that result to the `Hello World!` string and if everything is in order,
+our test should pass. Adding these steps to the `describe` block, requires us to place them within
+the `it` block, which we in turn place within the `describe` block:
 
 ```
     it("returns the right value after the contract is deployed", async function () {
+        const ethParams = calcEthereumTransactionParams({
+                gasLimit: '2100001',
+                validUntil: '360001',
+                storageLimit: '64001',
+                txFeePerGas,
+                storageByteDeposit
+        });
+
         const HelloWorld = await ethers.getContractFactory("HelloWorld");
 
         const instance = await HelloWorld.deploy();
@@ -225,12 +238,26 @@ With that, our test is ready to be run.
     <summary>Your test/HelloWorld.js should look like this:</summary>
 
     const { expect } = require("chai");
+    const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+
+    const txFeePerGas = '199999946752';
+    const storageByteDeposit = '100000000000000';
 
     describe("HelloWorld contract", async function () {
         it("returns the right value after the contract is deployed", async function () {
+            const ethParams = calcEthereumTransactionParams({
+                    gasLimit: '2100001',
+                    validUntil: '360001',
+                    storageLimit: '64001',
+                    txFeePerGas,
+                    storageByteDeposit
+            });
+            
             const HelloWorld = await ethers.getContractFactory("HelloWorld");
-
-            const instance = await HelloWorld.deploy();
+            
+            const instance = await HelloWorld.deploy({
+                    gasPrice: ethParams.txGasPrice
+            });
 
             const value = await instance.helloWorld();
 
@@ -285,9 +312,16 @@ mkdir scripts && touch scripts/deploy.js
 ```
 
 Within the `deploy.js` we will have the definition of main function called `main()` and then run it.
-We do this by placing the following code within the file:
+Above it, we add the import statement for `eth-providers` dependency as well as define `txFeePerGas`
+and `storageByteDeposit` constants. These are used to be passed as transaction parameters. We do
+this by placing the following code within the file:
 
 ```
+const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+
+const txFeePerGas = '199999946752';
+const storageByteDeposit = '100000000000000';
+
 async function main() {
     
 }
@@ -300,18 +334,38 @@ main()
   });
 ```
 
+At the beginning of the `main()` function definition we set the additional transaction parameters.
+We won't be using all of them, but they are included, so you can reference them in future
+development:
+
+```
+  const ethParams = calcEthereumTransactionParams({
+    gasLimit: '2100001',
+    validUntil: '360001',
+    storageLimit: '64001',
+    txFeePerGas,
+    storageByteDeposit
+  });
+```
+
 Our deploy script will reside in the definition (`async function main()`). First we will get
 the address of the account which will be used to deploy the smart contract. Then we get the
-`HelloWorld.sol` to the contract factory and deploy it and assign the deployed smart contract to the
-`instance` variable. Assigning the `instance` variable is optional and is only done, so that we can
-output the value returned by the `helloWorld()` getter to the terminal. We do it by calling
-`helloWorld()` from instance and outputting the result using `console.log()`:
+`HelloWorld.sol` to the contract factory and deploy it, while passing the transaction parameters
+defined at the beginning of the `main()` funciton and assign the deployed smart contract to the
+`instance` variable, which we ensure that is deployed. Assigning the `instance` variable is optional
+and is only done, so that we can output the value returned by the `helloWorld()` getter to the
+terminal. We do it by calling `helloWorld()` from instance and outputting the result using
+`console.log()`:
 
 ```
   const [deployer] = await ethers.getSigners();
 
   const HelloWorld = await ethers.getContractFactory("HelloWorld");
-  const instance = await HelloWorld.deploy();
+  const instance = await HelloWorld.deploy({
+    gasPrice: ethParams.txGasPrice
+  });
+
+  await instance.deployed();
 
   const value = await instance.helloWorld();
 
@@ -321,23 +375,40 @@ output the value returned by the `helloWorld()` getter to the terminal. We do it
 <details>
     <summary>Your script/deploy.js should look like this:</summary>
 
+    const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+
+    const txFeePerGas = '199999946752';
+    const storageByteDeposit = '100000000000000';
+
     async function main() {
-        const [deployer] = await ethers.getSigners();
+      const ethParams = calcEthereumTransactionParams({
+        gasLimit: '2100001',
+        validUntil: '360001',
+        storageLimit: '64001',
+        txFeePerGas,
+        storageByteDeposit
+      });
 
-        const HelloWorld = await ethers.getContractFactory("HelloWorld");
-        const instance = await HelloWorld.deploy();
+      const [deployer] = await ethers.getSigners();
 
-        const value = await instance.helloWorld();
+      const HelloWorld = await ethers.getContractFactory("HelloWorld");
+      const instance = await HelloWorld.deploy({
+        gasPrice: ethParams.txGasPrice
+      });
 
-        console.log("Stored value:", value);
+      await instance.deployed();
+
+      const value = await instance.helloWorld();
+
+      console.log("Stored value:", value);
     }
 
     main()
-    .then(() => process.exit(0))
-    .catch((error) => {
+      .then(() => process.exit(0))
+      .catch((error) => {
         console.error(error);
         process.exit(1);
-    });
+      });
 
 </details>
 
@@ -348,7 +419,7 @@ project, place the following two lines within `scripts` section of the `package.
 
 ```
     "deploy": "hardhat run scripts/deploy.js",
-    "deploy-mandala": "hardhat run scripts/deploy.js --network mandala"
+    "deploy-mandala": "TS_NODE_TRANSPILE_ONLY=true hardhat run scripts/deploy.ts --network mandala"
 ```
 
 Running the `yarn deploy` script should return the following output:
@@ -361,7 +432,7 @@ yarn run v1.22.15
 warning ../../../../../package.json: No license field
 $ hardhat run scripts/deploy.js
 Stored value: Hello World!
-✨  Done in 4.72s.
+✨  Done in 7.81s.
 ```
 
 ## Summary

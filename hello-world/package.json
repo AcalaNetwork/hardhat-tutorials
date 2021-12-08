@@ -12,9 +12,10 @@
     "test-mandala": "hardhat test --network mandala",
     "build": "hardhat compile",
     "deploy": "hardhat run scripts/deploy.js",
-    "deploy-mandala": "hardhat run scripts/deploy.js --network mandala"
+    "deploy-mandala": "TS_NODE_TRANSPILE_ONLY=true hardhat run scripts/deploy.ts --network mandala"
   },
   "devDependencies": {
+    "@acala-network/eth-providers": "^2.1.6",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "chai": "^4.3.4",

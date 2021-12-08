@@ -13,7 +13,6 @@ module.exports = {
         path: "m/44'/60'/0'/0",
       },
       chainId: 595,
-      gasPrice: 429496729610000, // storage_limit = 100000, validUntil = 10000, 100000 << 32 | 10000
     },
   }
 };

@@ -1,17 +1,27 @@
 const { expect } = require("chai");
+const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+
+const txFeePerGas = '199999946752';
+const storageByteDeposit = '100000000000000';
 
 describe("HelloWorld contract", async function () {
     it("returns the right value after the contract is deployed", async function () {
+        const ethParams = calcEthereumTransactionParams({
+                gasLimit: '2100001',
+                validUntil: '360001',
+                storageLimit: '64001',
+                txFeePerGas,
+                storageByteDeposit
+        });
+        
         const HelloWorld = await ethers.getContractFactory("HelloWorld");
-console.log("Deployig contract");
-        const instance = await HelloWorld.deploy();
-console.log("Contract address:");
-console.log(instance.address);
-console.log(instance);
-console.log(instance.estimateGas);
-console.log(instance.estimateGas.helloWorld);
+        
+        const instance = await HelloWorld.deploy({
+                gasPrice: ethParams.txGasPrice
+        });
+
         const value = await instance.helloWorld();
-console.log(value);
+
         expect(value).to.equal("Hello World!");
     });
 });

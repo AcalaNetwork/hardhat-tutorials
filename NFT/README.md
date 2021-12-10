@@ -25,7 +25,7 @@ from `openzeppelin/contracts`, `Counters` utility from `@openzeppelin/conracts` 
 
 Your empty smart contract should look like this:
 
-```
+```solidity
 pragma solidity =0.8.9;
 
 contract NFT is ERC721URIStorage {
@@ -39,7 +39,7 @@ is OpenZeppelin implementation of the ERC721 standard. `Counters` utility is use
 `_tokenIds` every time a new token is minted. `ERC721URIStorage` is used to store the NFTs URI that
 point to the data associatted to the tokens. The import statements look like this:
 
-```
+```solidity
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
@@ -48,14 +48,14 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 As we now have access to `ERC721URIStorage.sol` from `@openzeppelin/contracts`, we can set the
 inheritance of our `NFT` contract:
 
-```
+```solidity
 contract NFT is ERC721URIStorage {
 ```
 
 Before we build the constructor, we have to specify the use of the `Counters` utility and define a
 `_tokenIds` counter:
 
-```
+```solidity
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 ```
@@ -63,7 +63,7 @@ Before we build the constructor, we have to specify the use of the `Counters` ut
 The `constructor()` in itself doesn't set any parameters, but we will also include a call to the
 `ERC721` constructor, where we set the token name and symbol:
 
-```
+```solidity
     constructor() ERC721("Example non-fungible token", "eNFT") {}
 ```
 
@@ -72,7 +72,7 @@ and `tokenURI` is the `URI` of the token's resource. We use the `_tokenIds` vari
 token from another and then call the inherited `_mint()` and `setTokenURI()`. Lastly we return the
 token ID:
 
-```
+```solidity
     function mintNFT(address recipient, string memory tokenURI) public returns (uint256) {
         _tokenIds.increment();
 
@@ -88,7 +88,7 @@ Additionally we can override the `_baseURI` of our tokens. It's really simple as
 function definition and a return statement with `acala-evm+-tutorial-nft/`, which would represent a
 common base URI for our tokens:
 
-```
+```solidity
     function _baseURI() internal view virtual override returns (string memory) {
         return "acala-evm+-tutorial-nft/";
     }
@@ -137,7 +137,7 @@ the `artifacts` directory and contain the compiled smart contract.
 Your test file should be called `NFT.js` and the empty test along with the import statements
 should look like this:
 
-```
+```js
 const { expect, use } = require("chai");
 const { ContractFactory } = require("ethers");
 
@@ -158,7 +158,7 @@ tokens to and check the allowance operation. `deployerAddress` and `userAddress`
 of the `deployer` and `user` respecitively. They will be used to avoid repetitiveness in our tests.
 Let's assign them values in the `beforeEach` action:
 
-```
+```js
         let NFT;
         let instance;
         let deployer;
@@ -177,7 +177,7 @@ Let's assign them values in the `beforeEach` action:
 
 Our test will be split into two sections, `Deployment` and `Operation`:
 
-```
+```js
         describe("Deployment", function () {
 
         });
@@ -195,7 +195,7 @@ contract:
 3. The initial balance of the `deployer` account should equal `0`.
 4. The contract should revert when trying to get the balance of the `0x0` address.
 
-```
+```js
                 it("should set the correct NFT name", async function () {
                         expect(await instance.name()).to.equal("Example non-fungible token");
                 });
@@ -217,7 +217,7 @@ contract:
 In the `Operation` describe block we first need to increase the timeout to 50000ms, so that the RPC
 adapter has enough time to return the required information:
 
-```
+```js
                 this.timeout(50000);
 ```
 
@@ -235,7 +235,7 @@ balances and ownerships.
 
 The contents of the `Operation` block should look like this:
 
-```
+```js
                 describe("minting", function () {
                         
                 });
@@ -269,7 +269,7 @@ The `minting` block validates the following:
 
 These examples should look like this:
 
-```
+```js
                         it("should mint token to an address", async function () {
                                 const initialBalance = await instance.balanceOf(userAddress);
 
@@ -329,7 +329,7 @@ The `balances and ownerships` block validates the following:
 
 These examples should look like this:
 
-```
+```js
                         it("should revert when trying to get balance of 0x0 address", async function () {
                                 await expect(instance.balanceOf(NULL_ADDRESS)).to
                                         .be.revertedWith("ERC721: balance query for the zero address");
@@ -380,7 +380,7 @@ The `approvals` block validates the following:
 
 These examples should look like this:
 
-```
+```js
                         it("should grant an approval", async function () {
                                 await instance.connect(deployer).mintNFT(userAddress, "");
 
@@ -509,7 +509,7 @@ These examples should look like this:
 
 We can now add the following test cases to our describe block:
 
-```
+```js
                         it("should transfer the token", async function () {
                                 await instance.connect(deployer).mintNFT(userAddress, "");
 
@@ -852,7 +852,7 @@ With that, our test is ready to be run.
 When you run the test with (for example) `yarn test`, your tests should pass with the
 following output:
 
-```
+```shell
 yarn test
 
 
@@ -912,7 +912,7 @@ This deployment script will deploy the contract, mint an NFT and output the its'
 Within the `deploy.js` we will have the definition of main function called `main()` and then run it.
 We do this by placing the following code within the file:
 
-```
+```js
 async function main() {
     
 }
@@ -934,7 +934,7 @@ and assign the deployed smart contract to the `instance` variable. Assigning the
 is optional and is only done, so that we can mint the NFT to the alternative account and retrieve
 its' URI. Finally we output the URI of the newly minted NFT:
 
-```
+```js
   const [deployer, user] = await ethers.getSigners();
 
   console.log("Deploying contract with the account:", deployer.address);
@@ -986,7 +986,7 @@ its' URI. Finally we output the URI of the newly minted NFT:
 
 Running the `yarn deploy` script should return the following output:
 
-```
+```shell
 yarn deploy
 
 

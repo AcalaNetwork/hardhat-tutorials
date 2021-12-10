@@ -25,7 +25,7 @@ emitted.
 
 Your empty smart contract should look like this:
 
-```
+```solidity
 pragma solidity =0.8.9;
 
 contract Echo{
@@ -41,7 +41,7 @@ changed and it will contain the new value as well as the number of times the `ec
 changed. The content of the smart contract, including these two variables and the event, looks like
 this:
 
-```
+```solidity
     string public echo;
     uint echoCount;
 
@@ -51,7 +51,7 @@ this:
 The `constructor` function can set the initial walue of the `echo` variable. Let's set it to
 `Deployed successfully!`, to signal that the smart contract is ready to use:
 
-```
+```solidity
     constructor() {
         echo = "Deployed successfully!";
     }
@@ -62,7 +62,7 @@ function should assign the new value to the `echo` variable, increment the `echo
 `NewEcho` event and return the input string. Let's call this function `scream()` as it will cause an
 echo:
 
-```
+```solidity
     function scream(string memory message) public returns(string memory){
         echo = message;
         echoCount += 1;
@@ -107,7 +107,7 @@ the `artifacts` directory and contain the compiled smart contract.
 Your test file should be called `Echo.js` and the empty test along with the import statement should
 look like this:
 
-```
+```js
 const { expect } = require("chai");
 
 describe("Echo contract", async function () {
@@ -119,7 +119,7 @@ To prepare for the testing, we have to define two global variables, `Echo` and `
 `Echo` will be used to store the Echo contract factory and the `instance` will store the deployed
 Echo smart contract. Let's assign them values in the `beforeEach` action:
 
-```
+```js
         let Echo;
         let instance;
 
@@ -131,7 +131,7 @@ Echo smart contract. Let's assign them values in the `beforeEach` action:
 
 Our test will be split into two sections, `Deployment` and `Operation`:
 
-```
+```js
         describe("Deployment", function () {
 
         });
@@ -144,7 +144,7 @@ Our test will be split into two sections, `Deployment` and `Operation`:
 Within `Deployment` describe block we will validate that the `echo` variable is set to `Deployed
 successfully!`:
 
-```
+```js
                 it("should set the value of the echo when deploying", async function () {
                         expect(await instance.echo()).to.equal("Deployed successfully!");
                 });
@@ -153,7 +153,7 @@ successfully!`:
 In the `Operation` describe block we first need to increase the timeout to 50000ms, so that the RPC
 adapter has enough time to return the required information:
 
-```
+```js
                 this.timeout(50000);
 ```
 
@@ -166,7 +166,7 @@ We can now add the following test cases to our describe block:
 
 The test cases of the `Operation` describe block should look like this:
 
-```
+```js
                 it("should update the echo variable", async function () {
                         await instance.scream("Hello World!");
 
@@ -252,7 +252,7 @@ With that, our test is ready to be run.
 When you run the test with (for example) `yarn test-mandala`, your tests should pass with the
 following output:
 
-```
+```shell
 yarn test-mandala
 
 
@@ -283,7 +283,7 @@ This deployment script will deploy the contract and output the value of the `ech
 Within the `deploy.js` we will have the definition of main function called `main()` and then run it.
 We do this by placing the following code within the file:
 
-```
+```js
 async function main() {
     
 }
@@ -303,7 +303,7 @@ variable. Assigning the `instance` variable is optional and is only done, so tha
 value returned by the `echo()` getter to the terminal. We retrieve the value of `echo` variable by
 calling `echo()` from instance and outputting the result using `console.log()`:
 
-```
+```js
   const [deployer] = await ethers.getSigners();
 
   console.log("Deploying contract with the account:", deployer.address);
@@ -351,7 +351,7 @@ calling `echo()` from instance and outputting the result using `console.log()`:
 
 Running the `yarn deploy-mandala` script should return the following output:
 
-```
+```shell
 yarn deploy-mandala
 
 

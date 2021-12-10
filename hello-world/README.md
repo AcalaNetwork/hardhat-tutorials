@@ -26,7 +26,7 @@ with Hardhat, we can jump right into creating a new Hardhat project.
 create a directory for it and then initialize a yarn project within it, as well as add Hardhat as a
 development dependency, with the following commands:
 
-```
+```shell
 mkdir hello-world
 cd hello-world
 yarn init --yes
@@ -35,14 +35,14 @@ yarn add --dev hardhat
 
 2. Initialize a Hardhat project using:
 
-```
+```shell
 yarn exec hardhat
 ```
 
 3. When the Hardhat setup prompt appears, pick `Create an empty hardhat.config.js`, as we will be
 configuring Harhdat manually:
 
-```
+```shell
 888    888                      888 888               888
 888    888                      888 888               888
 888    888                      888 888               888
@@ -64,7 +64,7 @@ configuring Harhdat manually:
 
 4. Add `ethers`, `waffle`, `chai` and `eth-providers` plugins with:
 
-```
+```shell
 yarn add --dev @nomiclabs/hardhat-ethers ethers @nomiclabs/hardhat-waffle ethereum-waffle chai @acala-network/eth-providers
 ```
 
@@ -76,20 +76,20 @@ order to be able to use the local development network with Acala EVM+.
 Import the `@nomiclabs/hardhat-waffle` dependency into `hardhat.config.js`, by adding the following
 line of code to the top of the config:
 
-```
+```js
 require("@nomiclabs/hardhat-waffle");
 ```
 
 Update the `solidity` version to `0.8.9`, as this is the version used in the example:
 
-```
+```js
 solidity: "0.8.9"
 ```
 
 Below the `solidity` configuration, let's add the network configuration, so that Hardhat will be
 able to connect to our local Mandala development node:
 
-```
+```js
 networks: {
   mandala: {
     url: 'http://127.0.0.1:3330',
@@ -142,7 +142,7 @@ In this tutorial we will be adding a simple smart contract that only stores one 
 query: `Hello World!`. To do that, we have to create a directory called `contracts` and create a
 `HelloWorld.sol` file within it:
 
-```
+```solidity
 mkdir contracts && touch contracts/HelloWorld.sol
 ```
 
@@ -152,7 +152,7 @@ assign the value `Hello World!`. It is important to set the visibility of this v
 so that the compiler builds a getter function for it. The following code should be copy-pasted into
 the `HelloWorld.sol`:
 
-```
+```solidity
 pragma solidity =0.8.9;
 
 contract HelloWorld{
@@ -166,7 +166,7 @@ Now that we have the smart contract ready, we have to compile it. For this, we w
 script to the `package.json`. To do this, we have to add `scripts` section to it. We will be using
 Hardhat's compile functionality, so the `scripts` section should look like this:
 
-```
+```json
   "scripts": {
     "build": "hardhat compile"
   }
@@ -180,7 +180,7 @@ contains the compiled smart contract.
 To add a test, for the smart contract we just created, create a `test` directory and, within it, a
 `HelloWorld.js` file:
 
-```
+```shell
 mkdir test && touch test/HelloWorld.js
 ```
 
@@ -188,7 +188,7 @@ On the first line of the test, import the `expect` from `chai` dependency and
 `calcEthereumTransactionParams` from `eth-providers`. We also set two constants to be used within
 the tests:
 
-```
+```js
 const { expect } = require("chai");
 const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
 
@@ -198,7 +198,7 @@ const storageByteDeposit = '100000000000000';
 
 We will be wrapping oru test within a `describe` block, so add it below the import statement:
 
-```
+```js
 describe("HelloWorld contract", async function () {
 
 });
@@ -212,7 +212,7 @@ store the result. We compare that result to the `Hello World!` string and if eve
 our test should pass. Adding these steps to the `describe` block, requires us to place them within
 the `it` block, which we in turn place within the `describe` block:
 
-```
+```js
     it("returns the right value after the contract is deployed", async function () {
         const ethParams = calcEthereumTransactionParams({
                 gasLimit: '2100001',
@@ -272,7 +272,7 @@ the test in the Hardhat's built-in network (this is a very fast option) and one 
 a local development network. This way you can verify the expected behaviour on Acala EVM+. Add these
 two lines to the `scripts` section of your `package.json`:
 
-```
+```json
     "test": "hardhat test",
     "test-mandala": "hardhat test --network mandala"
 ```
@@ -284,7 +284,7 @@ added in the beginning of this tutorial.
 When you run the test with (for example) `yarn test`, your tests should pass with the following
 output:
 
-```
+```shell
 yarn test
 
 
@@ -307,7 +307,7 @@ $ hardhat test
 Finally let's add a script that deploys the example smart contract. To do this, we first have to add
 a `scripts` directory and place `deploy.js` within it:
 
-```
+```shell
 mkdir scripts && touch scripts/deploy.js
 ```
 
@@ -316,7 +316,7 @@ Above it, we add the import statement for `eth-providers` dependency as well as 
 and `storageByteDeposit` constants. These are used to be passed as transaction parameters. We do
 this by placing the following code within the file:
 
-```
+```js
 const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
 
 const txFeePerGas = '199999946752';
@@ -338,7 +338,7 @@ At the beginning of the `main()` function definition we set the additional trans
 We won't be using all of them, but they are included, so you can reference them in future
 development:
 
-```
+```js
   const ethParams = calcEthereumTransactionParams({
     gasLimit: '2100001',
     validUntil: '360001',
@@ -357,7 +357,7 @@ and is only done, so that we can output the value returned by the `helloWorld()`
 terminal. We do it by calling `helloWorld()` from instance and outputting the result using
 `console.log()`:
 
-```
+```js
   const [deployer] = await ethers.getSigners();
 
   const HelloWorld = await ethers.getContractFactory("HelloWorld");
@@ -417,14 +417,14 @@ All that is left to do, is update the `scripts` section in the `package.json` wi
 built-in network as well as the local development network. To add theses two scripts to your
 project, place the following two lines within `scripts` section of the `package.json`:
 
-```
+```json
     "deploy": "hardhat run scripts/deploy.js",
     "deploy-mandala": "TS_NODE_TRANSPILE_ONLY=true hardhat run scripts/deploy.ts --network mandala"
 ```
 
 Running the `yarn deploy` script should return the following output:
 
-```
+```shell
 yarn deploy
 
 

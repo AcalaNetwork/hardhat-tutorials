@@ -27,14 +27,14 @@ abbriveration:
 To be able to import the `ERC20` from OpenZeppelin, we have to add `@openzeppelin/contracts` as a
 development dependency:
 
-```
+```shell
 yarn add --dev @openzeppelin/contracts
 ```
 
 Now that we have edded the `@openzeppelin/contracts` dependency, we can focus on building our smart
 contract. Your empty smart contract should look like this:
 
-```
+```solidity
 pragma solidity =0.8.9;
 
 contract Token{
@@ -45,21 +45,21 @@ contract Token{
 Import of the `ERC20` from `@openzeppelin/contracts` is done between the `pragma` definition and the
 start od the `contract` block:
 
-```
+```solidity
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 ```
 
 As we now have access to `ERC20.sol` from `@openzeppelin/contracts`, we can set the inheritance of
 our `Token` contract:
 
-```
+```solidity
 contract Token is ERC20 {
 ```
 
 As the `ERC20` already has the full fungible token standard implementation, we only have to add a
 `constructor()` function that sets all of the values:
 
-```
+```solidity
     constructor(uint256 _initialBalance) ERC20("Token", "TKN") public {
         _mint(msg.sender, _initialBalance);
     }
@@ -96,7 +96,7 @@ the `artifacts` directory and contain the compiled smart contract.
 Your test file should be called `Token.js` and the empty test along with the import statements
 should look like this:
 
-```
+```js
 const { expect } = require("chai");
 const { ContractFactory } = require("ethers");
 
@@ -117,7 +117,7 @@ transfer the tokens to and check the allowance operation. `deployerAddress` and 
 the addresses of the `deployer` and `user` respecitively. They will be used to avoid repetitiveness
 in our tests. Let's assign them values in the `beforeEach` action:
 
-```
+```js
         let Token;
         let instance;
         let deployer;
@@ -136,7 +136,7 @@ in our tests. Let's assign them values in the `beforeEach` action:
 
 Our test will be split into two sections, `Deployment` and `Operation`:
 
-```
+```js
         describe("Deployment", function () {
 
         });
@@ -156,7 +156,7 @@ contract:
 5. The `user` account should have `0` balance.
 6. The allowances should be set to `0` when the smart contract is deployed.
 
-```
+```js
                 it("should set the correct token name", async function () {
                         expect(await instance.name()).to.equal("Token");
                 });
@@ -186,7 +186,7 @@ contract:
 In the `Operation` describe block we first need to increase the timeout to 50000ms, so that the RPC
 adapter has enough time to return the required information:
 
-```
+```js
                 this.timeout(50000);
 ```
 
@@ -210,7 +210,7 @@ ERC20 tokens:
 
 The contents of the `Operation` block should look like this:
 
-```
+```js
                 describe("Transfer", function () {
                         describe("transfer()", function () {
                                 
@@ -248,7 +248,7 @@ The `transfer()` example validates the following:
 
 These examples should look like this:
 
-```
+```js
                                 it("should change the balance of the sender and receiver when transferring token", async function () {
                                         const initialDeployerBalance = await instance.balanceOf(deployerAddress);
                                         const initialUserBalance = await instance.balanceOf(userAddress);
@@ -291,7 +291,7 @@ The `approve()` example validates the following:
 
 These examples should look like this:
 
-```
+```js
                                 it("should grant allowance when the caller has enough funds", async function () {
                                         await instance.connect(deployer).approve(userAddress, 100);
 
@@ -333,7 +333,7 @@ have.
 
 These examples should look like this:
 
-```
+```js
                                 it("should allow to increase allowance", async function () {
                                         await instance.connect(deployer).approve(userAddress, 100);
 
@@ -386,7 +386,7 @@ These examples should look like this:
 
 We can now add the following test cases to our describe block:
 
-```
+```js
                                 it("should decrease the allowance", async function () {
                                         await instance.connect(deployer).approve(userAddress, 100);
                                         await instance.connect(deployer).decreaseAllowance(userAddress, 40);
@@ -430,7 +430,7 @@ The `transferFrom()` example validates the following:
 
 These examples should look like this:
 
-```
+```js
                                 it("should allow to transfer tokens when allowance is given", async function () {
 
                                         await instance.connect(deployer).approve(userAddress, 100);
@@ -744,7 +744,7 @@ With that, our test is ready to be run.
 When you run the test with (for example) `yarn test`, your tests should pass with the
 following output:
 
-```
+```shell
 yarn test
 
 
@@ -806,7 +806,7 @@ This deployment script will deploy the contract and output the value of the `tot
 Within the `deploy.js` we will have the definition of main function called `main()` and then run it.
 We do this by placing the following code within the file:
 
-```
+```js
 async function main() {
     
 }
@@ -826,7 +826,7 @@ variable. Assigning the `instance` variable is optional and is only done, so tha
 value returned by the `totalSupply()` getter to the terminal. We retrieve the value of `totalSupply`
 variable by calling `totalSupply()` from instance and outputting the result using `console.log()`:
 
-```
+```js
   const [deployer] = await ethers.getSigners();
 
   console.log("Deploying contract with the account:", deployer.address);
@@ -874,7 +874,7 @@ variable by calling `totalSupply()` from instance and outputting the result usin
 
 Running the `yarn deploy` script should return the following output:
 
-```
+```shell
 yarn deploy
 
 

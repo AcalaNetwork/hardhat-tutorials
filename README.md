@@ -19,3 +19,5 @@ the function calls, events and changes of storage variables.
 
 3. [token](./token/README.md): This tutorial builds upon the previous ones and adds the ERC20 token
 using OpenZeppelin dependency.
+
+4. [NFT](./NFT/README.md): This tutorial demonstrates how to build a NFT contract in Acala EVM+.

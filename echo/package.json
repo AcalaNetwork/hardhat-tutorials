@@ -1,5 +1,5 @@
 {
-  "name": "echo",
+  "name": "hardhat-tutorial-echo",
   "version": "1.0.0",
   "main": "index.js",
   "author": "Jan Turk",

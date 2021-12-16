@@ -128,7 +128,7 @@ This concludes our `NFT` smart contract.
 
 </details>
 
-As the Token smart contract is ready to be compiled, we can use the `yarn build` command (like we did
+As the NFT smart contract is ready to be compiled, we can use the `yarn build` command (like we did
 in the [hello-world](../hello-world/package.json)) to compile the smart contract, which will create
 the `artifacts` directory and contain the compiled smart contract.
 

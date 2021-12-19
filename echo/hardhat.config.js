@@ -15,7 +15,7 @@ module.exports = {
       chainId: 595,
     },
     mandalaPubDev: {
-      url: 'http://127.0.0.1:3330',
+      url: 'https://tc7-eth.aca-dev.network',
       accounts: {
         mnemonic: 'fox sight canyon orphan hotel grow hedgehog build bless august weather swarm',
         path: "m/44'/60'/0'/0",
@@ -23,7 +23,7 @@ module.exports = {
       chainId: 595,
     },
     mandalaCI: {
-      url: 'http://127.0.0.1:3330',
+      url: 'http://eth-rpc-adapter-server:8545',
       accounts: {
         mnemonic: 'fox sight canyon orphan hotel grow hedgehog build bless august weather swarm',
         path: "m/44'/60'/0'/0",

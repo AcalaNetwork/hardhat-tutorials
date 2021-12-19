@@ -10,9 +10,13 @@
   "scripts": {
     "test": "hardhat test",
     "test-mandala": "hardhat test --network mandala",
+    "test-mandala:pubDev": "hardhat test --network mandalaPubDev",
+    "test-mandala:CI": "hardhat test --network mandalaCI",
     "build": "hardhat compile",
     "deploy": "hardhat run scripts/deploy.js",
-    "deploy-mandala": "hardhat run scripts/deploy.js --network mandala"
+    "deploy-mandala": "hardhat run scripts/deploy.js --network mandala",
+    "deploy-mandala:pubDev": "hardhat run scripts/deploy.js --network mandalaPubDev",
+    "deploy-mandala:CI": "hardhat run scripts/deploy.js --network mandalaCI"
   },
   "devDependencies": {
     "@acala-network/eth-providers": "^2.1.6",

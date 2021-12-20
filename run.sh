@@ -34,8 +34,14 @@ test_all() {
 
     cd  "${ROOT}/${e}"
 
-    if ! yarn test-mandala; then
-      ((failed=failed+1))
+    if [ $1 = "CI" ]; then
+      if ! yarn test-mandala:CI; then
+        ((failed=failed+1))
+      fi
+    else
+      if ! yarn test-mandala; then
+        ((failed=failed+1))
+      fi
     fi
 
     echo ""
@@ -48,7 +54,7 @@ test_all() {
 
 build_and_test() {
   build_all
-  test_all
+  test_all $1
 
   exit $failed
 }
@@ -56,7 +62,8 @@ build_and_test() {
 case "$1" in
   "build") build_all ;;
   "rebuild") rebuild_all ;;
-  "test") test_all ;;
-  "build_and_test") build_and_test ;;
-  *) build_and_test ;;
+  "test") test_all "local" ;;
+  "build_and_test") build_and_test "local" ;;
+  "CI_build_and_test") build_and_test "CI" ;;
+  *) build_and_test "local" ;;
 esac

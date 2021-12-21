@@ -30,7 +30,7 @@ test_all() {
 
   for e in "${examples[@]}"
   do
-    echo "--------------- testing hardhat ${e} ---------------"
+    echo "--------------- Testing Hardhat examples ${e} ---------------"
 
     cd  "${ROOT}/${e}"
 
@@ -48,7 +48,7 @@ test_all() {
   done
 
   echo "+++++++++++++++++++++++"
-  echo "hardhat test failed: $failed"
+  echo "Number of failed Hardhat tests: $failed"
   echo "+++++++++++++++++++++++"
 }
 

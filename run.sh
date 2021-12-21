@@ -23,7 +23,7 @@ test_all() {
     "hello-world"
     "echo"
     "token"
-    "nft"
+    "NFT"
   )
 
   ROOT=$(pwd)

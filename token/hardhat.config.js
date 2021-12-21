@@ -30,8 +30,5 @@ module.exports = {
       },
       chainId: 595,
     },
-  },  
-  mocha: {
-    timeout: 300000
-  }
+  }  
 };

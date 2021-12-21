@@ -5,6 +5,8 @@ const storageByteDeposit = '100000000000000';
 
 const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 
+// this is a helper method to keep feeding tx to node
+// usedful when running node with --instant-sealing
 const loop = async (interval = 8000) => {
   const ethParams = calcEthereumTransactionParams({
     gasLimit: '2100001',

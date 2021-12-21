@@ -16,7 +16,7 @@ const loop = async (interval = 2000) => {
     storageByteDeposit
   });
 
-  console.log('infinite hello world started!');
+  console.log('Started the infinite HelloWorld deployment loop!');
   let count = 0;
   while (true) {
     await sleep(interval);

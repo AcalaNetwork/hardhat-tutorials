@@ -7,7 +7,7 @@ const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 
 // this is a helper method to keep feeding tx to node
 // usedful when running node with --instant-sealing
-const loop = async (interval = 8000) => {
+const loop = async (interval = 2000) => {
   const ethParams = calcEthereumTransactionParams({
     gasLimit: '2100001',
     validUntil: '360001',

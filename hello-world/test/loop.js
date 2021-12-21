@@ -26,7 +26,7 @@ const loop = async (interval = 2000) => {
       gasLimit: ethParams.txGasLimit
     });
 
-    console.log(`infinite hello world count: ${++count}`);
+    console.log(`Current number of HelloWorld instances: ${++count}`);
   }
 };
 

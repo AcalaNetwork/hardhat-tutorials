@@ -104,13 +104,24 @@ the `artifacts` directory and contain the compiled smart contract.
 
 ## Test
 
-Your test file should be called `Echo.js` and the empty test along with the import statement should
-look like this:
+Your test file should be called `Echo.js` and the empty test along with the import statements
+and transaction parameters definition should look like this:
 
 ```js
 const { expect } = require("chai");
+const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+
+const txFeePerGas = '199999946752';
+const storageByteDeposit = '100000000000000';
 
 describe("Echo contract", async function () {
+        const ethParams = calcEthereumTransactionParams({
+                gasLimit: '2100001',
+                validUntil: '360001',
+                storageLimit: '64001',
+                txFeePerGas,
+                storageByteDeposit
+        });
 
 });
 ```
@@ -125,7 +136,10 @@ Echo smart contract. Let's assign them values in the `beforeEach` action:
 
         beforeEach(async function () {
                 Echo = await ethers.getContractFactory("Echo");
-                instance = await Echo.deploy();
+                instance = await Echo.deploy({
+                        gasPrice: ethParams.txGasPrice,
+                        gasLimit: ethParams.txGasLimit
+                });
         });
 ```
 
@@ -199,53 +213,70 @@ With that, our test is ready to be run.
 <details>
     <summary>Your test/Echo.js should look like this:</summary>
 
-    const { expect } = require("chai");
+        const { expect } = require("chai");
+        const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
 
-    describe("Echo contract", async function () {
-            let Echo;
-            let instance;
+        const txFeePerGas = '199999946752';
+        const storageByteDeposit = '100000000000000';
 
-            beforeEach(async function () {
-                    Echo = await ethers.getContractFactory("Echo");
-                    instance = await Echo.deploy();
-            });
+        describe("Echo contract", async function () {
+                const ethParams = calcEthereumTransactionParams({
+                        gasLimit: '2100001',
+                        validUntil: '360001',
+                        storageLimit: '64001',
+                        txFeePerGas,
+                        storageByteDeposit
+                });
 
-            describe("Deployment", function () {
-                    it("should set the value of the echo when deploying", async function () {
-                            expect(await instance.echo()).to.equal("Deployed successfully!");
-                    });
-            });
+                let Echo;
+                let instance;
 
-            describe("Operation", function () {
-                    this.timeout(50000);
+                beforeEach(async function () {
+                        Echo = await ethers.getContractFactory("Echo");
+                        instance = await Echo.deploy({
+                                gasPrice: ethParams.txGasPrice,
+                                gasLimit: ethParams.txGasLimit
+                        });
+                });
 
-                    it("should update the echo variable", async function () {
-                            await instance.scream("Hello World!");
+                describe("Deployment", function () {
+                        it("should set the value of the echo when deploying", async function () {
+                                expect(await instance.echo()).to.equal("Deployed successfully!");
+                        });
+                });
 
-                            expect(await instance.echo()).to.equal("Hello World!");
-                    });
+                describe("Operation", function () {
+                        this.timeout(50000);
 
-                    it("should emit a NewEcho event", async function () {
-                            await expect(instance.scream("Hello World!")).to
-                                    .emit(instance, "NewEcho")
-                                    .withArgs("Hello World!", 1);
-                    });
+                        it("should update the echo variable", async function () {
+                                await instance.scream("Hello World!");
 
-                    it("should increment echo counter in the NewEcho event", async function () {
-                            await instance.scream("Hello World!");
+                                expect(await instance.echo()).to.equal("Hello World!");
+                        });
 
-                            await expect(instance.scream("Goodbye World!")).to
-                                    .emit(instance, "NewEcho")
-                                    .withArgs("Goodbye World!", 2);
-                    });
+                        it("should emit a NewEcho event", async function () {
+                                await expect(
+                                        instance.scream("Hello World!")).to
+                                        .emit(instance, "NewEcho")
+                                        .withArgs("Hello World!", 1);
+                        });
 
-                    it("should return input value", async function () {
-                            const response = await instance.callStatic.scream("Hello World!");
+                        it("should increment echo counter in the NewEcho event", async function () {
+                                await instance.scream("Hello World!");
 
-                            expect(response).to.equal("Hello World!");
-                    });
-            });
-    });
+                                await expect(
+                                        instance.scream("Goodbye World!")).to
+                                        .emit(instance, "NewEcho")
+                                        .withArgs("Goodbye World!", 2);
+                        });
+
+                        it("should return input value", async function () {
+                                const response = await instance.callStatic.scream("Hello World!");
+
+                                expect(response).to.equal("Hello World!");
+                        });
+                });
+        });
 
 </details>
 
@@ -281,10 +312,23 @@ $ hardhat test --network mandala
 This deployment script will deploy the contract and output the value of the `echo` variable.
 
 Within the `deploy.js` we will have the definition of main function called `main()` and then run it.
-We do this by placing the following code within the file:
+Above it we will be importing the values needed for the deployment transaction parameters. We do
+this by placing the following code within the file:
 
 ```js
+const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+
+const txFeePerGas = '199999946752';
+const storageByteDeposit = '100000000000000';
+
 async function main() {
+  const ethParams = calcEthereumTransactionParams({
+    gasLimit: '2100001',
+    validUntil: '360001',
+    storageLimit: '64001',
+    txFeePerGas,
+    storageByteDeposit
+  });
     
 }
 
@@ -311,7 +355,10 @@ calling `echo()` from instance and outputting the result using `console.log()`:
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
   const Echo = await ethers.getContractFactory("Echo");
-  const instance = await Echo.deploy();
+  const instance = await Echo.deploy({
+    gasPrice: ethParams.txGasPrice,
+    gasLimit: ethParams.txGasLimit,
+  });
 
   console.log("Echo address:", instance.address);
 
@@ -323,29 +370,45 @@ calling `echo()` from instance and outputting the result using `console.log()`:
 <details>
     <summary>Your script/deploy.js should look like this:</summary>
 
-    async function main() {
-      const [deployer] = await ethers.getSigners();
+        const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
 
-      console.log("Deploying contract with the account:", deployer.address);
+        const txFeePerGas = '199999946752';
+        const storageByteDeposit = '100000000000000';
 
-      console.log("Account balance:", (await deployer.getBalance()).toString());
+        async function main() {
+                const ethParams = calcEthereumTransactionParams({
+                        gasLimit: '2100001',
+                        validUntil: '360001',
+                        storageLimit: '64001',
+                        txFeePerGas,
+                        storageByteDeposit
+                });
 
-      const Echo = await ethers.getContractFactory("Echo");
-      const instance = await Echo.deploy();
+                const [deployer] = await ethers.getSigners();
 
-      console.log("Echo address:", instance.address);
+                console.log("Deploying contract with the account:", deployer.address);
 
-      const value = await instance.echo();
+                console.log("Account balance:", (await deployer.getBalance()).toString());
 
-      console.log("Deployment status:", value);
-    }
+                const Echo = await ethers.getContractFactory("Echo");
+                const instance = await Echo.deploy({
+                        gasPrice: ethParams.txGasPrice,
+                        gasLimit: ethParams.txGasLimit,
+                });
 
-    main()
-      .then(() => process.exit(0))
-      .catch((error) => {
-        console.error(error);
-        process.exit(1);
-      });
+                console.log("Echo address:", instance.address);
+
+                const value = await instance.echo();
+
+                console.log("Deployment status:", value);
+        }
+
+        main()
+                .then(() => process.exit(0))
+                .catch((error) => {
+                console.error(error);
+                process.exit(1);
+        });
 
 </details>
 
@@ -370,5 +433,5 @@ Deployment status: Deployed successfully!
 We have built upon the first example and added a smart contract with more functionalities and tested
 all of them. The tests were more detailed and covered more examples. We also ensured that we can
 interact with the smart contract and that we can modify its storage. We can compile smart contract
-`yarn build`, test it with `yarn test` or `yarn test-mandala` and deploy it with `yarn deploy` or
-`yarn deploy-mandala`.
+`yarn build`, test it with `yarn test`, `yarn test-mandala` or `yarn test-mandala:pubDev` and deploy
+it with `yarn deploy`, `yarn deploy-mandala` or  `yarn deploy-mandala:pubDev`.

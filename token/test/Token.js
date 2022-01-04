@@ -1,10 +1,22 @@
 const { expect } = require("chai");
 const { ContractFactory } = require("ethers");
+const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+
+const txFeePerGas = '199999946752';
+const storageByteDeposit = '100000000000000';
 
 const TokenContract = require("../artifacts/contracts/Token.sol/Token.json");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 describe("Token contract", async function () {
+        const ethParams = calcEthereumTransactionParams({
+                gasLimit: '2100001',
+                validUntil: '360001',
+                storageLimit: '64001',
+                txFeePerGas,
+                storageByteDeposit
+        });
+
         let Token;
         let instance;
         let deployer;
@@ -17,7 +29,13 @@ describe("Token contract", async function () {
                 deployerAddress = await deployer.getAddress();
                 userAddress = await user.getAddress();
                 Token = new ContractFactory(TokenContract.abi, TokenContract.bytecode, deployer);
-                instance = await Token.deploy(1234567890);
+                instance = await Token.deploy(
+                                1234567890,
+                                {
+                                        gasPrice: ethParams.txGasPrice,
+                                        gasLimit: ethParams.txGasLimit
+                                }
+                        );
         });
 
         describe("Deployment", function () {

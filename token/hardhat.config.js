@@ -30,5 +30,5 @@ module.exports = {
       },
       chainId: 595,
     },
-  }
+  }  
 };

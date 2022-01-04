@@ -20,7 +20,8 @@ async function main() {
 
   const HelloWorld = await ethers.getContractFactory("HelloWorld");
   const instance = await HelloWorld.deploy({
-    gasPrice: ethParams.txGasPrice
+    gasPrice: ethParams.txGasPrice,
+    gasLimit: ethParams.txGasLimit,
   });
 
   await instance.deployed();

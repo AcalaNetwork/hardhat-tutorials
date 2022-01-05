@@ -34,23 +34,35 @@ describe("Echo contract", async function () {
                 this.timeout(50000);
 
                 it("should update the echo variable", async function () {
-                        await instance.scream("Hello World!");
+                        await instance.scream("Hello World!", {
+                                gasPrice: ethParams.txGasPrice,
+                                gasLimit: ethParams.txGasLimit
+                        });
 
                         expect(await instance.echo()).to.equal("Hello World!");
                 });
 
                 it("should emit a NewEcho event", async function () {
                         await expect(
-                                instance.scream("Hello World!")).to
+                                instance.scream("Hello World!", {
+                                        gasPrice: ethParams.txGasPrice,
+                                        gasLimit: ethParams.txGasLimit
+                                })).to
                                 .emit(instance, "NewEcho")
                                 .withArgs("Hello World!", 1);
                 });
 
                 it("should increment echo counter in the NewEcho event", async function () {
-                        await instance.scream("Hello World!");
+                        await instance.scream("Hello World!", {
+                                gasPrice: ethParams.txGasPrice,
+                                gasLimit: ethParams.txGasLimit
+                        });
 
                         await expect(
-                                instance.scream("Goodbye World!")).to
+                                instance.scream("Goodbye World!", {
+                                        gasPrice: ethParams.txGasPrice,
+                                        gasLimit: ethParams.txGasLimit
+                                })).to
                                 .emit(instance, "NewEcho")
                                 .withArgs("Goodbye World!", 2);
                 });

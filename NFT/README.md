@@ -140,22 +140,11 @@ should look like this:
 ```js
 const { expect, use } = require("chai");
 const { ContractFactory } = require("ethers");
-const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-const txFeePerGas = '199999946752';
-const storageByteDeposit = '100000000000000';
 
 const NFTContract = require("../artifacts/contracts/NFT.sol/NFT.json");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 describe("NFT contract", async function () {
-        const ethParams = calcEthereumTransactionParams({
-                gasLimit: '2100001',
-                validUntil: '360001',
-                storageLimit: '64001',
-                txFeePerGas,
-                storageByteDeposit
-        });
         
 });
 ```
@@ -182,10 +171,7 @@ Let's assign them values in the `beforeEach` action:
                 deployerAddress = await deployer.getAddress();
                 userAddress = await user.getAddress();
                 NFT = new ContractFactory(NFTContract.abi, NFTContract.bytecode, deployer);
-                instance = await NFT.deploy({
-                        gasPrice: ethParams.txGasPrice,
-                        gasLimit: ethParams.txGasLimit,
-                });
+                instance = await NFT.deploy();
         });
 ```
 
@@ -581,23 +567,11 @@ With that, our test is ready to be run.
 
         const { expect, use } = require("chai");
         const { ContractFactory } = require("ethers");
-        const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-        const txFeePerGas = '199999946752';
-        const storageByteDeposit = '100000000000000';
 
         const NFTContract = require("../artifacts/contracts/NFT.sol/NFT.json");
         const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
         describe("NFT contract", async function () {
-                const ethParams = calcEthereumTransactionParams({
-                        gasLimit: '2100001',
-                        validUntil: '360001',
-                        storageLimit: '64001',
-                        txFeePerGas,
-                        storageByteDeposit
-                });
-
                 let NFT;
                 let instance;
                 let deployer;
@@ -610,10 +584,7 @@ With that, our test is ready to be run.
                         deployerAddress = await deployer.getAddress();
                         userAddress = await user.getAddress();
                         NFT = new ContractFactory(NFTContract.abi, NFTContract.bytecode, deployer);
-                        instance = await NFT.deploy({
-                                gasPrice: ethParams.txGasPrice,
-                                gasLimit: ethParams.txGasLimit,
-                        });
+                        instance = await NFT.deploy();
                 });
 
                 describe("Deployment", function () {
@@ -939,15 +910,9 @@ $ hardhat test
 This deployment script will deploy the contract, mint an NFT and output the its' URI
 
 Within the `deploy.js` we will have the definition of main function called `main()` and then run it.
-Above it we will be importing the values needed for the deployment transaction parameters. We do
-this by placing the following code within the file:
+We do this by placing the following code within the file:
 
 ```js
-const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-const txFeePerGas = '199999946752';
-const storageByteDeposit = '100000000000000';
-
 async function main() {
     
 }
@@ -962,23 +927,14 @@ main()
 
 
 
-Our deploy script will reside in the definition (`async function main()`). First, we will set the
-transaction parameters for the deployment transaction and get the address of the account which
-will be used to deploy the smart contract as well as the address to which we will be minting the
-NFT to. Then we get the `NFT.sol` to the contract factory and deploy it and assign the deployed
-smart contract to the `instance` variable. Assigning the `instance` variable is optional and is
-only done, so that we can mint the NFT to the alternative account and retrieve its' URI. Finally
-we output the URI of the newly minted NFT:
+Our deploy script will reside in the definition (`async function main()`). First, we will get the
+address of the account which will be used to deploy the smart contract as well as the address to
+which we will be minting the NFT to. Then we get the `NFT.sol` to the contract factory and deploy it
+and assign the deployed smart contract to the `instance` variable. Assigning the `instance` variable
+is optional and is only done, so that we can mint the NFT to the alternative account and retrieve
+its' URI. Finally we output the URI of the newly minted NFT:
 
 ```js
-  const ethParams = calcEthereumTransactionParams({
-    gasLimit: '2100001',
-    validUntil: '360001',
-    storageLimit: '64001',
-    txFeePerGas,
-    storageByteDeposit
-  });
-
   const [deployer, user] = await ethers.getSigners();
 
   console.log("Deploying contract with the account:", deployer.address);
@@ -986,10 +942,7 @@ we output the URI of the newly minted NFT:
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
   const NFT = await ethers.getContractFactory("NFT");
-  const instance = await NFT.deploy({
-    gasPrice: ethParams.txGasPrice,
-    gasLimit: ethParams.txGasLimit,
-  });
+  const instance = await NFT.deploy();
 
   console.log("NFT address:", instance.address);
 
@@ -1003,20 +956,7 @@ we output the URI of the newly minted NFT:
 <details>
     <summary>Your script/deploy.js should look like this:</summary>
 
-        const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-        const txFeePerGas = '199999946752';
-        const storageByteDeposit = '100000000000000';
-
         async function main() {
-                const ethParams = calcEthereumTransactionParams({
-                        gasLimit: '2100001',
-                        validUntil: '360001',
-                        storageLimit: '64001',
-                        txFeePerGas,
-                        storageByteDeposit
-                });
-
                 const [deployer, user] = await ethers.getSigners();
 
                 console.log("Deploying contract with the account:", deployer.address);
@@ -1024,10 +964,7 @@ we output the URI of the newly minted NFT:
                 console.log("Account balance:", (await deployer.getBalance()).toString());
 
                 const NFT = await ethers.getContractFactory("NFT");
-                const instance = await NFT.deploy({
-                        gasPrice: ethParams.txGasPrice,
-                        gasLimit: ethParams.txGasLimit,
-                });
+                const instance = await NFT.deploy();
 
                 console.log("NFT address:", instance.address);
 

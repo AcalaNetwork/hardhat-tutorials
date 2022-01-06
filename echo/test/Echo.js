@@ -1,27 +1,12 @@
 const { expect } = require("chai");
-const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-const txFeePerGas = '199999946752';
-const storageByteDeposit = '100000000000000';
 
 describe("Echo contract", async function () {
-        const ethParams = calcEthereumTransactionParams({
-                gasLimit: '2100001',
-                validUntil: '360001',
-                storageLimit: '64001',
-                txFeePerGas,
-                storageByteDeposit
-        });
-
         let Echo;
         let instance;
 
         beforeEach(async function () {
                 Echo = await ethers.getContractFactory("Echo");
-                instance = await Echo.deploy({
-                        gasPrice: ethParams.txGasPrice,
-                        gasLimit: ethParams.txGasLimit
-                });
+                instance = await Echo.deploy();
         });
 
         describe("Deployment", function () {

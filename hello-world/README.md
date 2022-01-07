@@ -215,16 +215,10 @@ To add a test, for the smart contract we just created, create a `test` directory
 mkdir test && touch test/HelloWorld.js
 ```
 
-On the first line of the test, import the `expect` from `chai` dependency and
-`calcEthereumTransactionParams` from `eth-providers`. We also set two constants to be used within
-the tests:
+On the first line of the test, import the `expect` from `chai`:
 
 ```js
 const { expect } = require("chai");
-const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-const txFeePerGas = '199999946752';
-const storageByteDeposit = '100000000000000';
 ```
 
 We will be wrapping oru test within a `describe` block, so add it below the import statement:
@@ -235,31 +229,18 @@ describe("HelloWorld contract", async function () {
 });
 ```
 
-Within the `describe` block, we set the `ethParams` from the `eth-providers` dependency (we won't be
-using all of them, but they are added to the example for reference), then we first get the contract
-factory and then deploy it, passing the transaction parameters within the deployment transaction.
-Once the smart contract is deployed, we can call the `helloWorld()` function, that was automatically
-generated because we made the `helloWorld` variable public and store the result. We compare that
-result to the `Hello World!` string and if everything is in order, our test should pass. Adding
-these steps to the `describe` block, requires us to place them within the `it` block, which we in
-turn place within the `describe` block:
+Within the `describe` block, we first get the contract factory and then deploy it. Once the smart
+contract is deployed, we can call the `helloWorld()` function, that was automatically generated
+because we made the `helloWorld` variable public and store the result. We compare that result to
+the `Hello World!` string and if everything is in order, our test should pass. Adding these steps
+to the `describe` block, requires us to place them within the `it` block, which we in turn place
+within the `describe` block:
 
 ```js
     it("returns the right value after the contract is deployed", async function () {
-        const ethParams = calcEthereumTransactionParams({
-                gasLimit: '2100001',
-                validUntil: '360001',
-                storageLimit: '64001',
-                txFeePerGas,
-                storageByteDeposit
-        });
-
         const HelloWorld = await ethers.getContractFactory("HelloWorld");
 
-        const instance = await HelloWorld.deploy({
-                gasPrice: ethParams.txGasPrice,
-                gasLimit: ethParams.txGasLimit
-        });
+        const instance = await HelloWorld.deploy();
 
         const value = await instance.helloWorld();
 
@@ -273,27 +254,12 @@ With that, our test is ready to be run.
     <summary>Your test/HelloWorld.js should look like this:</summary>
 
     const { expect } = require("chai");
-    const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-    const txFeePerGas = '199999946752';
-    const storageByteDeposit = '100000000000000';
 
     describe("HelloWorld contract", async function () {
         it("returns the right value after the contract is deployed", async function () {
-            const ethParams = calcEthereumTransactionParams({
-                    gasLimit: '2100001',
-                    validUntil: '360001',
-                    storageLimit: '64001',
-                    txFeePerGas,
-                    storageByteDeposit
-            });
-            
             const HelloWorld = await ethers.getContractFactory("HelloWorld");
             
-            const instance = await HelloWorld.deploy({
-                    gasPrice: ethParams.txGasPrice,
-                    gasLimit: ethParams.txGasLimit
-            });
+            const instance = await HelloWorld.deploy();
 
             const value = await instance.helloWorld();
 
@@ -333,17 +299,10 @@ touch test/loop.js
 ```
 
 The `loop.js` helper will continuously deploy the `HelloWorld` smart contract and force the
-generation of the new blocks. At the beginning of the helper we import the
-`calcEthereumTransactionParams` from `@acala-network/eth-providers` and define the transaction
-parameter constants that the deploy transaction will use. Additionaly we define a `sleep()`
-function, that we will use to ensure that block generation is forced every 2 seconds:
+generation of the new blocks. At the beginning of the helper we define a `sleep()` function,
+that we will use to ensure that block generation is forced every 2 seconds:
 
 ```js
-const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-const txFeePerGas = '199999946752';
-const storageByteDeposit = '100000000000000';
-
 const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 ```
 
@@ -358,19 +317,11 @@ const loop = async (interval = 2000) => {
 loop();
 ```
 
-Transaction paramteres are configured at the top of the `loop()`  function definition. Below we
-log the start of the loop to the console and define a `count` variable, which will be used to
-keep track of how many times the function has forced a block generation:
+We log the start of the loop to the console at the top of the `loop()`  function definition and
+define a `count` variable, which will be used to keep track of how many times the function has
+forced a block generation:
 
 ```js
-  const ethParams = calcEthereumTransactionParams({
-    gasLimit: '2100001',
-    validUntil: '360001',
-    storageLimit: '64001',
-    txFeePerGas,
-    storageByteDeposit
-  });
-
   console.log('Started the infinite HelloWorld deployment loop!');
 
   let count = 0;
@@ -379,18 +330,14 @@ keep track of how many times the function has forced a block generation:
 Now that the setup for the continuous deployment of the smart contract is set up, we can add a
 `while` loop to constantly deploy the smart contract. Within it we use the `interval` variable
 to ensure that the nex step of the loop is executed 2 seconds after the previous one has ended,
-we assign the `HelloWorld` contract to the contract factory and deploy it using the deployment
-parameters we defined in the beginning. Before finishing the loop, we output the current number
-of times the block generation was forced usiung this script:
+we assign the `HelloWorld` contract to the contract factory and deploy it. Before finishing the
+loop, we output the current number of times the block generation was forced usiung this script:
 
 ```js
   while (true) {
     await sleep(interval);
     const HelloWorld = await ethers.getContractFactory('HelloWorld');
-    await HelloWorld.deploy({
-      gasPrice: ethParams.txGasPrice,
-      gasLimit: ethParams.txGasLimit
-    });
+    await HelloWorld.deploy();
 
     console.log(`Current number of HelloWorld instances: ${++count}`);
   }
@@ -399,22 +346,9 @@ of times the block generation was forced usiung this script:
 <details>
     <summary>Your test/loop.js should look like this:</summary>
 
-    const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-    const txFeePerGas = '199999946752';
-    const storageByteDeposit = '100000000000000';
-
     const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 
     const loop = async (interval = 2000) => {
-      const ethParams = calcEthereumTransactionParams({
-        gasLimit: '2100001',
-        validUntil: '360001',
-        storageLimit: '64001',
-        txFeePerGas,
-        storageByteDeposit
-      });
-
       console.log('Started the infinite HelloWorld deployment loop!');
 
       let count = 0;
@@ -422,10 +356,7 @@ of times the block generation was forced usiung this script:
       while (true) {
         await sleep(interval);
         const HelloWorld = await ethers.getContractFactory('HelloWorld');
-        await HelloWorld.deploy({
-          gasPrice: ethParams.txGasPrice,
-          gasLimit: ethParams.txGasLimit
-        });
+        await HelloWorld.deploy();
 
         console.log(`Current number of HelloWorld instances: ${++count}`);
       }
@@ -444,7 +375,7 @@ that uses the `--instant-sealing` flag, we only need to add one execution script
 ```
 
 This has to be run in its own terminal only when testing and deploying to a local development
-network that uses `-instant-sealing` flag with:
+network that uses `--instant-sealing` flag with:
 
 ```bash
 yarn loop
@@ -481,16 +412,9 @@ mkdir scripts && touch scripts/deploy.js
 ```
 
 Within the `deploy.js` we will have the definition of main function called `main()` and then run it.
-Above it, we add the import statement for `eth-providers` dependency as well as define `txFeePerGas`
-and `storageByteDeposit` constants. These are used to be passed as transaction parameters. We do
-this by placing the following code within the file:
+We do this by placing the following code within the file:
 
 ```js
-const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-const txFeePerGas = '199999946752';
-const storageByteDeposit = '100000000000000';
-
 async function main() {
     
 }
@@ -503,24 +427,9 @@ main()
   });
 ```
 
-At the beginning of the `main()` function definition we set the additional transaction parameters.
-We won't be using all of them, but they are included, so you can reference them in future
-development:
-
-```js
-  const ethParams = calcEthereumTransactionParams({
-    gasLimit: '2100001',
-    validUntil: '360001',
-    storageLimit: '64001',
-    txFeePerGas,
-    storageByteDeposit
-  });
-```
-
 Our deploy script will reside in the definition (`async function main()`). First we will get
 the address of the account which will be used to deploy the smart contract. Then we get the
-`HelloWorld.sol` to the contract factory and deploy it, while passing the transaction parameters
-defined at the beginning of the `main()` function and assign the deployed smart contract to the
+`HelloWorld.sol` to the contract factory, deploy it and assign the deployed smart contract to the
 `instance` variable, which we ensure that is deployed. Assigning the `instance` variable is optional
 and is only done, so that we can output the value returned by the `helloWorld()` getter to the
 terminal. We do it by calling `helloWorld()` from instance and outputting the result using
@@ -530,10 +439,7 @@ terminal. We do it by calling `helloWorld()` from instance and outputting the re
   const [deployer] = await ethers.getSigners();
 
   const HelloWorld = await ethers.getContractFactory("HelloWorld");
-  const instance = await HelloWorld.deploy({
-    gasPrice: ethParams.txGasPrice,
-    gasLimit: ethParams.txGasLimit,
-  });
+  const instance = await HelloWorld.deploy();
 
   await instance.deployed();
 
@@ -545,27 +451,11 @@ terminal. We do it by calling `helloWorld()` from instance and outputting the re
 <details>
     <summary>Your script/deploy.js should look like this:</summary>
 
-    const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-    const txFeePerGas = '199999946752';
-    const storageByteDeposit = '100000000000000';
-
     async function main() {
-      const ethParams = calcEthereumTransactionParams({
-        gasLimit: '2100001',
-        validUntil: '360001',
-        storageLimit: '64001',
-        txFeePerGas,
-        storageByteDeposit
-      });
-
       const [deployer] = await ethers.getSigners();
 
       const HelloWorld = await ethers.getContractFactory("HelloWorld");
-      const instance = await HelloWorld.deploy({
-        gasPrice: ethParams.txGasPrice,
-        gasLimit: ethParams.txGasLimit,
-      });
+      const instance = await HelloWorld.deploy();
 
       await instance.deployed();
 

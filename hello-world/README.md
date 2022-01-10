@@ -272,13 +272,15 @@ With that, our test is ready to be run.
 To be able to run the tests, we will add three additional scripts to the `package.json`. One to run
 the test in the Hardhat's built-in network (this is a very fast option), one to run the tests on
 a local development network and one to run the tests in the public test network. This way you can
-verify the expected behaviour on Acala EVM+. Add these three lines to the `scripts` section of your
+verify the expected behaviour on Acala EVM+. We have to specify that only `HelloWorld.js` test
+script is run, as we will be adding a `loop.js` helper, which should only be run when needed. Add
+these three lines to the `scripts` section of your
 `package.json`:
 
 ```json
-    "test": "hardhat test",
-    "test-mandala": "hardhat test --network mandala",
-    "test-mandala:pubDev": "hardhat test --network mandalaPubDev"
+    "test": "hardhat test test/HelloWorld.js",
+    "test-mandala": "hardhat test test/HelloWorld.js --network mandala",
+    "test-mandala:pubDev": "hardhat test test/HelloWorld.js --network mandalaPubDev"
 ```
 
 As you can see, the `test-mandala` and `test-mandala:pubDev` script differ from `test` script in

@@ -12,7 +12,6 @@
     "test-mandala": "hardhat test test/PrecompiledToken.js --network mandala",
     "test-mandala:pubDev": "hardhat test test/PrecompiledToken.js --network mandalaPubDev",
     "test-mandala:CI": "hardhat test --network mandalaCI",
-    "build": "hardhat compile",
     "get-info": "hardhat run scripts/getACAinfo.js",
     "get-info-mandala": "hardhat run scripts/getACAinfo.js --network mandala",
     "get-info-mandala:pubDev": "hardhat run scripts/getACAinfo.js --network mandalaPubDev",

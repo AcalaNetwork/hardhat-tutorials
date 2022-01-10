@@ -21,3 +21,14 @@ the function calls, events and changes of storage variables.
 using OpenZeppelin dependency.
 
 4. [NFT](./NFT/README.md): This tutorial demonstrates how to build a NFT contract in Acala EVM+.
+
+---
+
+This section of tutorial uses Acala EVM+ specific mechanics and is incompatible with the legacy EVM.
+It introduces the use of our precompiled smart contracts that are accessible to anyone using the
+Acala EVM+
+
+5. [precompiled-token](./precompiled-token/README.md): This tutorial utilizes the precompiled and
+predeployed ERC20 tokens present in the Acala EVM+. It uses the `ADDRESS` utility, which serves
+as an automatic getter of the precompiled smart contract addresses, so we don't have to seach
+for them in the documentation and hardcode them into our project.

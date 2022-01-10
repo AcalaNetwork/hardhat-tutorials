@@ -7,7 +7,8 @@ build_all() {
     -t hardhat-tutorial-hello-world \
     -t hardhat-tutorial-echo \
     -t hardhat-tutorial-token \
-    -t hardhat-tutorial-nft'
+    -t hardhat-tutorial-nft \
+    -t hardhat-tutorial-precompiled-token'
 }
 
 rebuild_all() {
@@ -15,7 +16,8 @@ rebuild_all() {
     -t hardhat-tutorial-hello-world \
     -t hardhat-tutorial-echo \
     -t hardhat-tutorial-token \
-    -t hardhat-tutorial-nft'
+    -t hardhat-tutorial-nft \
+    -t hardhat-tutorial-precompiled-token'
 }
 
 test_all() {
@@ -24,6 +26,7 @@ test_all() {
     "echo"
     "token"
     "NFT"
+    "precompiled-token"
   )
 
   ROOT=$(pwd)

@@ -99,11 +99,22 @@ should look like this:
 ```js
 const { expect } = require("chai");
 const { ContractFactory } = require("ethers");
+const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+
+const txFeePerGas = '199999946752';
+const storageByteDeposit = '100000000000000';
 
 const TokenContract = require("../artifacts/contracts/Token.sol/Token.json");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 describe("Token contract", async function () {
+        const ethParams = calcEthereumTransactionParams({
+                gasLimit: '2100001',
+                validUntil: '360001',
+                storageLimit: '64001',
+                txFeePerGas,
+                storageByteDeposit
+        });
 
 });
 ```
@@ -130,7 +141,13 @@ in our tests. Let's assign them values in the `beforeEach` action:
                 deployerAddress = await deployer.getAddress();
                 userAddress = await user.getAddress();
                 Token = new ContractFactory(TokenContract.abi, TokenContract.bytecode, deployer);
-                instance = await Token.deploy(1234567890);
+                instance = await Token.deploy(
+                        1234567890,
+                        {
+                                gasPrice: ethParams.txGasPrice,
+                                gasLimit: ethParams.txGasLimit,
+                        }
+                );
         });
 ```
 
@@ -498,11 +515,23 @@ With that, our test is ready to be run.
 
         const { expect } = require("chai");
         const { ContractFactory } = require("ethers");
+        const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+
+        const txFeePerGas = '199999946752';
+        const storageByteDeposit = '100000000000000';
 
         const TokenContract = require("../artifacts/contracts/Token.sol/Token.json");
         const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
         describe("Token contract", async function () {
+                const ethParams = calcEthereumTransactionParams({
+                        gasLimit: '2100001',
+                        validUntil: '360001',
+                        storageLimit: '64001',
+                        txFeePerGas,
+                        storageByteDeposit
+                });
+
                 let Token;
                 let instance;
                 let deployer;
@@ -515,7 +544,13 @@ With that, our test is ready to be run.
                         deployerAddress = await deployer.getAddress();
                         userAddress = await user.getAddress();
                         Token = new ContractFactory(TokenContract.abi, TokenContract.bytecode, deployer);
-                        instance = await Token.deploy(1234567890);
+                        instance = await Token.deploy(
+                                1234567890,
+                                {
+                                        gasPrice: ethParams.txGasPrice,
+                                        gasLimit: ethParams.txGasLimit,
+                                }
+                        );
                 });
 
                 describe("Deployment", function () {
@@ -804,9 +839,15 @@ $ hardhat test
 This deployment script will deploy the contract and output the value of the `totalSupply` variable.
 
 Within the `deploy.js` we will have the definition of main function called `main()` and then run it.
-We do this by placing the following code within the file:
+Above it we will be importing the values needed for the deployment transaction parameters. We do
+this by placing the following code within the file:
 
 ```js
+const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+
+const txFeePerGas = '199999946752';
+const storageByteDeposit = '100000000000000';
+
 async function main() {
     
 }
@@ -819,14 +860,23 @@ main()
   });
 ```
 
-Our deploy script will reside in the definition (`async function main()`). First, we will get the
-address of the account which will be used to deploy the smart contract. Then we get the `Token.sol`
-to the contract factory and deploy it and assign the deployed smart contract to the `instance`
-variable. Assigning the `instance` variable is optional and is only done, so that we can output the
-value returned by the `totalSupply()` getter to the terminal. We retrieve the value of `totalSupply`
-variable by calling `totalSupply()` from instance and outputting the result using `console.log()`:
+Our deploy script will reside in the definition (`async function main()`). First, we will set the transaction
+parameters for the deployment transaction and get the address of the account which will be used to deploy the
+smart contract. Then we get the `Token.sol` to the contract factory and deploy it and assign the deployed
+smart contract to the `instance` variable. Assigning the `instance` variable is optional and is only done,
+so that we can output the value returned by the `totalSupply()` getter to the terminal. We retrieve the
+value of `totalSupply` variable by calling `totalSupply()` from instance and outputting the result using
+console.log()`:
 
 ```js
+  const ethParams = calcEthereumTransactionParams({
+          gasLimit: '2100001',
+          validUntil: '360001',
+          storageLimit: '64001',
+          txFeePerGas,
+          storageByteDeposit
+  });
+  
   const [deployer] = await ethers.getSigners();
 
   console.log("Deploying contract with the account:", deployer.address);
@@ -834,7 +884,13 @@ variable by calling `totalSupply()` from instance and outputting the result usin
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
   const Token = await ethers.getContractFactory("Token");
-  const instance = await Token.deploy(1234567890);
+  const instance = await Token.deploy(
+    1234567890,
+    {
+      gasPrice: ethParams.txGasPrice,
+      gasLimit: ethParams.txGasLimit,
+    }
+  );
 
   console.log("Token address:", instance.address);
 
@@ -846,7 +902,20 @@ variable by calling `totalSupply()` from instance and outputting the result usin
 <details>
     <summary>Your script/deploy.js should look like this:</summary>
 
+        const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+
+        const txFeePerGas = '199999946752';
+        const storageByteDeposit = '100000000000000';
+
         async function main() {
+                const ethParams = calcEthereumTransactionParams({
+                        gasLimit: '2100001',
+                        validUntil: '360001',
+                        storageLimit: '64001',
+                        txFeePerGas,
+                        storageByteDeposit
+                });
+
                 const [deployer] = await ethers.getSigners();
 
                 console.log("Deploying contract with the account:", deployer.address);
@@ -854,7 +923,13 @@ variable by calling `totalSupply()` from instance and outputting the result usin
                 console.log("Account balance:", (await deployer.getBalance()).toString());
 
                 const Token = await ethers.getContractFactory("Token");
-                const instance = await Token.deploy(1234567890);
+                const instance = await Token.deploy(
+                        1234567890,
+                        {
+                                gasPrice: ethParams.txGasPrice,
+                                gasLimit: ethParams.txGasLimit,
+                        }
+                );
 
                 console.log("Token address:", instance.address);
 

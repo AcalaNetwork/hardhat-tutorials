@@ -104,13 +104,21 @@ the `artifacts` directory and contain the compiled smart contract.
 
 ## Test
 
-Your test file should be called `Echo.js` and the empty test along with the import statement should
-look like this:
+Your test file should be called `Echo.js` and the empty test along with the import statements
+and transaction parameters definition should look like this:
 
 ```js
 const { expect } = require("chai");
 
+
 describe("Echo contract", async function () {
+        const ethParams = calcEthereumTransactionParams({
+          gasLimit: '2100001',
+          validUntil: '360001',
+          storageLimit: '64001',
+          txFeePerGas,
+          storageByteDeposit
+        });
 
 });
 ```
@@ -125,7 +133,10 @@ Echo smart contract. Let's assign them values in the `beforeEach` action:
 
         beforeEach(async function () {
                 Echo = await ethers.getContractFactory("Echo");
-                instance = await Echo.deploy();
+                instance = await Echo.deploy({
+                        gasPrice: ethParams.txGasPrice,
+                        gasLimit: ethParams.txGasLimit,
+                });
         });
 ```
 
@@ -200,14 +211,29 @@ With that, our test is ready to be run.
     <summary>Your test/Echo.js should look like this:</summary>
 
     const { expect } = require("chai");
+    const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+
+    const txFeePerGas = '199999946752';
+    const storageByteDeposit = '100000000000000';
 
     describe("Echo contract", async function () {
+            const ethParams = calcEthereumTransactionParams({
+                gasLimit: '2100001',
+                validUntil: '360001',
+                storageLimit: '64001',
+                txFeePerGas,
+                storageByteDeposit
+            });
+
             let Echo;
             let instance;
 
             beforeEach(async function () {
                     Echo = await ethers.getContractFactory("Echo");
-                    instance = await Echo.deploy();
+                    instance = await Echo.deploy({
+                        gasPrice: ethParams.txGasPrice,
+                        gasLimit: ethParams.txGasLimit,
+                    });
             });
 
             describe("Deployment", function () {
@@ -281,10 +307,23 @@ $ hardhat test --network mandala
 This deployment script will deploy the contract and output the value of the `echo` variable.
 
 Within the `deploy.js` we will have the definition of main function called `main()` and then run it.
-We do this by placing the following code within the file:
+Above it we will be importing the values needed for the deployment transaction parameters. We do
+this by placing the following code within the file:
 
 ```js
+const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+
+const txFeePerGas = '199999946752';
+const storageByteDeposit = '100000000000000';
+
 async function main() {
+        const ethParams = calcEthereumTransactionParams({
+          gasLimit: '2100001',
+          validUntil: '360001',
+          storageLimit: '64001',
+          txFeePerGas,
+          storageByteDeposit
+        });
     
 }
 
@@ -311,7 +350,10 @@ calling `echo()` from instance and outputting the result using `console.log()`:
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
   const Echo = await ethers.getContractFactory("Echo");
-  const instance = await Echo.deploy();
+  const instance = await Echo.deploy({
+    gasPrice: ethParams.txGasPrice,
+    gasLimit: ethParams.txGasLimit,
+  });
 
   console.log("Echo address:", instance.address);
 
@@ -323,7 +365,19 @@ calling `echo()` from instance and outputting the result using `console.log()`:
 <details>
     <summary>Your script/deploy.js should look like this:</summary>
 
+        const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+
+        const txFeePerGas = '199999946752';
+        const storageByteDeposit = '100000000000000';
+
         async function main() {
+                const ethParams = calcEthereumTransactionParams({
+                        gasLimit: '2100001',
+                        validUntil: '360001',
+                        storageLimit: '64001',
+                        txFeePerGas,
+                        storageByteDeposit
+                });
 
                 const [deployer] = await ethers.getSigners();
 
@@ -332,7 +386,10 @@ calling `echo()` from instance and outputting the result using `console.log()`:
                 console.log("Account balance:", (await deployer.getBalance()).toString());
 
                 const Echo = await ethers.getContractFactory("Echo");
-                const instance = await Echo.deploy();
+                const instance = await Echo.deploy({
+                        gasPrice: ethParams.txGasPrice,
+                        gasLimit: ethParams.txGasLimit,
+                });
 
                 console.log("Echo address:", instance.address);
 
@@ -372,4 +429,4 @@ We have built upon the first example and added a smart contract with more functi
 all of them. The tests were more detailed and covered more examples. We also ensured that we can
 interact with the smart contract and that we can modify its storage. We can compile smart contract
 `yarn build`, test it with `yarn test`, `yarn test-mandala` or `yarn test-mandala:pubDev` and deploy
-it with `yarn deploy`, `yarn deploy-mandala` or  `yarn deploy-mandala:pubDev`
+it with `yarn deploy`, `yarn deploy-mandala` or  `yarn deploy-mandala:pubDev`.

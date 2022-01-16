@@ -1,10 +1,22 @@
 const { expect, use } = require("chai");
 const { ContractFactory } = require("ethers");
+const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+
+const txFeePerGas = '199999946752';
+const storageByteDeposit = '100000000000000';
 
 const NFTContract = require("../artifacts/contracts/NFT.sol/NFT.json");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 describe("NFT contract", async function () {
+        const ethParams = calcEthereumTransactionParams({
+                gasLimit: '2100001',
+                validUntil: '360001',
+                storageLimit: '64001',
+                txFeePerGas,
+                storageByteDeposit
+        });
+
         let NFT;
         let instance;
         let deployer;
@@ -17,7 +29,10 @@ describe("NFT contract", async function () {
                 deployerAddress = await deployer.getAddress();
                 userAddress = await user.getAddress();
                 NFT = new ContractFactory(NFTContract.abi, NFTContract.bytecode, deployer);
-                instance = await NFT.deploy();
+                instance = await NFT.deploy({
+                        gasPrice: ethParams.txGasPrice,
+                        gasLimit: ethParams.txGasLimit,
+                });
         });
 
         describe("Deployment", function () {

@@ -11,7 +11,7 @@
 ## About
 
 This is an example that builds upon the [token example](../token/README.md). `Token` was a simple
-example on building an ERC20 comparible token smart contract. `NFT` is an example of
+example on building an ERC20 compatible token smart contract. `NFT` is an example of
 [ERC721](https://eips.ethereum.org/EIPS/eip-721) token implementation in Acala EVM+. We won't be
 building an administrated or upgradeable token and we will use OpenZeppelin
 [ERC721 implementation](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721.sol).
@@ -34,10 +34,10 @@ contract NFT is ERC721URIStorage {
 ```
 
 Import of the `ERC721`, `Counters` utility and `ERC721URIStorage` from `@openzeppelin/contracts` is
-done between the `pragma` definition and the  start od the `contract` block. The `ERC721` contract
+done between the `pragma` definition and the start of the `contract` block. The `ERC721` contract
 is OpenZeppelin implementation of the ERC721 standard. `Counters` utility is used to increment
-`_tokenIds` every time a new token is minted. `ERC721URIStorage` is used to store the NFTs URI that
-point to the data associatted to the tokens. The import statements look like this:
+`_tokenIds` every time a new token is minted. `ERC721URIStorage` is used to store the NFT's URI that
+point to the data associated to the tokens. The import statements look like this:
 
 ```solidity
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -386,7 +386,7 @@ The `approvals` block validates the following:
 
 10. Operator should be allowed to grant approval for a specific token.
 
-11. `Approval` event shoudl be emitted when operator grants approval for a specific token.
+11. `Approval` event should be emitted when operator grants approval for a specific token.
 
 12. `ApprovalForAll` event should be emitted when granting approval for all.
 
@@ -936,7 +936,7 @@ $ hardhat test
 
 ## Deploy script
 
-This deployment script will deploy the contract, mint an NFT and output the its' URI
+This deployment script will deploy the contract, mint an NFT and output its URI
 
 Within the `deploy.js` we will have the definition of main function called `main()` and then run it.
 Above it we will be importing the values needed for the deployment transaction parameters. We do
@@ -965,7 +965,7 @@ transaction parameters for the deployment transaction and get the address of the
 will be used to deploy the smart contract as well as the address to which we will be minting the
 NFT to. Then we get the `NFT.sol` to the contract factory and deploy it and assign the deployed
 smart contract to the `instance` variable. Assigning the `instance` variable is optional and is
-only done, so that we can mint the NFT to the alternative account and retrieve its' URI. Finally
+only done, so that we can mint the NFT to the alternative account and retrieve its URI. Finally
 we output the URI of the newly minted NFT:
 
 ```js

@@ -1067,4 +1067,4 @@ We have built upon the previous examples and added an ERC721 smart contract and 
 functionalities. The tests were more detailed and covered more examples. We also ensured that we can
 interact with the smart contract and that its storage is modified as expected. We can compile smart
 contract with `yarn build`, test it with `yarn test`, `yarn test-mandala` or `yarn test-mandala:pubDev`
-and deploy it with `yarn deploy`, `yarn deploy-mandala` or  `yarn deploy-mandala:pubDev`.
+and deploy it with `yarn deploy`, `yarn deploy-mandala` or `yarn deploy-mandala:pubDev`.

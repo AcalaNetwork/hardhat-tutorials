@@ -10,9 +10,9 @@ const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 describe("NFT contract", async function () {
         const ethParams = calcEthereumTransactionParams({
-                gasLimit: '2100001',
+                gasLimit: '21000010',
                 validUntil: '360001',
-                storageLimit: '64001',
+                storageLimit: '640010',
                 txFeePerGas,
                 storageByteDeposit
         });

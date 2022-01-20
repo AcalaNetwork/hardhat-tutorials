@@ -66,4 +66,6 @@ describe("Escrow contract", function () {
 
     expect(await instance.amount()).to.equal(0);
   });
+
+  // TODO: test scenario where task is not completed
 });

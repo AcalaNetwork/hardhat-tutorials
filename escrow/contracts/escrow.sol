@@ -67,7 +67,7 @@ contract Escrow {
 
     function payoutToServiceProvider() public {
         // requestor.transfer(address(this).balance);
-        amount = 0;
+        amount = 0; // TODO: deduct real token balance
     }
 
     function refundRequestor() public {

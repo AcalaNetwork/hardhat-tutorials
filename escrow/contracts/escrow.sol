@@ -1,31 +1,36 @@
 // SPDX-License-Identifier: Unlicensed
 pragma solidity ^0.8.9;
 
+import "@acala-network/contracts/token/Token.sol";
+
 contract Escrow {
     address payable public requestor;
     address payable public serviceProvider;
     bool public requestorConfirmed;
     bool public serviceProviderConfirmed;
-    uint256 public amount; // TODO: allow any precompiled token
+    uint256 public amount;
+    address public token;
 
-    event ContractFunded(uint256 amount);
+    event ContractFunded(address token, uint256 amount);
 
-    constructor(address payable _serviceProvider) {
-        requestor = payable(msg.sender);
+    constructor(address payable _requestor, address payable _serviceProvider) {
+        requestor = _requestor;
         serviceProvider = _serviceProvider;
         requestorConfirmed = false;
         serviceProviderConfirmed = false;
     }
 
-    function fund(uint256 _amount) public payable {
+    function fund(address _token, uint256 _amount) public payable {
         require(
             msg.sender == requestor,
             "Only the requestor can fund the contract"
         );
 
-        amount = _amount;
+        require(amount == 0, "Contract has already been funded");
 
-        emit ContractFunded(_amount);
+        token = _token;
+        amount = _amount;
+        emit ContractFunded(token, amount);
     }
 
     function requestorConfirmTaskCompletion(bool _taskConfirmation) public {
@@ -66,11 +71,14 @@ contract Escrow {
     }
 
     function payoutToServiceProvider() public {
-        // requestor.transfer(address(this).balance);
-        amount = 0; // TODO: deduct real token balance
+        // TODO: use the instance instead of address
+        payable(token).transfer(amount);
+        amount = 0;
     }
 
     function refundRequestor() public {
-        requestor.transfer(address(this).balance);
+        // TODO: use the instance instead of address
+        payable(token).transfer(amount);
+        amount = 0;
     }
 }

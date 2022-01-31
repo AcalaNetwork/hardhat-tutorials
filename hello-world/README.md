@@ -246,9 +246,11 @@ turn place within the `describe` block:
 
 ```js
     it("returns the right value after the contract is deployed", async function () {
+        const blockNumber = await ethers.provider.getBlockNumber();
+
         const ethParams = calcEthereumTransactionParams({
           gasLimit: '2100001',
-          validUntil: '3600010',
+          validUntil: (blockNumber + 100).toString(),
           storageLimit: '64001',
           txFeePerGas,
           storageByteDeposit
@@ -279,10 +281,11 @@ With that, our test is ready to be run.
     const storageByteDeposit = '100000000000000';
 
     describe("HelloWorld contract", async function () {
-        it("returns the right value after the contract is deployed", async function () {
+            const blockNumber = await ethers.provider.getBlockNumber();
+
             const ethParams = calcEthereumTransactionParams({
               gasLimit: '2100001',
-              validUntil: '3600010',
+              validUntil: (blockNumber + 100).toString(),
               storageLimit: '64001',
               txFeePerGas,
               storageByteDeposit
@@ -365,9 +368,11 @@ log the start of the loop to the console and define a `count` variable, which wi
 keep track of how many times the function has forced a block generation:
 
 ```js
+  const blockNumber = await ethers.provider.getBlockNumber();
+
   const ethParams = calcEthereumTransactionParams({
     gasLimit: '2100001',
-    validUntil: '3600010',
+    validUntil: (blockNumber + 100).toString(),
     storageLimit: '64001',
     txFeePerGas,
     storageByteDeposit
@@ -409,9 +414,11 @@ of times the block generation was forced usiung this script:
     const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 
     const loop = async (interval = 2000) => {
+      const blockNumber = await ethers.provider.getBlockNumber();
+
       const ethParams = calcEthereumTransactionParams({
         gasLimit: '2100001',
-        validUntil: '3600010',
+        validUntil: (blockNumber + 100).toString(),
         storageLimit: '64001',
         txFeePerGas,
         storageByteDeposit
@@ -510,9 +517,11 @@ We won't be using all of them, but they are included, so you can reference them 
 development:
 
 ```js
+  const blockNumber = await ethers.provider.getBlockNumber();
+
   const ethParams = calcEthereumTransactionParams({
     gasLimit: '2100001',
-    validUntil: '3600010',
+    validUntil: (blockNumber + 100).toString(),
     storageLimit: '64001',
     txFeePerGas,
     storageByteDeposit
@@ -553,9 +562,11 @@ terminal. We do it by calling `helloWorld()` from instance and outputting the re
     const storageByteDeposit = '100000000000000';
 
     async function main() {
+      const blockNumber = await ethers.provider.getBlockNumber();
+
       const ethParams = calcEthereumTransactionParams({
         gasLimit: '2100001',
-        validUntil: '3600010',
+        validUntil: (blockNumber + 100).toString(),
         storageLimit: '64001',
         txFeePerGas,
         storageByteDeposit

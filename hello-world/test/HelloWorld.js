@@ -6,12 +6,14 @@ const storageByteDeposit = '100000000000000';
 
 describe("HelloWorld contract", async function () {
     it("returns the right value after the contract is deployed", async function () {
+        const blockNumber = await ethers.provider.getBlockNumber();
+      
         const ethParams = calcEthereumTransactionParams({
-          gasLimit: '2100001',
-          validUntil: '3600010',
-          storageLimit: '64001',
-          txFeePerGas,
-          storageByteDeposit
+            gasLimit: '2100001',
+            validUntil: (blockNumber + 100).toString(),
+            storageLimit: '64001',
+            txFeePerGas,
+            storageByteDeposit
         });
 
         const HelloWorld = await ethers.getContractFactory("HelloWorld");

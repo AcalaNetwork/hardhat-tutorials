@@ -248,7 +248,7 @@ turn place within the `describe` block:
     it("returns the right value after the contract is deployed", async function () {
         const ethParams = calcEthereumTransactionParams({
           gasLimit: '2100001',
-          validUntil: '360001',
+          validUntil: '3600010',
           storageLimit: '64001',
           txFeePerGas,
           storageByteDeposit
@@ -282,7 +282,7 @@ With that, our test is ready to be run.
         it("returns the right value after the contract is deployed", async function () {
             const ethParams = calcEthereumTransactionParams({
               gasLimit: '2100001',
-              validUntil: '360001',
+              validUntil: '3600010',
               storageLimit: '64001',
               txFeePerGas,
               storageByteDeposit
@@ -367,7 +367,7 @@ keep track of how many times the function has forced a block generation:
 ```js
   const ethParams = calcEthereumTransactionParams({
     gasLimit: '2100001',
-    validUntil: '360001',
+    validUntil: '3600010',
     storageLimit: '64001',
     txFeePerGas,
     storageByteDeposit
@@ -411,7 +411,7 @@ of times the block generation was forced usiung this script:
     const loop = async (interval = 2000) => {
       const ethParams = calcEthereumTransactionParams({
         gasLimit: '2100001',
-        validUntil: '360001',
+        validUntil: '3600010',
         storageLimit: '64001',
         txFeePerGas,
         storageByteDeposit
@@ -512,7 +512,7 @@ development:
 ```js
   const ethParams = calcEthereumTransactionParams({
     gasLimit: '2100001',
-    validUntil: '360001',
+    validUntil: '3600010',
     storageLimit: '64001',
     txFeePerGas,
     storageByteDeposit
@@ -555,7 +555,7 @@ terminal. We do it by calling `helloWorld()` from instance and outputting the re
     async function main() {
       const ethParams = calcEthereumTransactionParams({
         gasLimit: '2100001',
-        validUntil: '360001',
+        validUntil: '3600010',
         storageLimit: '64001',
         txFeePerGas,
         storageByteDeposit

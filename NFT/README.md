@@ -151,7 +151,7 @@ const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 describe("NFT contract", async function () {
         const ethParams = calcEthereumTransactionParams({
                 gasLimit: '21000010',
-                validUntil: '360001',
+                validUntil: '3600010',
                 storageLimit: '640010',
                 txFeePerGas,
                 storageByteDeposit
@@ -592,7 +592,7 @@ With that, our test is ready to be run.
         describe("NFT contract", async function () {
                 const ethParams = calcEthereumTransactionParams({
                         gasLimit: '21000010',
-                        validUntil: '360001',
+                        validUntil: '3600010',
                         storageLimit: '640010',
                         txFeePerGas,
                         storageByteDeposit
@@ -971,7 +971,7 @@ we output the URI of the newly minted NFT:
 ```js
   const ethParams = calcEthereumTransactionParams({
     gasLimit: '21000010',
-    validUntil: '360001',
+    validUntil: '3600010',
     storageLimit: '640010',
     txFeePerGas,
     storageByteDeposit
@@ -1009,7 +1009,7 @@ we output the URI of the newly minted NFT:
         async function main() {
                 const ethParams = calcEthereumTransactionParams({
                         gasLimit: '21000010',
-                        validUntil: '360001',
+                        validUntil: '3600010',
                         storageLimit: '640010',
                         txFeePerGas,
                         storageByteDeposit

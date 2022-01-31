@@ -6,7 +6,7 @@ const storageByteDeposit = '100000000000000';
 async function main() {
   const ethParams = calcEthereumTransactionParams({
           gasLimit: '2100001',
-          validUntil: '360001',
+          validUntil: '3600010',
           storageLimit: '64001',
           txFeePerGas,
           storageByteDeposit

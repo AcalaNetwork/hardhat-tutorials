@@ -8,7 +8,7 @@ const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 const loop = async (interval = 2000) => {
   const ethParams = calcEthereumTransactionParams({
     gasLimit: '2100001',
-    validUntil: '360001',
+    validUntil: '3600010',
     storageLimit: '64001',
     txFeePerGas,
     storageByteDeposit

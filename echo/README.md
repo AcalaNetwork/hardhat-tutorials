@@ -114,7 +114,7 @@ const { expect } = require("chai");
 describe("Echo contract", async function () {
         const ethParams = calcEthereumTransactionParams({
           gasLimit: '2100001',
-          validUntil: '360001',
+          validUntil: '3600010',
           storageLimit: '64001',
           txFeePerGas,
           storageByteDeposit
@@ -219,7 +219,7 @@ With that, our test is ready to be run.
     describe("Echo contract", async function () {
             const ethParams = calcEthereumTransactionParams({
                 gasLimit: '2100001',
-                validUntil: '360001',
+                validUntil: '3600010',
                 storageLimit: '64001',
                 txFeePerGas,
                 storageByteDeposit
@@ -319,7 +319,7 @@ const storageByteDeposit = '100000000000000';
 async function main() {
         const ethParams = calcEthereumTransactionParams({
           gasLimit: '2100001',
-          validUntil: '360001',
+          validUntil: '3600010',
           storageLimit: '64001',
           txFeePerGas,
           storageByteDeposit
@@ -373,7 +373,7 @@ calling `echo()` from instance and outputting the result using `console.log()`:
         async function main() {
                 const ethParams = calcEthereumTransactionParams({
                         gasLimit: '2100001',
-                        validUntil: '360001',
+                        validUntil: '3600010',
                         storageLimit: '64001',
                         txFeePerGas,
                         storageByteDeposit

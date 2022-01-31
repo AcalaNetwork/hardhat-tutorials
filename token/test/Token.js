@@ -11,7 +11,7 @@ const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 describe("Token contract", async function () {
         const ethParams = calcEthereumTransactionParams({
                 gasLimit: '2100001',
-                validUntil: '360001',
+                validUntil: '3600010',
                 storageLimit: '64001',
                 txFeePerGas,
                 storageByteDeposit

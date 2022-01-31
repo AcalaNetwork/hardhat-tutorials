@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: Unlicensed
 pragma solidity ^0.8.9;
 
-import "@acala-network/contracts/token/Token.sol";
+// TODO: wait for contracts repo update
+// we will use openzeppelin's ERC20 for now
+// import "@acala-network/contracts/token/Token.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Escrow {
     address payable public requestor;
@@ -51,6 +54,8 @@ contract Escrow {
         );
 
         serviceProviderConfirmed = _taskConfirmation;
+
+        IERC20(token).transfer(serviceProvider, 100);
     }
 
     function completeTask() public {
@@ -71,14 +76,12 @@ contract Escrow {
     }
 
     function payoutToServiceProvider() public {
-        // TODO: use the instance instead of address
-        payable(token).transfer(amount);
+        IERC20(token).transfer(serviceProvider, amount);
         amount = 0;
     }
 
     function refundRequestor() public {
-        // TODO: use the instance instead of address
-        payable(token).transfer(amount);
+        IERC20(token).transfer(requestor, amount);
         amount = 0;
     }
 }

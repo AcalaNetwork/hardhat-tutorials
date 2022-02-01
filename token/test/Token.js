@@ -9,9 +9,11 @@ const TokenContract = require("../artifacts/contracts/Token.sol/Token.json");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 describe("Token contract", async function () {
+        const blockNumber = await ethers.provider.getBlockNumber();
+      
         const ethParams = calcEthereumTransactionParams({
                 gasLimit: '2100001',
-                validUntil: '3600010',
+                validUntil: (blockNumber + 100).toString(),
                 storageLimit: '64001',
                 txFeePerGas,
                 storageByteDeposit

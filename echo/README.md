@@ -112,12 +112,14 @@ const { expect } = require("chai");
 
 
 describe("Echo contract", async function () {
+        const blockNumber = await ethers.provider.getBlockNumber();
+
         const ethParams = calcEthereumTransactionParams({
-          gasLimit: '2100001',
-          validUntil: '3600010',
-          storageLimit: '64001',
-          txFeePerGas,
-          storageByteDeposit
+                gasLimit: '2100001',
+                validUntil: (blockNumber + 100).toString(),
+                storageLimit: '64001',
+                txFeePerGas,
+                storageByteDeposit
         });
 
 });
@@ -217,9 +219,11 @@ With that, our test is ready to be run.
     const storageByteDeposit = '100000000000000';
 
     describe("Echo contract", async function () {
+            const blockNumber = await ethers.provider.getBlockNumber();
+
             const ethParams = calcEthereumTransactionParams({
                 gasLimit: '2100001',
-                validUntil: '3600010',
+                validUntil: (blockNumber + 100).toString(),
                 storageLimit: '64001',
                 txFeePerGas,
                 storageByteDeposit
@@ -317,12 +321,14 @@ const txFeePerGas = '199999946752';
 const storageByteDeposit = '100000000000000';
 
 async function main() {
+        const blockNumber = await ethers.provider.getBlockNumber();
+
         const ethParams = calcEthereumTransactionParams({
-          gasLimit: '2100001',
-          validUntil: '3600010',
-          storageLimit: '64001',
-          txFeePerGas,
-          storageByteDeposit
+                gasLimit: '2100001',
+                validUntil: (blockNumber + 100).toString(),
+                storageLimit: '64001',
+                txFeePerGas,
+                storageByteDeposit
         });
     
 }
@@ -371,9 +377,11 @@ calling `echo()` from instance and outputting the result using `console.log()`:
         const storageByteDeposit = '100000000000000';
 
         async function main() {
+                const blockNumber = await ethers.provider.getBlockNumber();
+
                 const ethParams = calcEthereumTransactionParams({
                         gasLimit: '2100001',
-                        validUntil: '3600010',
+                        validUntil: (blockNumber + 100).toString(),
                         storageLimit: '64001',
                         txFeePerGas,
                         storageByteDeposit

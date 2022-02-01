@@ -4,9 +4,11 @@ const txFeePerGas = '199999946752';
 const storageByteDeposit = '100000000000000';
 
 async function main() {
+  const blockNumber = await ethers.provider.getBlockNumber();
+
   const ethParams = calcEthereumTransactionParams({
     gasLimit: '21000010',
-    validUntil: '3600010',
+    validUntil: (blockNumber + 100).toString(),
     storageLimit: '640010',
     txFeePerGas,
     storageByteDeposit

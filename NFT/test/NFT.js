@@ -9,9 +9,11 @@ const NFTContract = require("../artifacts/contracts/NFT.sol/NFT.json");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 describe("NFT contract", async function () {
+        const blockNumber = await ethers.provider.getBlockNumber();
+      
         const ethParams = calcEthereumTransactionParams({
                 gasLimit: '21000010',
-                validUntil: '3600010',
+                validUntil: (blockNumber + 100).toString(),
                 storageLimit: '640010',
                 txFeePerGas,
                 storageByteDeposit

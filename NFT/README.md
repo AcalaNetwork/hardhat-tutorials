@@ -149,9 +149,11 @@ const NFTContract = require("../artifacts/contracts/NFT.sol/NFT.json");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 describe("NFT contract", async function () {
+        const blockNumber = await ethers.provider.getBlockNumber();
+      
         const ethParams = calcEthereumTransactionParams({
                 gasLimit: '21000010',
-                validUntil: '3600010',
+                validUntil: (blockNumber + 100).toString(),
                 storageLimit: '640010',
                 txFeePerGas,
                 storageByteDeposit
@@ -590,9 +592,11 @@ With that, our test is ready to be run.
         const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
         describe("NFT contract", async function () {
+                const blockNumber = await ethers.provider.getBlockNumber();
+        
                 const ethParams = calcEthereumTransactionParams({
                         gasLimit: '21000010',
-                        validUntil: '3600010',
+                        validUntil: (blockNumber + 100).toString(),
                         storageLimit: '640010',
                         txFeePerGas,
                         storageByteDeposit
@@ -969,9 +973,11 @@ only done, so that we can mint the NFT to the alternative account and retrieve i
 we output the URI of the newly minted NFT:
 
 ```js
+  const blockNumber = await ethers.provider.getBlockNumber();
+
   const ethParams = calcEthereumTransactionParams({
     gasLimit: '21000010',
-    validUntil: '3600010',
+    validUntil: (blockNumber + 100).toString(),
     storageLimit: '640010',
     txFeePerGas,
     storageByteDeposit
@@ -1007,9 +1013,11 @@ we output the URI of the newly minted NFT:
         const storageByteDeposit = '100000000000000';
 
         async function main() {
+                const blockNumber = await ethers.provider.getBlockNumber();
+
                 const ethParams = calcEthereumTransactionParams({
                         gasLimit: '21000010',
-                        validUntil: '3600010',
+                        validUntil: (blockNumber + 100).toString(),
                         storageLimit: '640010',
                         txFeePerGas,
                         storageByteDeposit

@@ -6,9 +6,11 @@ const storageByteDeposit = '100000000000000';
 const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 
 const loop = async (interval = 2000) => {
+  const blockNumber = await ethers.provider.getBlockNumber();
+
   const ethParams = calcEthereumTransactionParams({
     gasLimit: '2100001',
-    validUntil: '3600010',
+    validUntil: (blockNumber + 100).toString(),
     storageLimit: '64001',
     txFeePerGas,
     storageByteDeposit

@@ -26,14 +26,15 @@ describe("Escrow contract", function () {
     requestorAddress = await requestor.getAddress();
     providerAddress = await provider.getAddress();
 
+    acaInstance = new Contract(ACA, TokenContract.abi, requestor);
+
     Escrow = new ContractFactory(EscrowContract.abi, EscrowContract.bytecode, deployer);
-    escrowInstance = await Escrow.deploy(requestorAddress, providerAddress,
+    escrowInstance = await Escrow.deploy(acaInstance.address, 100, requestorAddress, providerAddress,
       {
         gasPrice: ethParams.txGasPrice,
         gasLimit: ethParams.txGasLimit,
-      });
-
-    acaInstance = new Contract(ACA, TokenContract.abi, requestor);
+      }
+    );
   });
 
   it("deployment should assign the escrow provider and requestor", async function () {
@@ -44,55 +45,49 @@ describe("Escrow contract", function () {
   it("should only allow the requestor to complete his part", async function () {
     await expect(escrowInstance.connect(provider).requestorConfirmTaskCompletion(true)).to.
       be.revertedWith("Only the requestor can confirm his part")
-    expect(await escrowInstance.requestorConfirmed()).to.be.false;
   });
 
   it("should only allow the service provider to complete his part", async function () {
     await expect(escrowInstance.connect(requestor).serviceProviderConfirmTaskCompletion(true)).to.
       be.revertedWith("Only the service provider can confirm his part")
-    expect(await escrowInstance.serviceProviderConfirmed()).to.be.false;
   });
 
-  it("should allow the requestor to fund the contract", async function () {
-    const providerACABalance = await acaInstance.balanceOf(requestorAddress);
+  it("should let the both parties confirm the task completion and send tokens to the service provider", async function () {
+    // transfer funds to the contract
+    const previousContractBalance = await acaInstance.balanceOf(escrowInstance.address);
+    await acaInstance.transfer(escrowInstance.address, 100, { from: requestorAddress })
+    const currentContractBalance = await acaInstance.balanceOf(escrowInstance.address);
+    expect(currentContractBalance).to.equal(previousContractBalance.add(100));
 
-    expect(providerACABalance).to.be.above(100);
-
-    await expect(escrowInstance.connect(provider).fund(acaInstance.address, 100)).to.
-      be.revertedWith("Only the requestor can fund the contract")
-    expect(await escrowInstance.amount()).to.equal(0);
-
-    await expect(escrowInstance.connect(requestor).fund(acaInstance.address, 100)).to.
-      emit(escrowInstance, "ContractFunded").withArgs(acaInstance.address, 100);
-    expect(await escrowInstance.amount()).to.equal(100);
-
-    // TODO: properly check balance
-    // const requestorACABalanceUpdated = await acaInstance.balanceOf(requestorAddress);
-    // console.info(requestorACABalance)
-    // console.info(requestorACABalanceUpdated)
-
-    // This will fail because of gas used on `fund` transaction
-    // expect(requestorACABalanceUpdated).to.equal(requestorACABalance.sub(100));
-  });
-
-  it("should let the requestor complete the task and send funds to the service provider", async function () {
-    await expect(escrowInstance.connect(requestor).fund(acaInstance.address, 100)).to.
-      emit(escrowInstance, "ContractFunded").withArgs(acaInstance.address, 100);
-    expect(await escrowInstance.amount()).to.equal(100);
-
-    await escrowInstance.connect(requestor).requestorConfirmTaskCompletion(true)
+    // requestor and service provider confirm completion
     await escrowInstance.connect(provider).serviceProviderConfirmTaskCompletion(true)
+    const initialProviderBalance = await acaInstance.balanceOf(providerAddress);
+    await escrowInstance.connect(requestor).requestorConfirmTaskCompletion(true)
 
-    const providerACABalance = await acaInstance.balanceOf(providerAddress);
+    // complete the task and check if the provider balance increased
+    const finalProviderBalance = await acaInstance.balanceOf(providerAddress);
+    expect(finalProviderBalance).to.equal(initialProviderBalance.add(100));
 
-    await escrowInstance.connect(requestor).completeTask();
-
-    expect(await escrowInstance.amount()).to.equal(0);
-
-    const providerACABalanceUpdated = await acaInstance.balanceOf(providerAddress);
-
-    expect(providerACABalanceUpdated).to.equal(providerACABalance.add(100));
+    // native ACA balance matches ERC20 ACA balance
+    // TODO: wait for new release, there's a difference of 1 ACA
+    // const finalNativeBalance = await provider.getBalance();
+    // expect(finalNativeBalance).to.equal(finalProviderBalance);
   });
 
-  // TODO: test scenario where task is not completed
+  it("should let the both parties deny the task completion and send tokens back to the requestor", async function () {
+    // transfer funds to the contract
+    const previousContractBalance = await acaInstance.balanceOf(escrowInstance.address);
+    await acaInstance.transfer(escrowInstance.address, 100, { from: requestorAddress })
+    const currentContractBalance = await acaInstance.balanceOf(escrowInstance.address);
+    expect(currentContractBalance).to.equal(previousContractBalance.add(100));
+
+    // requestor and service provider deny completion
+    await escrowInstance.connect(requestor).requestorConfirmTaskCompletion(false);
+    const initialRequestorBalance = await acaInstance.balanceOf(requestorAddress);
+    await escrowInstance.connect(provider).serviceProviderConfirmTaskCompletion(false);
+
+    // complete the task and check if the requestor balance increased
+    const finalRequestorBalance = await acaInstance.balanceOf(requestorAddress);
+    expect(finalRequestorBalance).to.equal(initialRequestorBalance.add(100));
+  });
 });

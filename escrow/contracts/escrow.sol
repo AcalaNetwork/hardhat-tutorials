@@ -1,39 +1,34 @@
 // SPDX-License-Identifier: Unlicensed
 pragma solidity ^0.8.9;
 
-// TODO: wait for contracts repo update
-// we will use openzeppelin's ERC20 for now
-// import "@acala-network/contracts/token/Token.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@acala-network/contracts/token/Token.sol";
 
 contract Escrow {
     address payable public requestor;
     address payable public serviceProvider;
-    bool public requestorConfirmed;
-    bool public serviceProviderConfirmed;
+    ServiceStatus public requestorStatus;
+    ServiceStatus public serviceProviderStatus;
+    address public tokenAddress;
     uint256 public amount;
-    address public token;
 
-    event ContractFunded(address token, uint256 amount);
-
-    constructor(address payable _requestor, address payable _serviceProvider) {
-        requestor = _requestor;
-        serviceProvider = _serviceProvider;
-        requestorConfirmed = false;
-        serviceProviderConfirmed = false;
+    enum ServiceStatus {
+        Pending,
+        Confirmed,
+        Denied
     }
 
-    function fund(address _token, uint256 _amount) public payable {
-        require(
-            msg.sender == requestor,
-            "Only the requestor can fund the contract"
-        );
-
-        require(amount == 0, "Contract has already been funded");
-
-        token = _token;
+    constructor(
+        address _tokenAddress,
+        uint256 _amount,
+        address payable _requestor,
+        address payable _serviceProvider
+    ) {
+        requestor = _requestor;
+        serviceProvider = _serviceProvider;
+        tokenAddress = _tokenAddress;
         amount = _amount;
-        emit ContractFunded(token, amount);
+        requestorStatus = ServiceStatus.Pending;
+        serviceProviderStatus = ServiceStatus.Pending;
     }
 
     function requestorConfirmTaskCompletion(bool _taskConfirmation) public {
@@ -42,7 +37,13 @@ contract Escrow {
             "Only the requestor can confirm his part"
         );
 
-        requestorConfirmed = _taskConfirmation;
+        if (_taskConfirmation == true) {
+            requestorStatus = ServiceStatus.Confirmed;
+        } else {
+            requestorStatus = ServiceStatus.Denied;
+        }
+
+        completeTask();
     }
 
     function serviceProviderConfirmTaskCompletion(bool _taskConfirmation)
@@ -53,35 +54,36 @@ contract Escrow {
             "Only the service provider can confirm his part"
         );
 
-        serviceProviderConfirmed = _taskConfirmation;
+        if (_taskConfirmation == true) {
+            serviceProviderStatus = ServiceStatus.Confirmed;
+        } else {
+            serviceProviderStatus = ServiceStatus.Denied;
+        }
 
-        IERC20(token).transfer(serviceProvider, 100);
+        completeTask();
     }
 
-    function completeTask() public {
-        require(
-            msg.sender == requestor,
-            "Only the requestor can complete the task"
-        );
-
-        if (serviceProviderConfirmed == true && requestorConfirmed == true) {
+    function completeTask() private {
+        if (
+            serviceProviderStatus == ServiceStatus.Confirmed &&
+            requestorStatus == ServiceStatus.Confirmed
+        ) {
             payoutToServiceProvider();
-        } else if (
-            serviceProviderConfirmed == false && requestorConfirmed == false
+        }
+
+        if (
+            serviceProviderStatus == ServiceStatus.Denied &&
+            requestorStatus == ServiceStatus.Denied
         ) {
             refundRequestor();
-        } else {
-            // requires dispute settlement
         }
     }
 
     function payoutToServiceProvider() public {
-        IERC20(token).transfer(serviceProvider, amount);
-        amount = 0;
+        Token(tokenAddress).transfer(serviceProvider, amount);
     }
 
     function refundRequestor() public {
-        IERC20(token).transfer(requestor, amount);
-        amount = 0;
+        Token(tokenAddress).transfer(requestor, amount);
     }
 }

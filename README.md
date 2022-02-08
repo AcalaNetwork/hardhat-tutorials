@@ -32,3 +32,6 @@ Acala EVM+
 predeployed ERC20 tokens present in the Acala EVM+. It uses the `ADDRESS` utility, which serves
 as an automatic getter of the precompiled smart contract addresses, so we don't have to seach
 for them in the documentation and hardcode them into our project.
+
+6. [escrow](./escrow/README.md): This tutorial shows how to build a simple escrow smart contract that uses the precompiled and
+predeployed ERC20 tokens present in the Acala EVM+. It shows some of the strenghts of the Acala blockchain e.g. how it syncs the balance of its native token with the equivalent ERC20 predeployed token.

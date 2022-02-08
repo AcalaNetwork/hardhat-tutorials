@@ -1,0 +1,32 @@
+{
+  "name": "hardhat-tutorial-escrow",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Lauro Gripa",
+  "license": "MIT",
+  "dependencies": {
+    "hardhat": "^2.6.8"
+  },
+  "scripts": {
+    "test": "hardhat test test/Escrow.js",
+    "test-mandala": "hardhat test test/Escrow.js --network mandala",
+    "test-mandala:pubDev": "hardhat test test/Escrow.js --network mandalaPubDev",
+    "test-mandala:CI": "hardhat test --network mandalaCI",
+    "build": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy.js",
+    "deploy-mandala": "hardhat run scripts/deploy.js --network mandala",
+    "deploy-mandala:pubDev": "hardhat run scripts/deploy.js --network mandalaPubDev",
+    "deploy-mandala:CI": "hardhat run scripts/deploy.js --network mandalaCI",
+    "loop": "hardhat run test/loop.js --network mandala",
+    "loop:CI": "hardhat run test/loop.js --network mandalaCI"
+  },
+  "devDependencies": {
+    "@acala-network/contracts": "^4.0.2",
+    "@acala-network/eth-providers": "^2.1.7",
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "chai": "^4.3.4",
+    "ethereum-waffle": "^3.4.0",
+    "ethers": "^5.5.1"
+  }
+}

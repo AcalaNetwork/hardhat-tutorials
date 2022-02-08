@@ -6,10 +6,10 @@ import "@acala-network/contracts/token/Token.sol";
 contract Escrow {
     address payable public requestor;
     address payable public serviceProvider;
-    ServiceStatus public requestorStatus;
-    ServiceStatus public serviceProviderStatus;
     address public tokenAddress;
     uint256 public amount;
+    ServiceStatus public requestorStatus;
+    ServiceStatus public serviceProviderStatus;
 
     enum ServiceStatus {
         Pending,

@@ -19,12 +19,20 @@ describe("Escrow contract", function () {
     storageByteDeposit
   });
 
-  const ESCROW_AMOUNT = 1_000_000_000 // 0.001 ACA
+  let deployer;
+  let requestor;
+  let provider;
+  let requestorAddress;
+  let providerAddress;
+  let acaInstance;
+  let Escrow;
+  let escrowInstance;
+
+  const ESCROW_AMOUNT = 1_000_000_000; // 0.001 ACA
 
   beforeEach(async function () {
     [deployer, requestor, provider] = await ethers.getSigners();
 
-    deployerAddress = await deployer.getAddress();
     requestorAddress = await requestor.getAddress();
     providerAddress = await provider.getAddress();
 

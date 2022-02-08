@@ -7,6 +7,8 @@ const TokenContract = require("@acala-network/contracts/build/contracts/Token.js
 const txFeePerGas = '199999946752';
 const storageByteDeposit = '100000000000000';
 
+const ESCROW_AMOUNT = 1_000_000_000; // 0.001 ACA
+
 const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 
 const loop = async (interval = 2000) => {
@@ -34,7 +36,7 @@ const loop = async (interval = 2000) => {
 
     await sleep(interval);
     const Escrow = await ethers.getContractFactory('Escrow');
-    await Escrow.deploy(acaInstance.address, 100, requestorAddress, providerAddress,
+    await Escrow.deploy(acaInstance.address, ESCROW_AMOUNT, requestorAddress, providerAddress,
       {
         gasPrice: ethParams.txGasPrice,
         gasLimit: ethParams.txGasLimit,

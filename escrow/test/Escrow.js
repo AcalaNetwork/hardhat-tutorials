@@ -19,6 +19,8 @@ describe("Escrow contract", function () {
     storageByteDeposit
   });
 
+  const ESCROW_AMOUNT = 1_000_000_000 // 0.001 ACA
+
   beforeEach(async function () {
     [deployer, requestor, provider] = await ethers.getSigners();
 
@@ -29,7 +31,7 @@ describe("Escrow contract", function () {
     acaInstance = new Contract(ACA, TokenContract.abi, requestor);
 
     Escrow = new ContractFactory(EscrowContract.abi, EscrowContract.bytecode, deployer);
-    escrowInstance = await Escrow.deploy(acaInstance.address, 100, requestorAddress, providerAddress,
+    escrowInstance = await Escrow.deploy(acaInstance.address, ESCROW_AMOUNT, requestorAddress, providerAddress,
       {
         gasPrice: ethParams.txGasPrice,
         gasLimit: ethParams.txGasLimit,
@@ -55,31 +57,34 @@ describe("Escrow contract", function () {
   it("should let the both parties confirm the task completion and send tokens to the service provider", async function () {
     // transfer funds to the contract
     const previousContractBalance = await acaInstance.balanceOf(escrowInstance.address);
-    await acaInstance.transfer(escrowInstance.address, 100, { from: requestorAddress })
+    await acaInstance.transfer(escrowInstance.address, ESCROW_AMOUNT, { from: requestorAddress })
     const currentContractBalance = await acaInstance.balanceOf(escrowInstance.address);
-    expect(currentContractBalance).to.equal(previousContractBalance.add(100));
+    expect(currentContractBalance).to.equal(previousContractBalance.add(ESCROW_AMOUNT));
 
     // requestor and service provider confirm completion
     await escrowInstance.connect(provider).serviceProviderConfirmTaskCompletion(true)
+    const initialProviderNativeBalance = await provider.getBalance();
     const initialProviderBalance = await acaInstance.balanceOf(providerAddress);
     await escrowInstance.connect(requestor).requestorConfirmTaskCompletion(true)
 
     // complete the task and check if the provider balance increased
     const finalProviderBalance = await acaInstance.balanceOf(providerAddress);
-    expect(finalProviderBalance).to.equal(initialProviderBalance.add(100));
+    expect(finalProviderBalance).to.equal(initialProviderBalance.add(ESCROW_AMOUNT));
 
-    // native ACA balance matches ERC20 ACA balance
-    // TODO: wait for new release, there's a difference of 1 ACA
-    // const finalNativeBalance = await provider.getBalance();
-    // expect(finalNativeBalance).to.equal(finalProviderBalance);
+    // the change in native ACA balance should match the change in ERC20 ACA balance
+    const finalProviderNativeBalance = await provider.getBalance();
+    // multiplied the escrow amount by 10⁶ because there's a difference in
+    // BigNumber's decimals between native and ERC20 balance
+    const expectedProviderNativeBalance = initialProviderNativeBalance.add(ESCROW_AMOUNT * 1_000_000);
+    expect(finalProviderNativeBalance).to.equal(expectedProviderNativeBalance);
   });
 
   it("should let the both parties deny the task completion and send tokens back to the requestor", async function () {
     // transfer funds to the contract
     const previousContractBalance = await acaInstance.balanceOf(escrowInstance.address);
-    await acaInstance.transfer(escrowInstance.address, 100, { from: requestorAddress })
+    await acaInstance.transfer(escrowInstance.address, ESCROW_AMOUNT, { from: requestorAddress })
     const currentContractBalance = await acaInstance.balanceOf(escrowInstance.address);
-    expect(currentContractBalance).to.equal(previousContractBalance.add(100));
+    expect(currentContractBalance).to.equal(previousContractBalance.add(ESCROW_AMOUNT));
 
     // requestor and service provider deny completion
     await escrowInstance.connect(requestor).requestorConfirmTaskCompletion(false);
@@ -88,6 +93,6 @@ describe("Escrow contract", function () {
 
     // complete the task and check if the requestor balance increased
     const finalRequestorBalance = await acaInstance.balanceOf(requestorAddress);
-    expect(finalRequestorBalance).to.equal(initialRequestorBalance.add(100));
+    expect(finalRequestorBalance).to.equal(initialRequestorBalance.add(ESCROW_AMOUNT));
   });
 });

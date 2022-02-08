@@ -69,6 +69,7 @@ contract Escrow {
             requestorStatus == ServiceStatus.Confirmed
         ) {
             payoutToServiceProvider();
+            return;
         }
 
         if (
@@ -76,6 +77,7 @@ contract Escrow {
             requestorStatus == ServiceStatus.Denied
         ) {
             refundRequestor();
+            return;
         }
     }
 

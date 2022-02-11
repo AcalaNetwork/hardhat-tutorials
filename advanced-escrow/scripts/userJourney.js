@@ -46,12 +46,12 @@ async function main() {
   const primaryTokenName = await primaryTokenInstance.name();
   const primaryTokenSymbol = await primaryTokenInstance.symbol();
   const primaryTokenDecimals = await primaryTokenInstance.decimals();
-  console.log("Intial initiator %s token balance: %s %s", primaryTokenName, formatUnits(intialPrimaryTokenBalance.toString(), primaryTokenDecimals), primaryTokenSymbol);
+  console.log("Initial initiator %s token balance: %s %s", primaryTokenName, formatUnits(intialPrimaryTokenBalance.toString(), primaryTokenDecimals), primaryTokenSymbol);
 
   console.log("");
   console.log("");
 
-  console.log("Scenarion #1: Escrow funds are released by Schedule");
+  console.log("Scenario #1: Escrow funds are released by Schedule");
 
   console.log("");
   console.log("");
@@ -66,7 +66,7 @@ async function main() {
 
   const escrowBlockNumber = await ethers.provider.getBlockNumber();
 
-  console.log("Escrow initiation successfull in block %s. Expected automatic completion in block %s", escrowBlockNumber, escrowBlockNumber + 10);
+  console.log("Escrow initiation successful in block %s. Expected automatic completion in block %s", escrowBlockNumber, escrowBlockNumber + 10);
 
   const escrow = await instance.escrows(0);
 
@@ -114,7 +114,7 @@ async function main() {
 
   const escrowBlockNumber2 = await ethers.provider.getBlockNumber();
 
-  console.log("Escrow initiation successfull in block %s. Expected automatic completion in block %s", escrowBlockNumber2, escrowBlockNumber2 + 10);
+  console.log("Escrow initiation successful in block %s. Expected automatic completion in block %s", escrowBlockNumber2, escrowBlockNumber2 + 10);
 
   const escrow2 = await instance.escrows(1);
 
@@ -156,7 +156,7 @@ async function main() {
 
   const escrowBlockNumber3 = await ethers.provider.getBlockNumber();
 
-  console.log("Escrow initiation successfull in block %s. Expected automatic completion in block %s", escrowBlockNumber3, escrowBlockNumber3 + 10);
+  console.log("Escrow initiation successful in block %s. Expected automatic completion in block %s", escrowBlockNumber3, escrowBlockNumber3 + 10);
 
   const escrow3 = await instance.escrows(2);
 

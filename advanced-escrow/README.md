@@ -2,7 +2,7 @@
 
 ## Table of contents
 
-- [About](#about)
+- [Intro](#intro)
 - [Setting up](#setting-up)
 - [Smart contract](#smart-contract)
 - [Deploy script](#deploy-script)
@@ -11,13 +11,13 @@
 
 ## Intro
 
-This tutorial dives into Acala EVM+ smart contract development using Hardhat development framework. We will start with the setup, build the smart contract and write deployment and user journey scripts. The smart contract will allow users to initiate escrows in once currency and the beneficiaries to specify if they desire to be paid in another currency. Another feature we will familiarise ourselves with is the on-chain automation using a predeployed smart contract called `Schedule`. Using it will allow us to set the automatic completion of escrow after a certain number of blocks are included in the blockchain.
+This tutorial dives into Acala EVM+ smart contract development using Hardhat development framework. We will start with the setup, build the smart contract and write deployment and user journey scripts. The smart contract will allow users to initiate escrows in one currency, and for beneficiaries to specify if they desire to be paid in another currency. Another feature we will familiarise ourselves with is the on-chain automation using a predeployed smart contract called `Schedule`. Using it will allow us to set the automatic completion of escrow after a certain number of blocks are included in the blockchain.
 
 Let’s jump right in!
 
 ## Setting up
 
-The tutorial project will live in an `advanced-escrow/` folder. We can create it using `mkdir advanced-escrow`. As we will be using Hardhat development framework, we need to initiate the `yarn` project and add `hardhat` as a development dependency:
+The tutorial project will live in the `advanced-escrow/` folder. We can create it using `mkdir advanced-escrow`. As we will be using Hardhat development framework, we need to initiate the `yarn` project and add `hardhat` as a development dependency:
 
 ```shell
 yarn init && yarn add --dev hardhat
@@ -52,6 +52,7 @@ yarn run v1.22.17
 ```
 
 When the Hardhat prompt appears, selecting the first option will give us an adequate project skeleton that we can modify.
+
 **NOTE: Once again, the default settings from Hardhat are acceptable, so we only need to confirm them using the `enter` key.**
 
 As we will be using the Mandala test network, we need to add it to `hardhat.config.js`. Networks are added in the `module.exports` section below the `solidity` compiler version configuration. We will be adding two networks to the configuration. The local development network, which we will call `mandala`, and the public test network, which we will call `mandalaPubDev`:
@@ -61,7 +62,7 @@ As we will be using the Mandala test network, we need to add it to `hardhat.conf
    mandala: {
      url: 'http://127.0.0.1:8545',
      accounts: {
-       mnemonic: YOUR_MNEMONIC,
+       mnemonic: 'fox sight canyon orphan hotel grow hedgehog build bless august weather swarm',
        path: "m/44'/60'/0'/0",
      },
      chainId: 595,
@@ -79,26 +80,27 @@ As we will be using the Mandala test network, we need to add it to `hardhat.conf
 ```
 
 Let’s take a look at the network configurations:
-`url`: Used to specify the RPC endpoint of the network
-`accounts`: Section to describe how Hardhat should acquire or derive the EVM accounts
-`mnemonic`: Mnemonic used to derive the accounts. **Add your mnemonic here**
-`path`: Derivation path to create the accounts from the mnemonic
-`chainId`: Specific chain ID of the Mandala chain. The value of `595` is used for both, local development network as well as the public test network
-`timeout`: An override value for the built in transaction response timeout. It is needed only on the public test network
+
+- `url`: Used to specify the RPC endpoint of the network
+- `accounts`: Section to describe how Hardhat should acquire or derive the EVM accounts
+- `mnemonic`: Mnemonic used to derive the accounts. **Add your mnemonic here**
+- `path`: Derivation path to create the accounts from the mnemonic
+- `chainId`: Specific chain ID of the Mandala chain. The value of `595` is used for both, local development network as well as the public test network
+- `timeout`: An override value for the built in transaction response timeout. It is needed only on the public test network
 
 With that, our project is ready for development.
 
 ## Smart contract
 
-The `AdvancedEscrow` smart contract we will add in the following section will still leave some areas that could be improved. `Advanced` is referring to the use of the predeployed smart contracts in the Acala EVM+ rather than its function.
+The `AdvancedEscrow` smart contract, which we will add in the following section, will still leave some areas that could be improved. `Advanced` is referring to the use of the predeployed smart contracts in the Acala EVM+ rather than its function.
 
-When two parties enter into an escrow agreement using the `AdvancedEscrow` smart contract, the party paying for the service first transfers the tokens from one of the predeployed ERC20 smart contracts into the escrow smart contract and then initiates the escrow within the smart contract. Initiation of escrow requires the information about the address of the predeployed token smart contract from which they transferred the tokens into escrow as well as the beneficiary of escrow.
+When two parties enter into an escrow agreement, using the `AdvancedEscrow` smart contract, the party paying for the service: first transfers the tokens from one of the predeployed ERC20 smart contracts into the escrow smart contract. The party then initiates the escrow within the smart contract. Initiation of escrow requires both the contract address of the token being escrowed, and the wallet address of the beneficiary of escrow.
 
-Upon initiation of the escrow, the smart contract exchanges the tokens coming into escrow for the AUSD and sets the deadline after which, the AUSD is released to the beneficiary. The beneficiary also has the ability to specify which tokens they want to receive from escrow and the smart contract exchanges the AUSD it is holding in escrow for the desired tokens upon completion of escrow.
+Upon initiation of the escrow, the smart contract exchanges the tokens coming into escrow for AUSD. Then it sets the deadline after which, AUSD is released to the beneficiary. The beneficiary also has the ability to specify which tokens they want to receive from escrow and the smart contract exchanges the AUSD it is holding in escrow for the desired tokens upon completion of escrow.
 
-We are also allowing for the escrow to be completed before the deadline, with the ability for the initiating party to release the funds to the beneficiary manually.
+We also allow for the escrow to be completed before the deadline, with the ability for the initiating party to release the funds to the beneficiary manually.
 
-Hardhat has already created a smart contract within the `contracts/` folder when we ran it’s setup. This smart contract is named `Greeter`. We will remove it and add our own called `AdvancedEscrow`:
+Hardhat has already created a smart contract within the `contracts/` folder when we ran its setup. This smart contract is named `Greeter`. We will remove it and add our own called `AdvancedEscrow`:
 
 ```shell
 rm contracts/Greeter.sol && touch contracts/AdvancedEscrow.sol
@@ -148,7 +150,7 @@ We can finally start working on the actual smart contract. We will be interactin
    ISchedule public schedule = ISchedule(ADDRESS.Schedule);
 ```
 
-Our smart contract will support one escrow at the time, but will allow reuse. Let’s add a counter to be able to check the previous escrows, as well as the Escrow structure:
+Our smart contract will support one active escrow at the time, but will allow reuse. Let’s add a counter to be able to check the previous escrows, as well as the Escrow structure:
 
 ```solidity
    uint256 public numberOfEscrows;
@@ -160,20 +162,21 @@ Our smart contract will support one escrow at the time, but will allow reuse. Le
        address beneficiary;
        address ingressToken;
        address egressToken;
-       uint256 AUSDvalue;
+       uint256 AusdValue;
        uint256 deadline;
        bool completed;
    }
 ```
 
 As you can see, we added a counter for `numberOfEscrows`, a mapping to list said `escrows` and a struct to keep track of the information included inside an escrow. The `Escrow` structure holds the following information:
-`initiator`: The account that initiated and funded the escrow
-`beneficiary`; The account that is to receive the escrowed funds
-`ingressToken`: Address of the token that was used to fund the escrow
-`egressToken`: Address of the token that will be used to pay out of the escrow
-`AUSDvalue`: Value of the escrow in AUSD
-`deadline`: Block number of the block after which, the escrow will be paid out
-`completed`: Status of the escrow. Once the status is `true`, new escrow can be initiated
+
+- `initiator`: The account that initiated and funded the escrow
+- `beneficiary`; The account that is to receive the escrowed funds
+- `ingressToken`: Address of the token that was used to fund the escrow
+- `egressToken`: Address of the token that will be used to pay out of the escrow
+- `AusdValue`: Value of the escrow in AUSD
+- `deadline`: Block number of the block after which, the escrow will be paid out
+- `completed`: As an escrow can only be active or fulfilled, this can be represented as by a boolean value.
 
 The constructor in itself will only be used to set the value of `numberOfEscrows` to 0. While Solidity is a null-state language, it’s still better to be explicit where we can:
 
@@ -195,10 +198,11 @@ Now we can add the event that will notify listeners of the change in the smart c
 ```
 
 The event contains information about the current state of the latest escrow:
-`initiator: Address of the account that initiated the escrow
-`beneficiary: Address of the account to which the escrow should be released to
-`AusdValue`: Value of the escrow represented in the AUSD currency
-`fulfilled`: Status of the escrow. As it is a boolean value, the escrow can either be active or fulfilled
+
+- `initiator`: Address of the account that initiated the escrow
+- `beneficiary`: Address of the account to which the escrow should be released to
+- `AusdValue`: Value of the escrow represented in the AUSD currency
+- `fulfilled`: As an escrow can only be active or fulfilled, this can be represented as by a boolean value.
 
 Let’s start writing the logic of the escrow. As we said, there should only be one escrow active at any given time and the initiator should transfer the tokens to the smart contract before initiating the escrow. When initiating escrow, the initiator should pass the address of the token they allocated to the smart contract as the function call parameter in order for the smart contract to be able to swap that token for AUSD. All of the escrows are held in AUSD, but they can be paid out in an alternative currency. None of the addresses passed to the function should be `0x0` and the period in which the escrow should automatically be completed, expressed in the number of blocks, should not be 0 as well.
 
@@ -525,7 +529,7 @@ When deploying to the  Acala EVM+, we have to pass the transaction parameters to
 yarn add --dev @acala-network/eth-providers
 ```
 
-Now that we added the dependency, we can import it into our deploy script and set the `txFeePerGas` and `storageByteDeplosit` values at the top of the file:
+Now that we added the dependency, we can import it into our deploy script and set the `txFeePerGas` and `storageByteDeposit` values at the top of the file:
 
 ```javascript
 const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
@@ -548,7 +552,7 @@ At the beginning of the `main` function definition, we will set the remaining tr
  });
 ```
 
-Now that we have the deploy transaction parameters set, we can deploy the smart contract. We need to get the signer which will be used to deploy the smart contract, then we instatiate the smart contract within the contract factory and deploy it, passing the transaction parameters to the deploy transaction. Once the smart contract is successfully deployed, we will log it’s address to the console:
+Now that we have the deploy transaction parameters set, we can deploy the smart contract. We need to get the signer which will be used to deploy the smart contract, then we instantiate the smart contract within the contract factory and deploy it, passing the transaction parameters to the deploy transaction. Once the smart contract is successfully deployed, we will log its address to the console:
 
 ```javascript
  const [deployer] = await ethers.getSigners();
@@ -667,7 +671,7 @@ main()
  });
 ```
 
-We have to import the `calcEthereumTransactionParams` and set the `txFeePerGas` as well as the `storageByteDeposit` in order to be able to define the deployment transaction gas parameters within the `main` function. The script will use `ACA`, `AUSD` and `DOT` predeployed token smart contracts, so we need to import their addressed from the `Address` utility and `Token` precompile from `@acala-network/contracts` in order to be able to instantiate them. For the same reason as we are importing the `Token` precompile, we are also importing the `Contract` from `ethers` as it is required to instantiate the already deployed smart contract. `formatUnits` utility is imported, so that we will be able to print the formatted balances to the console.
+We have to import the `calcEthereumTransactionParams` and set the `txFeePerGas` as well as the `storageByteDeposit` in order to be able to define the deployment transaction gas parameters within the `main` function. The script will use `ACA`, `AUSD` and `DOT` predeployed token smart contracts, so we need to import their addresses from the `Address` utility and `Token` precompile from `@acala-network/contracts` in order to be able to instantiate them. For the same reason as we are importing the `Token` precompile, we are also importing the `Contract` from `ethers` as it is required to instantiate the already deployed smart contract. `formatUnits` utility is imported, so that we will be able to print the formatted balances to the console.
 
 Much like in the `deploy.js` we still need to prepare the deployment transaction gas parameters at the beginning of the `main` function:
 
@@ -741,7 +745,7 @@ To make the output to the console easier to read, we will add a few empty lines 
 
 **WARNING: As you might have noticed, we initiated the escrow using a tenth of the funds that we transferred to the smart contract. This is because the smart contract needs to have some free balance in order to be able to pay for the scheduled call.**
 
-Since we mate the `escrows` public, we can use the automatically generated getted, to get the information about the escrow we have just created and output it to the console:
+Since we made the `escrows` public, we can use the automatically generated getter, to get the information about the escrow we have just created and output it to the console:
 
 ```javascript
  const escrow = await instance.escrows(0);

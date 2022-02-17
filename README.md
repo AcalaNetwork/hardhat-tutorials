@@ -32,3 +32,7 @@ Acala EVM+
 predeployed ERC20 tokens present in the Acala EVM+. It uses the `ADDRESS` utility, which serves
 as an automatic getter of the precompiled smart contract addresses, so we don't have to seach
 for them in the documentation and hardcode them into our project.
+
+6. [DEX](./DEX/README.md): This tutorial utilizes the predeployed `DEX` smart contract to swap the
+ERC20 tokens of the  predeployed `Token` smart contracts, which we instantitate with the help of the
+`ADDRESS` utility.

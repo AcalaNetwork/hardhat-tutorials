@@ -36,3 +36,8 @@ for them in the documentation and hardcode them into our project.
 6. [DEX](./DEX/README.md): This tutorial utilizes the predeployed `DEX` smart contract to swap the
 ERC20 tokens of the  predeployed `Token` smart contracts, which we instantitate with the help of the
 `ADDRESS` utility.
+
+7. [AdvancedEscrow](./advanced-escrow/README.md): This tutorial utilizes the predeployed `DEX`,
+`Token`s and `Schedule` smart contracts in order to build an escrow service that accepts any of the
+predeployed ERC20 tokens, swaps them for `AUSD` and at a set block releases the funds in `AUSD` or
+in another predeployed ERC20 token.

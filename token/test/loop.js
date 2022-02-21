@@ -1,37 +1,20 @@
-const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-const txFeePerGas = '199999946752';
-const storageByteDeposit = '100000000000000';
+const { ApiPromise, WsProvider } = require('@polkadot/api');
 
 const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 
 const loop = async (interval = 2000) => {
-  const blockNumber = await ethers.provider.getBlockNumber();
+  const provider = new WsProvider('ws://127.0.0.1:9944');
 
-  const ethParams = calcEthereumTransactionParams({
-    gasLimit: '2100001',
-    validUntil: (blockNumber + 100).toString(),
-    storageLimit: '64001',
-    txFeePerGas,
-    storageByteDeposit
-  });
-
-  console.log('Started the infinite Token deployment loop!');
+  const api = await ApiPromise.create({ provider });
+  
+  console.log('Started forced block generation loop!')
 
   let count = 0;
 
   while (true) {
     await sleep(interval);
-    const Token = await ethers.getContractFactory('Token');
-    await Token.deploy(
-      1234567890,
-      {
-        gasPrice: ethParams.txGasPrice,
-        gasLimit: ethParams.txGasLimit,
-      }
-    );
-
-    console.log(`Current number of Token instances: ${++count}`);
+    await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
+    console.log(`Current number of force generated blocks: ${++count}`);
   }
 };
 

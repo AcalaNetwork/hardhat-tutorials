@@ -12,14 +12,11 @@ describe("DEX contract", function () {
         let ACAinstance;
         let AUSDinstance;
         let deployer;
-        let user;
         let deployerAddress;
-        let userAddress;
 
         beforeEach(async function () {
-                [deployer, user] = await ethers.getSigners();
+                [deployer] = await ethers.getSigners();
                 deployerAddress = await deployer.getAddress();
-                userAddress = await user.getAddress();
                 instance = new Contract(DEX, DEXContract.abi, deployer);
                 ACAinstance = new Contract(ACA, TokenContract.abi, deployer);
                 AUSDinstance = new Contract(AUSD, TokenContract.abi, deployer);

@@ -63,25 +63,21 @@ describe("DEX contract", function () {
 ```
 
 To prepare for the testing, we have to define the global variables, `instance`, `ACAinstance`,
-`AUSDinstance`, `deployer`, `user`, `deployerAddress` and `userAddress`. The `instance` will store
-the predeployed DEX smart contract instance, the `ACAinstance` and `AUSDinstance` variables will
-store their respective ERC20 predeployed token smart contracts. The `deployer` and `user` will store
-`Signer`s and the `deployerAddress` and `userAddress` will store their respecitve addresses. Let's
-assign these values in the `beforeEach` action:
+`AUSDinstance`, `deployer` and `deployerAddress`. The `instance` will store the predeployed DEX
+smart contract instance, the `ACAinstance` and `AUSDinstance` variables will store their respective
+ERC20 predeployed token smart contracts. The `deployer` will store `Signer` and the
+`deployerAddress` will store its addresses. Let's assign these values in the `beforeEach` action:
 
 ```js
         let instance;
         let ACAinstance;
         let AUSDinstance;
         let deployer;
-        let user;
         let deployerAddress;
-        let userAddress;
 
         beforeEach(async function () {
-                [deployer, user] = await ethers.getSigners();
+                [deployer] = await ethers.getSigners();
                 deployerAddress = await deployer.getAddress();
-                userAddress = await user.getAddress();
                 instance = new Contract(DEX, DEXContract.abi, deployer);
                 ACAinstance = new Contract(ACA, TokenContract.abi, deployer);
                 AUSDinstance = new Contract(AUSD, TokenContract.abi, deployer);
@@ -552,14 +548,11 @@ With that, our test is ready to be run.
                 let ACAinstance;
                 let AUSDinstance;
                 let deployer;
-                let user;
                 let deployerAddress;
-                let userAddress;
 
                 beforeEach(async function () {
-                        [deployer, user] = await ethers.getSigners();
+                        [deployer] = await ethers.getSigners();
                         deployerAddress = await deployer.getAddress();
-                        userAddress = await user.getAddress();
                         instance = new Contract(DEX, DEXContract.abi, deployer);
                         ACAinstance = new Contract(ACA, TokenContract.abi, deployer);
                         AUSDinstance = new Contract(AUSD, TokenContract.abi, deployer);

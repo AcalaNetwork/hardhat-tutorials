@@ -230,7 +230,7 @@ const storageByteDeposit = '100000000000000';
 We will be wrapping oru test within a `describe` block, so add it below the import statement:
 
 ```js
-describe("HelloWorld contract", async function () {
+describe("HelloWorld contract", function () {
 
 });
 ```
@@ -280,23 +280,24 @@ With that, our test is ready to be run.
     const txFeePerGas = '199999946752';
     const storageByteDeposit = '100000000000000';
 
-    describe("HelloWorld contract", async function () {
+    describe("HelloWorld contract", function () {
+        it("returns the right value after the contract is deployed", async function () {
             const blockNumber = await ethers.provider.getBlockNumber();
-
+          
             const ethParams = calcEthereumTransactionParams({
-              gasLimit: '2100001',
-              validUntil: (blockNumber + 100).toString(),
-              storageLimit: '64001',
-              txFeePerGas,
-              storageByteDeposit
+                gasLimit: '2100001',
+                validUntil: (blockNumber + 100).toString(),
+                storageLimit: '64001',
+                txFeePerGas,
+                storageByteDeposit
             });
 
             const HelloWorld = await ethers.getContractFactory("HelloWorld");
             
             const instance = await HelloWorld.deploy({
-            gasPrice: ethParams.txGasPrice,
-            gasLimit: ethParams.txGasLimit,
-        });
+                gasPrice: ethParams.txGasPrice,
+                gasLimit: ethParams.txGasLimit,
+            });
 
             const value = await instance.helloWorld();
 
@@ -337,17 +338,21 @@ project:
 touch test/loop.js
 ```
 
-The `loop.js` helper will continuously deploy the `HelloWorld` smart contract and force the
-generation of the new blocks. At the beginning of the helper we import the
-`calcEthereumTransactionParams` from `@acala-network/eth-providers` and define the transaction
-parameter constants that the deploy transaction will use. Additionaly we define a `sleep()`
-function, that we will use to ensure that block generation is forced every 2 seconds:
+The `loop.js` helper will continuously force the block generation using the `@polkadot/api`
+dependency that will interact directly with the local development network. In order ro be able to
+use it, we have to add it to our project with:
+
+```shell
+yarn add --dev @polkadot/api
+```
+
+
+At the beginning of the helper we import the `ApiPromise` and `WsProvider` from `@polkadot/api` and
+define a `sleep()` function, that we will use to ensure that block generation is forced every 2
+seconds:
 
 ```js
-const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-const txFeePerGas = '199999946752';
-const storageByteDeposit = '100000000000000';
+const { ApiPromise, WsProvider } = require('@polkadot/api');
 
 const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 ```
@@ -363,80 +368,60 @@ const loop = async (interval = 2000) => {
 loop();
 ```
 
-Transaction paramteres are configured at the top of the `loop()` function definition. Below we
-log the start of the loop to the console and define a `count` variable, which will be used to
-keep track of how many times the function has forced a block generation:
+`provider` is connected directly to the local development network in stead of the RPC adapter and
+`api` is assigned `ApiPromise` to the `provider`  at the top of the `loop()` function definition.
+Below we log the start of the loop to the console and define a `count` variable, which will be used
+to keep track of how many times the function has forced a block generation:
 
 ```js
-  const blockNumber = await ethers.provider.getBlockNumber();
+  const provider = new WsProvider('ws://127.0.0.1:9944');
 
-  const ethParams = calcEthereumTransactionParams({
-    gasLimit: '2100001',
-    validUntil: (blockNumber + 100).toString(),
-    storageLimit: '64001',
-    txFeePerGas,
-    storageByteDeposit
-  });
-
-  console.log('Started the infinite HelloWorld deployment loop!');
+  const api = await ApiPromise.create({ provider });
+  
+  console.log('Started forced block generation loop!')
 
   let count = 0;
 ```
 
-Now that the setup for the continuous deployment of the smart contract is set up, we can add a
-`while` loop to constantly deploy the smart contract. Within it we use the `interval` variable
-to ensure that the nex step of the loop is executed 2 seconds after the previous one has ended,
-we assign the `HelloWorld` contract to the contract factory and deploy it using the deployment
-parameters we defined in the beginning. Before finishing the loop, we output the current number
-of times the block generation was forced usiung this script:
+Now that the setup for the continuous forced block generation is set up, we can add a `while` loop
+to constantly force the block generation. Within it we use the `interval` variable to ensure that
+the nex step of the loop is executed 2 seconds after the previous one has ended and we use the `api`
+to generate a block. Before finishing the loop, we output the current number of times the block
+generation was forced usiung this script:
 
 ```js
   while (true) {
     await sleep(interval);
-    const HelloWorld = await ethers.getContractFactory('HelloWorld');
-    await HelloWorld.deploy({
-      gasPrice: ethParams.txGasPrice,
-      gasLimit: ethParams.txGasLimit,
-    });
-
-    console.log(`Current number of HelloWorld instances: ${++count}`);
+    await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
+    console.log(`Current number of force generated blocks: ${++count}`);
   }
 ```
+
+**NOTE: the first argument in `createBlock` is used to create an empty block if there are no
+transaction in the transaction pool and the second one is used to create a transaction only if there
+is at least one transaction within the transaction pool. As we only care that the next block is
+generated, we set both to `true`.**
 
 <details>
     <summary>Your test/loop.js should look like this:</summary>
 
-    const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-    const txFeePerGas = '199999946752';
-    const storageByteDeposit = '100000000000000';
+    const { ApiPromise, WsProvider } = require('@polkadot/api');
 
     const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 
     const loop = async (interval = 2000) => {
-      const blockNumber = await ethers.provider.getBlockNumber();
+      const provider = new WsProvider('ws://127.0.0.1:9944');
 
-      const ethParams = calcEthereumTransactionParams({
-        gasLimit: '2100001',
-        validUntil: (blockNumber + 100).toString(),
-        storageLimit: '64001',
-        txFeePerGas,
-        storageByteDeposit
-      });
-
-      console.log('Started the infinite HelloWorld deployment loop!');
+      const api = await ApiPromise.create({ provider });
+      
+      console.log('Started forced block generation loop!')
 
       let count = 0;
 
       while (true) {
         await sleep(interval);
-        const HelloWorld = await ethers.getContractFactory('HelloWorld');
-        await HelloWorld.deploy({
-          gasPrice: ethParams.txGasPrice,
-          gasLimit: ethParams.txGasLimit,
-        });
-
-        console.log(`Current number of HelloWorld instances: ${++count}`);
+        await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
+        console.log(`Current number of force generated blocks: ${++count}`);
       }
     };
 

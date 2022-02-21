@@ -4,7 +4,7 @@ const { calcEthereumTransactionParams } = require("@acala-network/eth-providers"
 const txFeePerGas = '199999946752';
 const storageByteDeposit = '100000000000000';
 
-describe("HelloWorld contract", async function () {
+describe("HelloWorld contract", function () {
     it("returns the right value after the contract is deployed", async function () {
         const blockNumber = await ethers.provider.getBlockNumber();
       

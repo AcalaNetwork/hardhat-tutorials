@@ -104,36 +104,39 @@ the `artifacts` directory and contain the compiled smart contract.
 
 ## Test
 
-Your test file should be called `Echo.js` and the empty test along with the import statements
-and transaction parameters definition should look like this:
+Your test file should be called `Echo.js` and the empty test along with the import statements should
+look like this:
 
 ```js
 const { expect } = require("chai");
 
 
-describe("Echo contract", async function () {
-        const blockNumber = await ethers.provider.getBlockNumber();
-
-        const ethParams = calcEthereumTransactionParams({
-                gasLimit: '2100001',
-                validUntil: (blockNumber + 100).toString(),
-                storageLimit: '64001',
-                txFeePerGas,
-                storageByteDeposit
-        });
+describe("Echo contract", function () {
 
 });
 ```
 
-To prepare for the testing, we have to define two global variables, `Echo` and `instance`. The
-`Echo` will be used to store the Echo contract factory and the `instance` will store the deployed
-Echo smart contract. Let's assign them values in the `beforeEach` action:
+To prepare for the testing, we have to define four global variables, `Echo`, `instance`,
+`blockNumber` and `ethParams`. The `Echo` will be used to store the Echo contract factory and the
+`instance` will store the deployed Echo smart contract. `ethParams` is used to store the deployment
+transaction configuration and the `blockNumber` is used to dinamically set the `validUntil` value of
+the `ethParams`. Let's assign them values in the `beforeEach` action:
 
 ```js
         let Echo;
         let instance;
+        let blockNumber;
+        let ethParams;
 
         beforeEach(async function () {
+                blockNumber = await ethers.provider.getBlockNumber();
+                ethParams = calcEthereumTransactionParams({
+                        gasLimit: '2100001',
+                        validUntil: (blockNumber + 100).toString(),
+                        storageLimit: '64001',
+                        txFeePerGas,
+                        storageByteDeposit
+                });
                 Echo = await ethers.getContractFactory("Echo");
                 instance = await Echo.deploy({
                         gasPrice: ethParams.txGasPrice,
@@ -213,30 +216,26 @@ With that, our test is ready to be run.
     <summary>Your test/Echo.js should look like this:</summary>
 
     const { expect } = require("chai");
-    const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
 
-    const txFeePerGas = '199999946752';
-    const storageByteDeposit = '100000000000000';
-
-    describe("Echo contract", async function () {
-            const blockNumber = await ethers.provider.getBlockNumber();
-
-            const ethParams = calcEthereumTransactionParams({
-                gasLimit: '2100001',
-                validUntil: (blockNumber + 100).toString(),
-                storageLimit: '64001',
-                txFeePerGas,
-                storageByteDeposit
-            });
-
+    describe("Echo contract", function () {
             let Echo;
             let instance;
+            let blockNumber;
+            let ethParams;
 
             beforeEach(async function () {
+                    blockNumber = await ethers.provider.getBlockNumber();
+                    ethParams = calcEthereumTransactionParams({
+                            gasLimit: '2100001',
+                            validUntil: (blockNumber + 100).toString(),
+                            storageLimit: '64001',
+                            txFeePerGas,
+                            storageByteDeposit
+                    });
                     Echo = await ethers.getContractFactory("Echo");
                     instance = await Echo.deploy({
-                        gasPrice: ethParams.txGasPrice,
-                        gasLimit: ethParams.txGasLimit,
+                            gasPrice: ethParams.txGasPrice,
+                            gasLimit: ethParams.txGasLimit,
                     });
             });
 

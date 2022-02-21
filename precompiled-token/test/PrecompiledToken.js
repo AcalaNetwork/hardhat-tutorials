@@ -4,7 +4,7 @@ const { ACA } = require("@acala-network/contracts/utils/Address");
 
 const TokenContract = require("@acala-network/contracts/build/contracts/Token.json");
 
-describe("PrecompiledToken contract", async function () {
+describe("PrecompiledToken contract", function () {
         let instance;
         let deployer;
 

@@ -4,21 +4,21 @@ const { calcEthereumTransactionParams } = require("@acala-network/eth-providers"
 const txFeePerGas = '199999946752';
 const storageByteDeposit = '100000000000000';
 
-describe("Echo contract", async function () {
-        const blockNumber = await ethers.provider.getBlockNumber();
-      
-        const ethParams = calcEthereumTransactionParams({
-          gasLimit: '2100001',
-          validUntil: (blockNumber + 100).toString(),
-          storageLimit: '64001',
-          txFeePerGas,
-          storageByteDeposit
-        });
-
+describe("Echo contract", function () {
         let Echo;
         let instance;
+        let blockNumber;
+        let ethParams;
 
         beforeEach(async function () {
+                blockNumber = await ethers.provider.getBlockNumber();
+                ethParams = calcEthereumTransactionParams({
+                        gasLimit: '2100001',
+                        validUntil: (blockNumber + 100).toString(),
+                        storageLimit: '64001',
+                        txFeePerGas,
+                        storageByteDeposit
+                });
                 Echo = await ethers.getContractFactory("Echo");
                 instance = await Echo.deploy({
                         gasPrice: ethParams.txGasPrice,

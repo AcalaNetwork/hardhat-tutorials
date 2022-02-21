@@ -8,25 +8,29 @@ const storageByteDeposit = '100000000000000';
 const TokenContract = require("../artifacts/contracts/Token.sol/Token.json");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-describe("Token contract", async function () {
-        const blockNumber = await ethers.provider.getBlockNumber();
-      
-        const ethParams = calcEthereumTransactionParams({
-                gasLimit: '2100001',
-                validUntil: (blockNumber + 100).toString(),
-                storageLimit: '64001',
-                txFeePerGas,
-                storageByteDeposit
-        });
-
+describe("Token contract", function () {
         let Token;
         let instance;
         let deployer;
         let user;
         let deployerAddress;
         let userAddress;
+        let blockNumber;
+        let ethParams;
 
         beforeEach(async function () {
+                blockNumber = await ethers.provider.getBlockNumber();
+      
+                ethParams = calcEthereumTransactionParams({
+                        gasLimit: '2100001',
+                        validUntil: (blockNumber + 100).toString(),
+                        storageLimit: '64001',
+                        txFeePerGas,
+                        storageByteDeposit,
+                        type: 0x60,
+                        tip: "1",
+                        accessList: []
+                });
                 [deployer, user] = await ethers.getSigners();
                 deployerAddress = await deployer.getAddress();
                 userAddress = await user.getAddress();
@@ -35,7 +39,7 @@ describe("Token contract", async function () {
                         1234567890,
                         {
                                 gasPrice: ethParams.txGasPrice,
-                                gasLimit: ethParams.txGasLimit,
+                                gasLimit: ethParams.txGasLimit
                         }
                 );
         });
@@ -237,7 +241,7 @@ describe("Token contract", async function () {
                                 it("should revert when tring to transfer more than allowed amount", async function () {
                                         await instance.connect(deployer).approve(userAddress, 100);
                                         await expect(instance.connect(user).transferFrom(deployerAddress, userAddress, 1000)).to
-                                                .be.revertedWith("ERC20: transfer amount exceeds allowance");
+                                                .be.revertedWith("ERC20: insufficient allowance");
                                 });
 
                                 it("should revert when transfering to 0x0 address", async function () {
@@ -254,7 +258,7 @@ describe("Token contract", async function () {
 
                                 it("should revert when trying to transfer from without being given allowance", async function () {
                                         await expect(instance.connect(user).transferFrom(deployerAddress, userAddress, 10)).to
-                                                .be.revertedWith("ERC20: transfer amount exceeds allowance");
+                                                .be.revertedWith("ERC20: insufficient allowance");
                                 });
                         });
                 });

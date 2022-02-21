@@ -148,28 +148,20 @@ const storageByteDeposit = '100000000000000';
 const NFTContract = require("../artifacts/contracts/NFT.sol/NFT.json");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-describe("NFT contract", async function () {
-        const blockNumber = await ethers.provider.getBlockNumber();
-      
-        const ethParams = calcEthereumTransactionParams({
-                gasLimit: '21000010',
-                validUntil: (blockNumber + 100).toString(),
-                storageLimit: '640010',
-                txFeePerGas,
-                storageByteDeposit
-        });
+describe("NFT contract", function () {
         
 });
 ```
 
-To prepare for the testing, we have to define four global variables, `NFT`, `instance`, `deployer`,
-`user`, `deployerAddress` and `userAddress`. The `NFT` will be used to store the NFT contract
-factory and the `instance` will store the deployed NFT smart contract. Both `deployer` and `user`
-will store `Signers`. The `deployer` is the account used to deploy the smart contract (and the one
-that will receive the `initialBalance`). The `user` is the account we will be using to transfer the
-tokens to and check the allowance operation. `deployerAddress` and `userAddress` hold the addresses
-of the `deployer` and `user` respecitively. They will be used to avoid repetitiveness in our tests.
-Let's assign them values in the `beforeEach` action:
+To prepare for the testing, we have to define the global variables, `NFT`, `instance`, `deployer`,
+`user`, `deployerAddress`, `userAddress`, `blockNumber` and `ethParams`. The `NFT` will be used to
+store the NFT contract factory and the `instance` will store the deployed NFT smart contract. Both
+`deployer` and `user` will store `Signers`. The `deployer` is the account used to deploy the smart
+contract (and the one that will receive the `initialBalance`). The `user` is the account we will be
+using to transfer the tokens to and check the allowance operation. `deployerAddress` and
+`userAddress` hold the addresses of the `deployer` and `user` respecitively. They will be used to
+avoid repetitiveness in our tests. `blockNumber` and `ethParams` will be used to set the transaction
+parameters of the deploy transaction. Let's assign them values in the `beforeEach` action:
 
 ```js
         let NFT;
@@ -178,8 +170,18 @@ Let's assign them values in the `beforeEach` action:
         let user;
         let deployerAddress;
         let userAddress;
+        let blockNumber;
+        let ethParams;
 
         beforeEach(async function () {
+                blockNumber = await ethers.provider.getBlockNumber();
+                ethParams = calcEthereumTransactionParams({
+                        gasLimit: '21000010',
+                        validUntil: (blockNumber + 100).toString(),
+                        storageLimit: '640010',
+                        txFeePerGas,
+                        storageByteDeposit
+                });
                 [deployer, user] = await ethers.getSigners();
                 deployerAddress = await deployer.getAddress();
                 userAddress = await user.getAddress();
@@ -591,25 +593,25 @@ With that, our test is ready to be run.
         const NFTContract = require("../artifacts/contracts/NFT.sol/NFT.json");
         const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-        describe("NFT contract", async function () {
-                const blockNumber = await ethers.provider.getBlockNumber();
-        
-                const ethParams = calcEthereumTransactionParams({
-                        gasLimit: '21000010',
-                        validUntil: (blockNumber + 100).toString(),
-                        storageLimit: '640010',
-                        txFeePerGas,
-                        storageByteDeposit
-                });
-
+        describe("NFT contract",  function () {
                 let NFT;
                 let instance;
                 let deployer;
                 let user;
                 let deployerAddress;
                 let userAddress;
+                let blockNumber;
+                let ethParams;
 
                 beforeEach(async function () {
+                        blockNumber = await ethers.provider.getBlockNumber();
+                        ethParams = calcEthereumTransactionParams({
+                                gasLimit: '21000010',
+                                validUntil: (blockNumber + 100).toString(),
+                                storageLimit: '640010',
+                                txFeePerGas,
+                                storageByteDeposit
+                        });
                         [deployer, user] = await ethers.getSigners();
                         deployerAddress = await deployer.getAddress();
                         userAddress = await user.getAddress();

@@ -8,25 +8,25 @@ const storageByteDeposit = '100000000000000';
 const NFTContract = require("../artifacts/contracts/NFT.sol/NFT.json");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-describe("NFT contract", async function () {
-        const blockNumber = await ethers.provider.getBlockNumber();
-      
-        const ethParams = calcEthereumTransactionParams({
-                gasLimit: '21000010',
-                validUntil: (blockNumber + 100).toString(),
-                storageLimit: '640010',
-                txFeePerGas,
-                storageByteDeposit
-        });
-
+describe("NFT contract", function () {
         let NFT;
         let instance;
         let deployer;
         let user;
         let deployerAddress;
         let userAddress;
+        let blockNumber;
+        let ethParams;
 
         beforeEach(async function () {
+                blockNumber = await ethers.provider.getBlockNumber();
+                ethParams = calcEthereumTransactionParams({
+                        gasLimit: '21000010',
+                        validUntil: (blockNumber + 100).toString(),
+                        storageLimit: '640010',
+                        txFeePerGas,
+                        storageByteDeposit
+                });
                 [deployer, user] = await ethers.getSigners();
                 deployerAddress = await deployer.getAddress();
                 userAddress = await user.getAddress();

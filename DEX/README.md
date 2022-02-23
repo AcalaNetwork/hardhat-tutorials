@@ -902,7 +902,7 @@ const DEXcompiled = require("@acala-network/contracts/build/contracts/DEX.json")
 
 const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 
-const loop = async (interval = 1000) => {
+const loop = async (interval = 2000) => {
   let blockNumber = await ethers.provider.getBlockNumber();
 
   const ethParams = calcEthereumTransactionParams({
@@ -958,7 +958,7 @@ This concludes our `loop` helper.
 
         const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 
-        const loop = async (interval = 1000) => {
+        const loop = async (interval = 2000) => {
                 let blockNumber = await ethers.provider.getBlockNumber();
 
                 const ethParams = calcEthereumTransactionParams({

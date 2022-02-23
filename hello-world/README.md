@@ -361,7 +361,7 @@ Now we are ready to define the `loop()` function and call it. Within the definit
 ensure that interval for function execution is set for 1 second:
 
 ```js
-const loop = async (interval = 1000) => {
+const loop = async (interval = 2000) => {
 
 };
 
@@ -409,7 +409,7 @@ generated, we set both to `true`.**
 
     const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 
-    const loop = async (interval = 1000) => {
+    const loop = async (interval = 2000) => {
       const provider = new WsProvider('ws://127.0.0.1:9944');
 
       const api = await ApiPromise.create({ provider });

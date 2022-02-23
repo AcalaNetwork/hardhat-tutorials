@@ -34,7 +34,7 @@ contract Escrow {
     function initiatorConfirmTaskCompletion(bool _taskConfirmation) public {
         require(
             msg.sender == initiator,
-            "Only the initiator can confirm his part"
+            "Escrow: only the initiator can confirm his part"
         );
 
         if (_taskConfirmation == true) {
@@ -49,7 +49,7 @@ contract Escrow {
     function beneficiaryConfirmTaskCompletion(bool _taskConfirmation) public {
         require(
             msg.sender == beneficiary,
-            "Only the beneficiary can confirm his part"
+            "Escrow: only the beneficiary can confirm his part"
         );
 
         if (_taskConfirmation == true) {

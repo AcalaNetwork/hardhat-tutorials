@@ -18,18 +18,18 @@ async function main() {
     storageByteDeposit
   });
 
-  const [deployer, requestor, provider] = await ethers.getSigners();
+  const [deployer, initiator, beneficiary] = await ethers.getSigners();
 
   console.log("Deploying contracts with the account:", deployer.address);
 
   deployerAddress = await deployer.getAddress();
-  requestorAddress = await requestor.getAddress();
-  providerAddress = await provider.getAddress();
+  initiatorAddress = await initiator.getAddress();
+  beneficiaryAddress = await beneficiary.getAddress();
 
-  acaInstance = new Contract(ACA, TokenContract.abi, requestor);
+  acaInstance = new Contract(ACA, TokenContract.abi, initiator);
 
   const Escrow = await ethers.getContractFactory('Escrow');
-  const escrow = await Escrow.deploy(acaInstance.address, ESCROW_AMOUNT, requestorAddress, providerAddress,
+  const escrow = await Escrow.deploy(acaInstance.address, ESCROW_AMOUNT, initiatorAddress, beneficiaryAddress,
     {
       gasPrice: ethParams.txGasPrice,
       gasLimit: ethParams.txGasLimit,

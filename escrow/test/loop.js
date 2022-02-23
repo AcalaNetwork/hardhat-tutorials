@@ -26,17 +26,17 @@ const loop = async (interval = 2000) => {
 
   while (true) {
     // using different accounts than the test to avoid conflicts
-    [_, _, _, deployer, requestor, provider] = await ethers.getSigners();
+    [_, _, _, deployer, initiator, beneficiary] = await ethers.getSigners();
 
     deployerAddress = await deployer.getAddress();
-    requestorAddress = await requestor.getAddress();
-    providerAddress = await provider.getAddress();
+    initiatorAddress = await initiator.getAddress();
+    beneficiaryAddress = await beneficiary.getAddress();
 
-    acaInstance = new Contract(ACA, TokenContract.abi, requestor);
+    acaInstance = new Contract(ACA, TokenContract.abi, initiator);
 
     await sleep(interval);
     const Escrow = await ethers.getContractFactory('Escrow');
-    await Escrow.deploy(acaInstance.address, ESCROW_AMOUNT, requestorAddress, providerAddress,
+    await Escrow.deploy(acaInstance.address, ESCROW_AMOUNT, initiatorAddress, beneficiaryAddress,
       {
         gasPrice: ethParams.txGasPrice,
         gasLimit: ethParams.txGasLimit,

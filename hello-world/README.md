@@ -414,7 +414,8 @@ generated, we set both to `true`.**
     const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 
     const loop = async (interval = 2000) => {
-      const provider = new WsProvider('ws://127.0.0.1:9944');
+      const ENDPOINT_URL = process.env.ENDPOINT_URL || 'ws://127.0.0.1:9944';
+      const provider = new WsProvider(ENDPOINT_URL);
 
       const api = await ApiPromise.create({ provider });
       

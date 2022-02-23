@@ -876,9 +876,6 @@ With that, our test is ready to be run.
 
 </details>
 
-**NOTE: If you wish to run the tests on a local development network, you should add a `loop` helper
-described in the following section.**
-
 When you run the test with (for example) `yarn test-mandala`, your tests should pass with the
 following output:
 

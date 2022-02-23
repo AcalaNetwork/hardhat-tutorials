@@ -368,13 +368,17 @@ const loop = async (interval = 2000) => {
 loop();
 ```
 
-`provider` is connected directly to the local development network in stead of the RPC adapter and
-`api` is assigned `ApiPromise` to the `provider`  at the top of the `loop()` function definition.
-Below we log the start of the loop to the console and define a `count` variable, which will be used
-to keep track of how many times the function has forced a block generation:
+At the beggining of the `loop` function definition, we create a `ENDPOINT_URL` variable to which we
+assign the URL of the web socket endpoint for the provider to use. First we check if there is an
+environment variable with it, if there isn't we use the default value. `provider` is connected 
+directly to the local development network in stead of the RPC adapter and `api` is assigned
+`ApiPromise` to the `provider`  at the top of the `loop()` function definition. Below we log the
+start of the loop to the console and define a `count` variable, which will be used to keep track of
+how many times the function has forced a block generation:
 
 ```js
-  const provider = new WsProvider('ws://127.0.0.1:9944');
+  const ENDPOINT_URL = process.env.ENDPOINT_URL || 'ws://127.0.0.1:9944';
+  const provider = new WsProvider(ENDPOINT_URL);
 
   const api = await ApiPromise.create({ provider });
   

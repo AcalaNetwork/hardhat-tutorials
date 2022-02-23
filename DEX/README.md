@@ -902,7 +902,7 @@ const DEXcompiled = require("@acala-network/contracts/build/contracts/DEX.json")
 
 const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 
-const loop = async (interval = 2000) => {
+const loop = async (interval = 1000) => {
   let blockNumber = await ethers.provider.getBlockNumber();
 
   const ethParams = calcEthereumTransactionParams({
@@ -920,7 +920,7 @@ loop();
 
 After we have set all of the constants and imported all of the required resources, all that is left
 to do is to get the Signer we will use to periodically deploy the smart contract, log the start of
-the script to the console and initiate the loop. The loop itself is executed every 2 seconds and it
+the script to the console and initiate the loop. The loop itself is executed every second and it
 uses `fromSolidity` method of the `ContractFactory` in order to prepare our `DEX` smart contract for
 deployment. Once we have the `ContractFactory` ready, we can deploy the smart contract and log the
 number of instances that were already deployed to the console:
@@ -958,7 +958,7 @@ This concludes our `loop` helper.
 
         const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 
-        const loop = async (interval = 2000) => {
+        const loop = async (interval = 1000) => {
                 let blockNumber = await ethers.provider.getBlockNumber();
 
                 const ethParams = calcEthereumTransactionParams({

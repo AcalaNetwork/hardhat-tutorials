@@ -2,7 +2,7 @@ const { ApiPromise, WsProvider } = require('@polkadot/api');
 
 const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 
-const loop = async (interval = 2000) => {
+const loop = async (interval = 1000) => {
   const provider = new WsProvider('ws://127.0.0.1:9944');
 
   const api = await ApiPromise.create({ provider });

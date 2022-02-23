@@ -358,10 +358,10 @@ const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 ```
 
 Now we are ready to define the `loop()` function and call it. Within the definition we also
-ensure that interval for function execution is set for 2 seconds:
+ensure that interval for function execution is set for 1 second:
 
 ```js
-const loop = async (interval = 2000) => {
+const loop = async (interval = 1000) => {
 
 };
 
@@ -385,7 +385,7 @@ to keep track of how many times the function has forced a block generation:
 
 Now that the setup for the continuous forced block generation is set up, we can add a `while` loop
 to constantly force the block generation. Within it we use the `interval` variable to ensure that
-the nex step of the loop is executed 2 seconds after the previous one has ended and we use the `api`
+the next step of the loop is executed 1 second after the previous one has ended and we use the `api`
 to generate a block. Before finishing the loop, we output the current number of times the block
 generation was forced usiung this script:
 
@@ -409,7 +409,7 @@ generated, we set both to `true`.**
 
     const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 
-    const loop = async (interval = 2000) => {
+    const loop = async (interval = 1000) => {
       const provider = new WsProvider('ws://127.0.0.1:9944');
 
       const api = await ApiPromise.create({ provider });

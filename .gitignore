@@ -4,3 +4,4 @@ cache/
 *.lock
 **/*.log
 **/.rush
+.DS_Store

@@ -4,12 +4,12 @@ pragma solidity ^0.8.9;
 import "@acala-network/contracts/token/Token.sol";
 
 contract Escrow {
-    address payable public requestor;
-    address payable public serviceProvider;
+    address public initiator;
+    address public beneficiary;
     address public tokenAddress;
     uint256 public amount;
-    ServiceStatus public requestorStatus;
-    ServiceStatus public serviceProviderStatus;
+    ServiceStatus public initiatorStatus;
+    ServiceStatus public beneficiaryStatus;
 
     enum ServiceStatus {
         Pending,
@@ -20,44 +20,42 @@ contract Escrow {
     constructor(
         address _tokenAddress,
         uint256 _amount,
-        address payable _requestor,
-        address payable _serviceProvider
+        address _initiator,
+        address _beneficiary
     ) {
-        requestor = _requestor;
-        serviceProvider = _serviceProvider;
+        initiator = _initiator;
+        beneficiary = _beneficiary;
         tokenAddress = _tokenAddress;
         amount = _amount;
-        requestorStatus = ServiceStatus.Pending;
-        serviceProviderStatus = ServiceStatus.Pending;
+        initiatorStatus = ServiceStatus.Pending;
+        beneficiaryStatus = ServiceStatus.Pending;
     }
 
-    function requestorConfirmTaskCompletion(bool _taskConfirmation) public {
+    function initiatorConfirmTaskCompletion(bool _taskConfirmation) public {
         require(
-            msg.sender == requestor,
-            "Only the requestor can confirm his part"
+            msg.sender == initiator,
+            "Only the initiator can confirm his part"
         );
 
         if (_taskConfirmation == true) {
-            requestorStatus = ServiceStatus.Confirmed;
+            initiatorStatus = ServiceStatus.Confirmed;
         } else {
-            requestorStatus = ServiceStatus.Denied;
+            initiatorStatus = ServiceStatus.Denied;
         }
 
         completeTask();
     }
 
-    function serviceProviderConfirmTaskCompletion(bool _taskConfirmation)
-        public
-    {
+    function beneficiaryConfirmTaskCompletion(bool _taskConfirmation) public {
         require(
-            msg.sender == serviceProvider,
-            "Only the service provider can confirm his part"
+            msg.sender == beneficiary,
+            "Only the beneficiary can confirm his part"
         );
 
         if (_taskConfirmation == true) {
-            serviceProviderStatus = ServiceStatus.Confirmed;
+            beneficiaryStatus = ServiceStatus.Confirmed;
         } else {
-            serviceProviderStatus = ServiceStatus.Denied;
+            beneficiaryStatus = ServiceStatus.Denied;
         }
 
         completeTask();
@@ -65,27 +63,27 @@ contract Escrow {
 
     function completeTask() private {
         if (
-            serviceProviderStatus == ServiceStatus.Confirmed &&
-            requestorStatus == ServiceStatus.Confirmed
+            beneficiaryStatus == ServiceStatus.Confirmed &&
+            initiatorStatus == ServiceStatus.Confirmed
         ) {
-            payoutToServiceProvider();
+            payoutTobeneficiary();
             return;
         }
 
         if (
-            serviceProviderStatus == ServiceStatus.Denied &&
-            requestorStatus == ServiceStatus.Denied
+            beneficiaryStatus == ServiceStatus.Denied &&
+            initiatorStatus == ServiceStatus.Denied
         ) {
-            refundRequestor();
+            refundinitiator();
             return;
         }
     }
 
-    function payoutToServiceProvider() public {
-        Token(tokenAddress).transfer(serviceProvider, amount);
+    function payoutTobeneficiary() public {
+        Token(tokenAddress).transfer(beneficiary, amount);
     }
 
-    function refundRequestor() public {
-        Token(tokenAddress).transfer(requestor, amount);
+    function refundinitiator() public {
+        Token(tokenAddress).transfer(initiator, amount);
     }
 }

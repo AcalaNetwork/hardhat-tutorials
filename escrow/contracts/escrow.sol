@@ -61,7 +61,7 @@ contract Escrow {
         completeTask();
     }
 
-    function completeTask() private {
+    function completeTask() internal {
         if (
             beneficiaryStatus == ServiceStatus.Confirmed &&
             initiatorStatus == ServiceStatus.Confirmed
@@ -79,11 +79,11 @@ contract Escrow {
         }
     }
 
-    function payoutToBeneficiary() public {
+    function payoutToBeneficiary() internal {
         Token(tokenAddress).transfer(beneficiary, amount);
     }
 
-    function refundInitiator() public {
+    function refundInitiator() internal {
         Token(tokenAddress).transfer(initiator, amount);
     }
 }

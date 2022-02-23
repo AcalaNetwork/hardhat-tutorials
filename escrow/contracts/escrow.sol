@@ -43,7 +43,7 @@ contract Escrow {
             initiatorStatus = ServiceStatus.Denied;
         }
 
-        completeTask();
+        require(completeTask());
     }
 
     function beneficiaryConfirmTaskCompletion(bool _taskConfirmation) public {
@@ -58,7 +58,7 @@ contract Escrow {
             beneficiaryStatus = ServiceStatus.Denied;
         }
 
-        completeTask();
+        require(completeTask());
     }
 
     function completeTask() internal {

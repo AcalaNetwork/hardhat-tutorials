@@ -66,7 +66,7 @@ contract Escrow {
             beneficiaryStatus == ServiceStatus.Confirmed &&
             initiatorStatus == ServiceStatus.Confirmed
         ) {
-            payoutTobeneficiary();
+            payoutToBeneficiary();
             return;
         }
 
@@ -74,16 +74,16 @@ contract Escrow {
             beneficiaryStatus == ServiceStatus.Denied &&
             initiatorStatus == ServiceStatus.Denied
         ) {
-            refundinitiator();
+            refundInitiator();
             return;
         }
     }
 
-    function payoutTobeneficiary() public {
+    function payoutToBeneficiary() public {
         Token(tokenAddress).transfer(beneficiary, amount);
     }
 
-    function refundinitiator() public {
+    function refundInitiator() public {
         Token(tokenAddress).transfer(initiator, amount);
     }
 }

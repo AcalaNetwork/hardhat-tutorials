@@ -31,8 +31,6 @@ test_all() {
     "token"
     "NFT"
     "precompiled-token"
-    "DEX"
-    "EVM"
   )
 
   ROOT=$(pwd)

@@ -29,7 +29,6 @@ test_all() {
     "token"
     "NFT"
     "precompiled-token"
-    "DEX"
   )
 
   ROOT=$(pwd)

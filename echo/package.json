@@ -21,7 +21,7 @@
     "loop:CI": "hardhat run test/loop.js --network mandalaCI"
   },
   "devDependencies": {
-    "@acala-network/eth-providers": "^2.1.7",
+    "@acala-network/eth-providers": "^2.2.3",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@polkadot/api": "~7.11.1",

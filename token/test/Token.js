@@ -241,7 +241,7 @@ describe("Token contract", function () {
                                 it("should revert when tring to transfer more than allowed amount", async function () {
                                         await instance.connect(deployer).approve(userAddress, 100);
                                         await expect(instance.connect(user).transferFrom(deployerAddress, userAddress, 1000)).to
-                                                .be.revertedWith("ERC20: insufficient allowance");
+                                                .be.revertedWith("allowance");
                                 });
 
                                 it("should revert when transfering to 0x0 address", async function () {
@@ -258,7 +258,7 @@ describe("Token contract", function () {
 
                                 it("should revert when trying to transfer from without being given allowance", async function () {
                                         await expect(instance.connect(user).transferFrom(deployerAddress, userAddress, 10)).to
-                                                .be.revertedWith("ERC20: insufficient allowance");
+                                                .be.revertedWith("allowance");
                                 });
                         });
                 });

@@ -1,25 +1,14 @@
-const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+const { txParams } = require("../utils/transactionHelper");
 const { ACA, AUSD, DOT } = require("@acala-network/contracts/utils/Address");
 const { Contract } = require("ethers");
 const { formatUnits } = require("ethers/lib/utils");
 
 const TokenContract = require("@acala-network/contracts/build/contracts/Token.json");
 
-const txFeePerGas = '199999946752';
-const storageByteDeposit = '100000000000000';
-
 const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
 
 async function main() {
-  const blockNumber = await ethers.provider.getBlockNumber();
-
-  const ethParams = calcEthereumTransactionParams({
-    gasLimit: '21000010',
-    validUntil: (blockNumber + 100).toString(),
-    storageLimit: '640010',
-    txFeePerGas,
-    storageByteDeposit
-  });
+  const ethParams = await txParams();
 
   console.log("Getting signers");
   const [initiator, beneficiary] = await ethers.getSigners();

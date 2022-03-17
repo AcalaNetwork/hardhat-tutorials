@@ -472,6 +472,100 @@ $ hardhat test
 
 ## Add a script
 
+### Transaction helper utility
+
+In order to be able to deploy your smart contract to the Acala EVM+ using Hardhat, you need to pass
+custom transaction parameters to the deploy transactions. We could add them directly to the script,
+but this becomes cumbersome and repetitive as our project grows. To avoid the repetitiveness, we
+will create a custom transaction helper utility, which will use `calcEthereumTransactionParams` from
+`@acala-network/eth-providers` dependency.
+
+First we need to add the dependency to the project:
+
+```shell
+yarn add --dev @acala-network/eth-providers
+```
+
+Now that we have the required dependency added to the project, we can create the utility:
+
+```shell
+mkdir utils && touch utils/transactionHelpers.js
+```
+
+The `calcEthereumTransactionParams` is imported at the top of the file and let's define the
+`txParams()` below it:
+
+```javascript
+const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+
+async function txParams() {
+
+}
+```
+
+Within the `txParams()` function, we set the parameters needed to be passed to the
+`calcEthereumTransactionParams` and then assign its return values to the `ethParams`. At the end of
+the function we return the gas price and gas limit needed to deploy a smart contract:
+
+```javascript
+    const txFeePerGas = '199999946752';
+    const storageByteDeposit = '100000000000000';
+    const blockNumber = await ethers.provider.getBlockNumber();
+
+    const ethParams = calcEthereumTransactionParams({
+      gasLimit: '31000000',
+      validUntil: (blockNumber + 100).toString(),
+      storageLimit: '64001',
+      txFeePerGas,
+      storageByteDeposit
+    });
+
+    return {
+        txGasPrice: ethParams.txGasPrice,
+        txGasLimit: ethParams.txGasLimit
+    };
+```
+
+In order to be able to use the `txParams` from our new utility, we have to export it at the bottom
+of the utility:
+
+```javascript
+module.exports = { txParams };
+```
+
+This concludes the `transactionHelper` and we can move on to writing the deploy script where we will
+use it.
+
+<details>
+    <summary>Your utils/transactionHelper.js should look like this:</summary>
+
+    const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+
+    async function txParams() {
+        const txFeePerGas = '199999946752';
+        const storageByteDeposit = '100000000000000';
+        const blockNumber = await ethers.provider.getBlockNumber();
+
+        const ethParams = calcEthereumTransactionParams({
+          gasLimit: '31000000',
+          validUntil: (blockNumber + 100).toString(),
+          storageLimit: '64001',
+          txFeePerGas,
+          storageByteDeposit
+        });
+
+        return {
+            txGasPrice: ethParams.txGasPrice,
+            txGasLimit: ethParams.txGasLimit
+        };
+    }
+
+    module.exports = { txParams };
+
+</details>
+
+### Script
+
 Finally let's add a script that deploys the example smart contract. To do this, we first have to add
 a `scripts` directory and place `deploy.js` within it:
 
@@ -480,15 +574,12 @@ mkdir scripts && touch scripts/deploy.js
 ```
 
 Within the `deploy.js` we will have the definition of main function called `main()` and then run it.
-Above it, we add the import statement for `eth-providers` dependency as well as define `txFeePerGas`
-and `storageByteDeposit` constants. These are used to be passed as transaction parameters. We do
+Above it, we add the import statement for `txParams` from the `transactionHelper`that we created in
+the previous subsection. Its return values are used to be passed as transaction parameters. We do
 this by placing the following code within the file:
 
 ```js
-const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-const txFeePerGas = '199999946752';
-const storageByteDeposit = '100000000000000';
+const { txParams } = require("../utils/transactionHelper");
 
 async function main() {
     
@@ -502,20 +593,11 @@ main()
   });
 ```
 
-At the beginning of the `main()` function definition we set the additional transaction parameters.
-We won't be using all of them, but they are included, so you can reference them in future
-development:
+At the beginning of the `main()` function definition we invoke the `txParams` and assign its return
+values to the `ethParams`:
 
 ```js
-  const blockNumber = await ethers.provider.getBlockNumber();
-
-  const ethParams = calcEthereumTransactionParams({
-    gasLimit: '2100001',
-    validUntil: (blockNumber + 100).toString(),
-    storageLimit: '64001',
-    txFeePerGas,
-    storageByteDeposit
-  });
+  const ethParams = await txParams();
 ```
 
 Our deploy script will reside in the definition (`async function main()`). First we will get
@@ -546,21 +628,10 @@ terminal. We do it by calling `helloWorld()` from instance and outputting the re
 <details>
     <summary>Your script/deploy.js should look like this:</summary>
 
-    const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-    const txFeePerGas = '199999946752';
-    const storageByteDeposit = '100000000000000';
+    const { txParams } = require("../utils/transactionHelper");
 
     async function main() {
-      const blockNumber = await ethers.provider.getBlockNumber();
-
-      const ethParams = calcEthereumTransactionParams({
-        gasLimit: '2100001',
-        validUntil: (blockNumber + 100).toString(),
-        storageLimit: '64001',
-        txFeePerGas,
-        storageByteDeposit
-      });
+      const ethParams = await txParams();
 
       const [deployer] = await ethers.getSigners();
 

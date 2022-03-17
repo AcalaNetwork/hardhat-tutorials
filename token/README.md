@@ -857,10 +857,7 @@ Above it we will be importing the values needed for the deployment transaction p
 this by placing the following code within the file:
 
 ```js
-const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-const txFeePerGas = '199999946752';
-const storageByteDeposit = '100000000000000';
+const { txParams } = require("../utils/transactionHelper");
 
 async function main() {
     
@@ -874,24 +871,16 @@ main()
   });
 ```
 
-Our deploy script will reside in the definition (`async function main()`). First, we will set the transaction
-parameters for the deployment transaction and get the address of the account which will be used to deploy the
-smart contract. Then we get the `Token.sol` to the contract factory and deploy it and assign the deployed
-smart contract to the `instance` variable. Assigning the `instance` variable is optional and is only done,
-so that we can output the value returned by the `totalSupply()` getter to the terminal. We retrieve the
-value of `totalSupply` variable by calling `totalSupply()` from instance and outputting the result using
-console.log()`:
+Our deploy script will reside in the definition (`async function main()`). First, we will set the
+transaction parameters for the deployment transaction and get the address of the account which will
+be used to deploy the smart contract. Then we get the `Token.sol` to the contract factory and deploy
+it and assign the deployed smart contract to the `instance` variable. Assigning the `instance`
+variable is optional and is only done, so that we can output the value returned by the
+`totalSupply()` getter to the terminal. We retrieve the value of `totalSupply` variable by calling
+`totalSupply()` from instance and outputting the result using `console.log()`:
 
 ```js
-  const blockNumber = await ethers.provider.getBlockNumber();
-
-  const ethParams = calcEthereumTransactionParams({
-        gasLimit: '2100001',
-        validUntil: (blockNumber + 100).toString(),
-        storageLimit: '64001',
-        txFeePerGas,
-        storageByteDeposit
-  });
+  const ethParams = await txParams();
   
   const [deployer] = await ethers.getSigners();
 
@@ -918,21 +907,10 @@ console.log()`:
 <details>
     <summary>Your script/deploy.js should look like this:</summary>
 
-        const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-        const txFeePerGas = '199999946752';
-        const storageByteDeposit = '100000000000000';
+        const { txParams } = require("../utils/transactionHelper");
 
         async function main() {
-                const blockNumber = await ethers.provider.getBlockNumber();
-
-                const ethParams = calcEthereumTransactionParams({
-                        gasLimit: '2100001',
-                        validUntil: (blockNumber + 100).toString(),
-                        storageLimit: '64001',
-                        txFeePerGas,
-                        storageByteDeposit
-                });
+                const ethParams = await txParams();
 
                 const [deployer] = await ethers.getSigners();
 

@@ -37,7 +37,12 @@ for them in the documentation and hardcode them into our project.
 ERC20 tokens of the  predeployed `Token` smart contracts, which we instantitate with the help of the
 `ADDRESS` utility.
 
-7. [AdvancedEscrow](./advanced-escrow/README.md): This tutorial utilizes the predeployed `DEX`,
+7. [EVM](./EVM/README.md): This tutorial utilizes the predeployed `EVM` smart contract to manage the
+account preferences and the smart contract that the account maintains. It introduces the publishing
+of the smart contracts in the Acala EVM+ as well as enabling and disabling the developer mode of the
+account directly in the Acala EVM+.
+
+8. [AdvancedEscrow](./advanced-escrow/README.md): This tutorial utilizes the predeployed `DEX`,
 `Token`s and `Schedule` smart contracts in order to build an escrow service that accepts any of the
 predeployed ERC20 tokens, swaps them for `AUSD` and at a set block releases the funds in `AUSD` or
 in another predeployed ERC20 token.

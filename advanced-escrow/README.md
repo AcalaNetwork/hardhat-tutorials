@@ -120,7 +120,7 @@ contract AdvancedEscrow {
 We will be using precompiled smart contracts available in `@acala-network/contracts`  and `@openzeppelin/contracts` dependencies. To be able to do this, we need to add the dependencies to the project:
 
 ```shell
-yarn add --dev @acala-network/contracts@4.0.2 @openzeppelin/contracts@4.4.2
+yarn add --dev @acala-network/contracts@4.2.0 @openzeppelin/contracts@4.4.2
 ```
 
 As we will be using predeployed IDEX and IScheduler as well as the precompiled ERC20 contracts, we need to import them after the `pragma` statement:

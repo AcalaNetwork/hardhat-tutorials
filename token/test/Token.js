@@ -17,6 +17,7 @@ describe("Token contract", function () {
         let userAddress;
         let blockNumber;
         let ethParams;
+        let tx;
 
         beforeEach(async function () {
                 blockNumber = await ethers.provider.getBlockNumber();
@@ -72,7 +73,7 @@ describe("Token contract", function () {
         });
 
         describe("Operation", function () {
-                this.timeout(50000);
+                this.timeout(100000);
 
                 describe("Transfer", function () {
                         describe("transfer()", function () {
@@ -80,7 +81,8 @@ describe("Token contract", function () {
                                         const initialDeployerBalance = await instance.balanceOf(deployerAddress);
                                         const initialUserBalance = await instance.balanceOf(userAddress);
 
-                                        await instance.connect(deployer).transfer(userAddress, 500);
+                                        tx = await instance.connect(deployer).transfer(userAddress, 500);
+                                        await tx.wait();
 
                                         const finalDeployerBalance = await instance.balanceOf(deployerAddress);
                                         const finalUserBalance = await instance.balanceOf(userAddress);
@@ -110,7 +112,8 @@ describe("Token contract", function () {
                 describe("Allowances", function () {
                         describe("approve()", function () {
                                 it("should grant allowance when the caller has enough funds", async function () {
-                                        await instance.connect(deployer).approve(userAddress, 100);
+                                        tx = await instance.connect(deployer).approve(userAddress, 100);
+                                        await tx.wait();
 
                                         expect(await instance.allowance(deployerAddress, userAddress)).to
                                                 .equal(100);
@@ -118,7 +121,8 @@ describe("Token contract", function () {
 
 
                                 it("should grant allowance when the caller has less funds than the ize of the allowance", async function () {
-                                        await instance.connect(deployer).approve(userAddress, 12345678900);
+                                        tx = await instance.connect(deployer).approve(userAddress, 12345678900);
+                                        await tx.wait();
 
                                         expect(await instance.allowance(deployerAddress, userAddress)).to
                                                 .equal(12345678900);
@@ -138,11 +142,13 @@ describe("Token contract", function () {
 
                         describe("increaseAllowance()", function () {
                                 it("should allow to increase allowance", async function () {
-                                        await instance.connect(deployer).approve(userAddress, 100);
+                                        tx = await instance.connect(deployer).approve(userAddress, 100);
+                                        await tx.wait();
 
                                         const initialAllowance = await instance.allowance(deployerAddress, userAddress);
 
-                                        await instance.connect(deployer).increaseAllowance(userAddress, 50);
+                                        tx = await instance.connect(deployer).increaseAllowance(userAddress, 50);
+                                        await tx.wait();
 
                                         const finalAllowance = await instance.allowance(deployerAddress, userAddress);
 
@@ -150,11 +156,13 @@ describe("Token contract", function () {
                                 });
 
                                 it("should allow to increase allowance above the balance", async function () {
-                                        await instance.connect(deployer).approve(userAddress, 100);
+                                        tx = await instance.connect(deployer).approve(userAddress, 100);
+                                        await tx.wait();
 
                                         const initialAllowance = await instance.allowance(deployerAddress, userAddress);
 
-                                        await instance.connect(deployer).increaseAllowance(userAddress, 1234567890);
+                                        tx = await instance.connect(deployer).increaseAllowance(userAddress, 1234567890);
+                                        await tx.wait();
 
                                         const finalAllowance = await instance.allowance(deployerAddress, userAddress);
 
@@ -162,14 +170,16 @@ describe("Token contract", function () {
                                 });
 
                                 it("should emit Approval event", async function () {
-                                        await instance.connect(deployer).approve(userAddress, 100);
+                                        tx = await instance.connect(deployer).approve(userAddress, 100);
+                                        await tx.wait();
                                         await expect(instance.connect(deployer).increaseAllowance(userAddress, 40)).to
                                                 .emit(instance, "Approval")
                                                 .withArgs(deployerAddress, userAddress, 140);
                                 });
 
                                 it("should allow to increase allowance even if none was given before", async function () {
-                                        await instance.connect(deployer).increaseAllowance(userAddress, 1234567890);
+                                        tx = await instance.connect(deployer).increaseAllowance(userAddress, 1234567890);
+                                        await tx.wait();
 
                                         const allowance = await instance.allowance(deployerAddress, userAddress);
 
@@ -179,8 +189,10 @@ describe("Token contract", function () {
 
                         describe("decreaseAllowance()", function() {
                                 it("should decrease the allowance", async function () {
-                                        await instance.connect(deployer).approve(userAddress, 100);
-                                        await instance.connect(deployer).decreaseAllowance(userAddress, 40);
+                                        tx = await instance.connect(deployer).approve(userAddress, 100);
+                                        await tx.wait();
+                                        tx = await instance.connect(deployer).decreaseAllowance(userAddress, 40);
+                                        await tx.wait();
 
                                         const allowance = await instance.allowance(deployerAddress, userAddress);
 
@@ -188,14 +200,16 @@ describe("Token contract", function () {
                                 });
 
                                 it("should emit Approval event", async function () {
-                                        await instance.connect(deployer).approve(userAddress, 100);
+                                        tx = await instance.connect(deployer).approve(userAddress, 100);
+                                        await tx.wait();
                                         await expect(instance.connect(deployer).decreaseAllowance(userAddress, 40)).to
                                                 .emit(instance, "Approval")
                                                 .withArgs(deployerAddress, userAddress, 60);
                                 });
 
                                 it("should revert when tyring to decrease the allowance below 0", async function () {
-                                        await instance.connect(deployer).approve(userAddress, 100);
+                                        tx = await instance.connect(deployer).approve(userAddress, 100);
+                                        await tx.wait();
                                         await expect(instance.connect(deployer).decreaseAllowance(userAddress, 1000)).to
                                                 .be.revertedWith("ERC20: decreased allowance below zero");
                                 });
@@ -204,11 +218,13 @@ describe("Token contract", function () {
                         describe("transferFrom()", function () {
                                 it("should allow to transfer tokens when allowance is given", async function () {
 
-                                        await instance.connect(deployer).approve(userAddress, 100);
+                                        tx = await instance.connect(deployer).approve(userAddress, 100);
+                                        await tx.wait();
 
                                         const initialBalance = await instance.balanceOf(userAddress);
 
-                                        await instance.connect(user).transferFrom(deployerAddress, userAddress, 50);
+                                        tx = await instance.connect(user).transferFrom(deployerAddress, userAddress, 50);
+                                        await tx.wait();
 
                                         const finalBalance = await instance.balanceOf(userAddress);
 
@@ -216,7 +232,8 @@ describe("Token contract", function () {
                                 });
 
                                 it("should emit Transfer event when transferring from another address", async function () {
-                                        await instance.connect(deployer).approve(userAddress, 100);
+                                        tx = await instance.connect(deployer).approve(userAddress, 100);
+                                        await tx.wait();
 
                                         await expect(instance.connect(user).transferFrom(deployerAddress, userAddress, 40)).to
                                                 .emit(instance, "Transfer")
@@ -224,7 +241,8 @@ describe("Token contract", function () {
                                 });
 
                                 it("should emit Approval event when transferring from another address", async function () {
-                                        await instance.connect(deployer).approve(userAddress, 100);
+                                        tx = await instance.connect(deployer).approve(userAddress, 100);
+                                        await tx.wait();
 
                                         await expect(instance.connect(user).transferFrom(deployerAddress, userAddress, 40)).to
                                                 .emit(instance, "Approval")
@@ -232,26 +250,31 @@ describe("Token contract", function () {
                                 });
 
                                 it("should update the allowance when transferring from another address", async function () {
-                                        await instance.connect(deployer).approve(userAddress, 100);
-                                        await instance.connect(user).transferFrom(deployerAddress, userAddress, 40);
+                                        tx = await instance.connect(deployer).approve(userAddress, 100);
+                                        await tx.wait();
+                                        tx = await instance.connect(user).transferFrom(deployerAddress, userAddress, 40);
+                                        await tx.wait();
 
                                         expect(await instance.allowance(deployerAddress, userAddress)).to.equal(60);
                                 });
 
                                 it("should revert when tring to transfer more than allowed amount", async function () {
-                                        await instance.connect(deployer).approve(userAddress, 100);
+                                        tx = await instance.connect(deployer).approve(userAddress, 100);
+                                        await tx.wait();
                                         await expect(instance.connect(user).transferFrom(deployerAddress, userAddress, 1000)).to
                                                 .be.revertedWith("allowance");
                                 });
 
                                 it("should revert when transfering to 0x0 address", async function () {
-                                        await instance.connect(deployer).approve(userAddress, 100);
+                                        tx = await instance.connect(deployer).approve(userAddress, 100);
+                                        await tx.wait();
                                         await expect(instance.connect(user).transferFrom(deployerAddress, NULL_ADDRESS, 50)).to
                                                 .be.revertedWith("ERC20: transfer to the zero address");
                                 });
 
                                 it("should revert when owner doesn't have enough funds", async function () {
-                                        await instance.connect(deployer).approve(userAddress, 12345678900);
+                                        tx = await instance.connect(deployer).approve(userAddress, 12345678900);
+                                        await tx.wait();
                                         await expect(instance.connect(user).transferFrom(deployerAddress, userAddress, 12345678900)).to
                                                 .be.revertedWith("ERC20: transfer amount exceeds balance");
                                 });

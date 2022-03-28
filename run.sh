@@ -31,6 +31,8 @@ test_all() {
     "token"
     "NFT"
     "precompiled-token"
+    "DEX"
+    # "EVM"       TODO: wait for mandala upgrade https://github.com/AcalaNetwork/bodhi.js/pull/324
   )
 
   ROOT=$(pwd)

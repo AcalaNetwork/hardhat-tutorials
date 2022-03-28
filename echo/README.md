@@ -314,21 +314,10 @@ Above it we will be importing the values needed for the deployment transaction p
 this by placing the following code within the file:
 
 ```js
-const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-const txFeePerGas = '199999946752';
-const storageByteDeposit = '100000000000000';
+const { txParams } = require("../utils/transactionHelper");
 
 async function main() {
-        const blockNumber = await ethers.provider.getBlockNumber();
-
-        const ethParams = calcEthereumTransactionParams({
-                gasLimit: '2100001',
-                validUntil: (blockNumber + 100).toString(),
-                storageLimit: '64001',
-                txFeePerGas,
-                storageByteDeposit
-        });
+  const ethParams = await txParams();
     
 }
 
@@ -370,21 +359,10 @@ calling `echo()` from instance and outputting the result using `console.log()`:
 <details>
     <summary>Your script/deploy.js should look like this:</summary>
 
-        const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-        const txFeePerGas = '199999946752';
-        const storageByteDeposit = '100000000000000';
+        const { txParams } = require("../utils/transactionHelper");
 
         async function main() {
-                const blockNumber = await ethers.provider.getBlockNumber();
-
-                const ethParams = calcEthereumTransactionParams({
-                        gasLimit: '2100001',
-                        validUntil: (blockNumber + 100).toString(),
-                        storageLimit: '64001',
-                        txFeePerGas,
-                        storageByteDeposit
-                });
+                const ethParams = await txParams();
 
                 const [deployer] = await ethers.getSigners();
 
@@ -408,9 +386,9 @@ calling `echo()` from instance and outputting the result using `console.log()`:
         main()
                 .then(() => process.exit(0))
                 .catch((error) => {
-                console.error(error);
-                process.exit(1);
-        });
+                        console.error(error);
+                        process.exit(1);
+                });
 
 </details>
 

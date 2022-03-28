@@ -949,10 +949,7 @@ Above it we will be importing the values needed for the deployment transaction p
 this by placing the following code within the file:
 
 ```js
-const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-const txFeePerGas = '199999946752';
-const storageByteDeposit = '100000000000000';
+const { txParams } = require("../utils/transactionHelper");
 
 async function main() {
     
@@ -975,15 +972,7 @@ only done, so that we can mint the NFT to the alternative account and retrieve i
 we output the URI of the newly minted NFT:
 
 ```js
-  const blockNumber = await ethers.provider.getBlockNumber();
-
-  const ethParams = calcEthereumTransactionParams({
-    gasLimit: '21000010',
-    validUntil: (blockNumber + 100).toString(),
-    storageLimit: '640010',
-    txFeePerGas,
-    storageByteDeposit
-  });
+  const ethParams = await txParams();
 
   const [deployer, user] = await ethers.getSigners();
 
@@ -1009,21 +998,10 @@ we output the URI of the newly minted NFT:
 <details>
     <summary>Your script/deploy.js should look like this:</summary>
 
-        const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-        const txFeePerGas = '199999946752';
-        const storageByteDeposit = '100000000000000';
+        const { txParams } = require("../utils/transactionHelper");
 
         async function main() {
-                const blockNumber = await ethers.provider.getBlockNumber();
-
-                const ethParams = calcEthereumTransactionParams({
-                        gasLimit: '21000010',
-                        validUntil: (blockNumber + 100).toString(),
-                        storageLimit: '640010',
-                        txFeePerGas,
-                        storageByteDeposit
-                });
+                const ethParams = await txParams();
 
                 const [deployer, user] = await ethers.getSigners();
 

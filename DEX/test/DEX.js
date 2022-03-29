@@ -4,7 +4,7 @@ const { ACA, AUSD, LP_ACA_AUSD, DOT, RENBTC, DEX } = require("@acala-network/con
 
 const DEXContract = require("@acala-network/contracts/build/contracts/DEX.json");
 const TokenContract = require("@acala-network/contracts/build/contracts/Token.json");
-const { parseUnits } = require("@acala-network/eth-providers/node_modules/@ethersproject/units");
+const { parseUnits } = require("@ethersproject/units");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 describe("DEX contract", function () {

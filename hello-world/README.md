@@ -99,7 +99,7 @@ networks: {
     },
     chainId: 595
   },
-}
+},
 ```
 
 Let's break this configuration down a bit:
@@ -134,6 +134,16 @@ noticed another network called `mandalaCI`. This network is present within the t
 that we can verify the expected behaviour of the Acala EVM+ and you don't need to include it
 within your project to be able to develop, test or deploy your project.**
 
+We have to configure the `mocha` timeout to equal 100 seconds. This way we ensure that our scripts
+and tests don't fail while waiting for the RPC node response. We do this by adding the `mocha`
+section below the `networks` section and set the `timeout` value to `100000` miliseconds:
+
+```javascript
+  mocha: {
+    timeout: 100000
+  },
+```
+
 This concludes the configuration of Hardhat. Now we can move on to the smart contract development.
 
 <details>
@@ -145,25 +155,28 @@ This concludes the configuration of Hardhat. Now we can move on to the smart con
     * @type import('hardhat/config').HardhatUserConfig
     */
     module.exports = {
-        solidity: "0.8.9",
-        networks: {
-            mandala: {
-            url: 'http://127.0.0.1:8545',
-            accounts: {
-                mnemonic: 'fox sight canyon orphan hotel grow hedgehog build bless august weather swarm',
-                path: "m/44'/60'/0'/0",
-            },
-            chainId: 595,
-            },
-          mandalaPubDev: {
-            url: 'https://tc7-eth.aca-dev.network',
-            accounts: {
-              mnemonic: 'fox sight canyon orphan hotel grow hedgehog build bless august weather swarm',
-              path: "m/44'/60'/0'/0",
-            },
-            chainId: 595,
+      solidity: "0.8.9",
+      networks: {
+        mandala: {
+          url: 'http://127.0.0.1:8545',
+          accounts: {
+            mnemonic: 'fox sight canyon orphan hotel grow hedgehog build bless august weather swarm',
+            path: "m/44'/60'/0'/0",
           },
-        }
+          chainId: 595,
+        },
+        mandalaPubDev: {
+          url: 'https://tc7-eth.aca-dev.network',
+          accounts: {
+            mnemonic: 'fox sight canyon orphan hotel grow hedgehog build bless august weather swarm',
+            path: "m/44'/60'/0'/0",
+          },
+          chainId: 595,
+        },
+      },
+      mocha: {
+        timeout: 100000
+      },
     };
 </details>
 
@@ -311,9 +324,7 @@ To be able to run the tests, we will add three additional scripts to the `packag
 the test in the Hardhat's built-in network (this is a very fast option), one to run the tests on
 a local development network and one to run the tests in the public test network. This way you can
 verify the expected behaviour on Acala EVM+. We have to specify that only `HelloWorld.js` test
-script is run, as we will be adding a `loop.js` helper, which should only be run when needed. Add
-these three lines to the `scripts` section of your
-`package.json`:
+script is run. Add these three lines to the `scripts` section of your `package.json`:
 
 ```json
     "test": "hardhat test test/HelloWorld.js",
@@ -324,130 +335,6 @@ these three lines to the `scripts` section of your
 As you can see, the `test-mandala` and `test-mandala:pubDev` script differ from `test` script in
 the `--network` flag which we use to tell Hardhat to use the `mandala` or `mandalaPubDev` network
 configuration from `hardhat.config.js` that we added in the beginning of this tutorial.
-
-**NOTE: If the `--instant-sealing` flag is used in the local development network, the block
-generation has to be forced and the tests might fail because of the package manager waiting for
-new blocks. To avoid test failure, a helper `loop.js` method is added to the `test/` directory.**
-
-Usage of `--instant-sealing` flag in a development network is beneficial, as it decreases the time
-needed to test out the behaviour of the project, but it also requires the `loop.js` helper, which
-forces the block creation. To add `loop.js` helper, run the following comand in the root of your
-project:
-
-```shell
-touch test/loop.js
-```
-
-The `loop.js` helper will continuously force the block generation using the `@polkadot/api`
-dependency that will interact directly with the local development network. In order ro be able to
-use it, we have to add it to our project with:
-
-```shell
-yarn add --dev @polkadot/api
-```
-
-
-At the beginning of the helper we import the `ApiPromise` and `WsProvider` from `@polkadot/api` and
-define a `sleep()` function, that we will use to ensure that block generation is forced every 2
-seconds:
-
-```js
-const { ApiPromise, WsProvider } = require('@polkadot/api');
-
-const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
-```
-
-Now we are ready to define the `loop()` function and call it. Within the definition we also
-ensure that interval for function execution is set for 1 second:
-
-```js
-const loop = async (interval = 2000) => {
-
-};
-
-loop();
-```
-
-At the beggining of the `loop` function definition, we create a `ENDPOINT_URL` variable to which we
-assign the URL of the web socket endpoint for the provider to use. First we check if there is an
-environment variable with it, if there isn't we use the default value. `provider` is connected 
-directly to the local development network in stead of the RPC adapter and `api` is assigned
-`ApiPromise` to the `provider`  at the top of the `loop()` function definition. Below we log the
-start of the loop to the console and define a `count` variable, which will be used to keep track of
-how many times the function has forced a block generation:
-
-```js
-  const ENDPOINT_URL = process.env.ENDPOINT_URL || 'ws://127.0.0.1:9944';
-  const provider = new WsProvider(ENDPOINT_URL);
-
-  const api = await ApiPromise.create({ provider });
-  
-  console.log('Started forced block generation loop!')
-
-  let count = 0;
-```
-
-Now that the setup for the continuous forced block generation is set up, we can add a `while` loop
-to constantly force the block generation. Within it we use the `interval` variable to ensure that
-the next step of the loop is executed 1 second after the previous one has ended and we use the `api`
-to generate a block. Before finishing the loop, we output the current number of times the block
-generation was forced usiung this script:
-
-```js
-  while (true) {
-    await sleep(interval);
-    await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
-    console.log(`Current number of force generated blocks: ${++count}`);
-  }
-```
-
-**NOTE: the first argument in `createBlock` is used to create an empty block if there are no
-transaction in the transaction pool and the second one is used to create a transaction only if there
-is at least one transaction within the transaction pool. As we only care that the next block is
-generated, we set both to `true`.**
-
-<details>
-    <summary>Your test/loop.js should look like this:</summary>
-
-    const { ApiPromise, WsProvider } = require('@polkadot/api');
-
-    const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
-
-    const loop = async (interval = 2000) => {
-      const ENDPOINT_URL = process.env.ENDPOINT_URL || 'ws://127.0.0.1:9944';
-      const provider = new WsProvider(ENDPOINT_URL);
-
-      const api = await ApiPromise.create({ provider });
-      
-      console.log('Started forced block generation loop!')
-
-      let count = 0;
-
-      while (true) {
-        await sleep(interval);
-        await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
-        console.log(`Current number of force generated blocks: ${++count}`);
-      }
-    };
-
-    loop();
-
-</details>
-
-The last thing we need to do with the `loop.js` helper, is to add it's execution to `scripts`
-section of our `package.json`. Since we will only be using it in a local development network
-that uses the `--instant-sealing` flag, we only need to add one execution script:
-
-```json
-    "loop": "hardhat run test/loop.js --network mandala"
-```
-
-This has to be run in its own terminal only when testing and deploying to a local development
-network that uses `--instant-sealing` flag with:
-
-```bash
-yarn loop
-```
 
 When you run the test with (for example) `yarn test`, your tests should pass with the following
 output:

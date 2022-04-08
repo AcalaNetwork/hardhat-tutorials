@@ -1,17 +1,17 @@
-const { txParams } = require("../utils/transactionHelper");
+const { txParams } = require('../utils/transactionHelper');
 
 async function main() {
   const ethParams = await txParams();
 
   const [deployer] = await ethers.getSigners();
 
-  const AdvancedEscrow = await ethers.getContractFactory("AdvancedEscrow");
+  const AdvancedEscrow = await ethers.getContractFactory('AdvancedEscrow');
   const instance = await AdvancedEscrow.deploy({
     gasPrice: ethParams.txGasPrice,
-    gasLimit: ethParams.txGasLimit,
+    gasLimit: ethParams.txGasLimit
   });
 
-  console.log("AdvancedEscrow address:", instance.address);
+  console.log('AdvancedEscrow address:', instance.address);
 }
 
 main()

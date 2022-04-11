@@ -376,7 +376,7 @@ yarn add --dev @acala-network/eth-providers
 Now that we have the required dependency added to the project, we can create the utility:
 
 ```shell
-mkdir utils && touch utils/transactionHelpers.js
+mkdir utils && touch utils/transactionHelper.js
 ```
 
 The `calcEthereumTransactionParams` is imported at the top of the file and let's define the

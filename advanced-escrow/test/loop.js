@@ -1,6 +1,6 @@
 const { ApiPromise, WsProvider } = require('@polkadot/api');
 
-const sleep = async time => new Promise((resolve) => setTimeout(resolve, time));
+const sleep = async (time) => new Promise((resolve) => setTimeout(resolve, time));
 
 const loop = async (interval = 2000) => {
   const ENDPOINT_URL = process.env.ENDPOINT_URL || 'ws://127.0.0.1:9944';
@@ -8,7 +8,7 @@ const loop = async (interval = 2000) => {
 
   const api = await ApiPromise.create({ provider });
 
-  console.log('Started forced block generation loop!')
+  console.log('Started forced block generation loop!');
 
   let count = 0;
 

@@ -19,7 +19,7 @@
     "deploy-mandala:CI": "hardhat run scripts/deploy.js --network mandalaCI"
   },
   "devDependencies": {
-    "@acala-network/eth-providers": "^2.2.3",
+    "@acala-network/eth-providers": "^2.4.6",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@polkadot/api": "~8.1.1",

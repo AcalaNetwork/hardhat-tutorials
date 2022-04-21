@@ -110,7 +110,7 @@ connected to our local development network.
 default development accounts of the local development network.
 - `path` used in the `accounts` section defines the account derivation path to be used with the
 given mnemonic
-- `cahinId` of `595` is the default chain ID of the local development network.
+- `chainId` of `595` is the default chain ID of the local development network.
 
 In addition to the local development network, we can also add the network configuration for the
 public development network. Most of the parameters are the same as for the local development network
@@ -233,14 +233,14 @@ On the first line of the test, import the `expect` from `chai` dependency and
 the tests:
 
 ```js
-const { expect } = require("chai");const { expect } = require("chai");
+const { expect } = require("chai");
 const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
 
 const txFeePerGas = '199999946752';
 const storageByteDeposit = '100000000000000';
 ```
 
-We will be wrapping oru test within a `describe` block, so add it below the import statement:
+We will be wrapping our test within a `describe` block, so add it below the import statement:
 
 ```js
 describe("HelloWorld contract", function () {

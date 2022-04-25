@@ -12,12 +12,15 @@
     "@nomiclabs/hardhat-waffle": "^2.0.0",
     "@openzeppelin/contracts": "^4.4.2",
     "chai": "^4.2.0",
+    "console.mute": "^0.3.0",
     "ethereum-waffle": "^3.0.0",
     "ethers": "^5.0.0",
     "hardhat": "^2.8.3"
   },
   "scripts": {
     "build": "hardhat compile",
+    "test-mandala": "hardhat test test/AdvancedEscrow.js --network mandala",
+    "test-mandala:pubDev": "hardhat test test/AdvancedEscrow.js --network mandalaPubDev",
     "deploy-mandala": "hardhat run scripts/deploy.js --network mandala",
     "deploy-mandala:pubDev": "hardhat run scripts/deploy.js --network mandalaPubDev",
     "user-journey-mandala": "hardhat run scripts/userJourney.js --network mandala",

@@ -698,9 +698,667 @@ AdvancedEscrow address: 0xcfd3fef59055a7525607694FBcA16B6D92D97Eee
 ✨  Done in 33.18s.
 ```
 
+## Test
+
+Initiating Hardhat also created a `test` folder and within it a sample test. We will remove it
+and add our own test instead:
+
+```shell
+rm test/sample-test.js && touch test/AdvancedEscrow.js
+```
+
+At the beginning of the file, we will be importing all of the constants and methods that we will require to successfully run the tests. The predeploy smart contract addresses are imported from `@acala-network/contracts` `ADDRESS` utility. We wil be using `chai`'s `expect` and `ethers`' `Contract`, `ContractFactory` and `BigNumber`. To be able to deploy the smart contract for testing, we have to import `txParams` that we added to the `transactionHelper` utility before. We also require the compiled artifacts of the smart contracts that we will be using within the test. This is why we assign them to the `AdvancedEscrowContract`, `TokenContract` and `DEXContract` constants. In order to be able to test the block based deadlines, we need the ability to force the block generation within tests. While we could use the `loop` helper utility, we need to have reliable tests that don't fail if `loop` is not running. For this reason, we import the `ApiPromise` and `WsProvider` from `@polkadot/api`. As initating the `ApiPromise` generates a lot of output, our test output wolud get very messy if we didn't silence it. To do this we use the `console.mute` dependency, that we have to add to the project by using:
+
+```shell
+yarn add --dev console.mute
+```
+
+To be able to easily validate things dependent on `0x0` address, we assign it to the `NULL_ADDRESS` constant. Lastly we configure the `ENDPOINT_URL` constant to be used by the `provider`. And instantiate the `WsProvider` to the `provider` constant. All of the imports and the empty test look like this:
+
+```javascript
+const { ACA, AUSD, DEX, DOT } = require("@acala-network/contracts/utils/Address");
+const { expect } = require("chai");
+const { Contract, ContractFactory, BigNumber } = require("ethers");
+
+const { txParams } = require("../utils/transactionHelper");
+const AdvancedEscrowContract = require("../artifacts/contracts/AdvancedEscrow.sol/AdvancedEscrow.json");
+const TokenContract = require("@acala-network/contracts/build/contracts/Token.json");
+const DEXContract = require("@acala-network/contracts/build/contracts/DEX.json")
+const { ApiPromise, WsProvider } = require("@polkadot/api");
+
+require('console.mute');
+
+const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
+const ENDPOINT_URL = process.env.ENDPOINT_URL || 'ws://127.0.0.1:9944';
+const provider = new WsProvider(ENDPOINT_URL);
+
+describe("AdvancedEscrow contract", function () {
+
+});
+```
+
+To setup for each of the test examples we define the `AdvancedEscrow` variable that will hold the contract factory for our smart contract. The `instance` variable will hold the instance of the smart contract that we will be testing against and the `ACAinstance`, `AUSDinstance`, `DOTinstance` and `DEXinstance` hold the instances of the predeployed smart contracts. The `deployer` and `user` hold the Signers and `deployerAddress` and `userAddress` variables hold the addresses of these signers. `ethParams` variable holds the transaction values required for the deployment transaction. Finally the `api` variable holds the `ApiPromise`, which we will use to force the generation of blocks. As creation of `ApiPromise` generates a lot of console output, especially when being run before each of the test examples. This is why we have to mute the console output before we create it and resume it after, to keep the expected behaviour of the console. All of the values are assigned in the `beforeEach` action:
+
+```javascript
+  let AdvancedEscrow;
+  let instance;
+  let ACAinstance;
+  let AUSDinstance;
+  let DOTinstance;
+  let DEXinstance;
+  let deployer;
+  let user;
+  let deployerAddress;
+  let userAddress;
+  let ethParams;
+  let api;
+
+  beforeEach(async function () {
+    [deployer, user] = await ethers.getSigners();
+    deployerAddress = await deployer.getAddress();
+    userAddress = await user.getAddress();
+    AdvancedEscrow = new ContractFactory(AdvancedEscrowContract.abi, AdvancedEscrowContract.bytecode, deployer);
+    ethParams = await txParams();
+    instance = await AdvancedEscrow.deploy({
+      gasPrice: ethParams.txGasPrice,
+      gasLimit: ethParams.txGasLimit,
+    });
+    await instance.deployed();
+    ACAinstance = new Contract(ACA, TokenContract.abi, deployer);
+    AUSDinstance = new Contract(AUSD, TokenContract.abi, deployer);
+    DOTinstance = new Contract(DOT, TokenContract.abi, deployer);
+    DEXinstance = new Contract(DEX, DEXContract.abi, deployer);
+    console.mute();
+    api = await ApiPromise.create({ provider });
+    console.resume();
+  });
+```
+
+Our test cases will be split into two groups. One will be called `Deployment` and it will verify that the deployed smart contract has expected values set before it is being used. The second one will be called `Operation` and it will validate the expected behaviour of our smart contract. The empty sections should look like this:
+
+```javascript
+  describe("Deployment", function () {
+
+  });
+
+  describe("Operation", function () {
+
+  });
+```
+
+We will only have one example within the `Deployment` section and it will verify that the number of escrows in a newly deployed smart contract is set to `0`:
+
+```javascript
+    it("should set the initial number of escrows to 0", async function () {
+      expect(await instance.numberOfEscrows()).to.equal(0);
+    });
+```
+
+The `Operation` section will hold more test examples. We will be checking for the following cases:
+
+1. Initiating an escrow with a beneficiary of `0x0` should revert.
+2. Initiating an escrow with a token address of `0x0` should revert.
+3. Initiating an escrow with a duration of `0` blocks should revert.
+4. Initiating an escrow with the value of escrow being higher than the balance of the smart contract should revert.
+5. Upon successfully initiating an escrow, `EscrowUpdate` should be emitted.
+6. Upon successfully initating an escrow, the values defining it should correspont to those passed upon initiation.
+7. Initiating an escrow before the current escrow is completed should revert.
+8. Trying to set the egress token should revert if the escrow has already been completed.
+9. Trying to set the egress token should revert when it is not called by the beneficiary.
+10. When egress token is successfully set, the escrow value should be updated.
+11. Completing an escrow that was already completed should revert.
+12. Completing an escrow while not being the initiator should revert.
+13. Escrow should be paid out in AUSD when no egress token is set.
+14. Escrow should be paid out in the desired egress token when one is set.
+15. When escrow is paid out in egress token, that should not impact the AUSD balance of the beneficiary.
+16. When escrow is completed, `EscrowUpdate` is emitted.
+17. Escrow should be completed automatically when the desired number of blocks has passed.
+
+These are the examples outlined above:
+
+```javascript
+    it("should revert when beneficiary is 0x0", async function () {
+      await expect(instance.initiateEscrow(NULL_ADDRESS, ACA, 10_000, 10)).to
+        .be.revertedWith("Escrow: beneficiary_ is 0x0");
+    });
+
+    it("should revert when ingress token is 0x0", async function () {
+      await expect(instance.initiateEscrow(userAddress, NULL_ADDRESS, 10_000, 10)).to
+        .be.revertedWith("Escrow: ingressToken_ is 0x0");
+    });
+
+    it("should revert when period is 0", async function () {
+      await expect(instance.initiateEscrow(userAddress, ACA, 10_000, 0)).to
+        .be.revertedWith("Escrow: period is 0");
+    });
+
+    it("should revert when balance of the contract is lower than ingressValue", async function () {
+      const balance = await ACAinstance.balanceOf(instance.address);
+
+      expect(balance).to.be.below(BigNumber.from("10000"));
+
+      await expect(instance.initiateEscrow(userAddress, ACA, 10_000, 10)).to
+        .be.revertedWith("Escrow: contract balance is less than ingress value");
+    });
+
+    it("should initate escrow and emit EscrowUpdate when initating escrow", async function () {
+      const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+
+      await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+      const expectedValue = await DEXinstance.getSwapTargetAmount([ACA, AUSD], startingBalance.div(1_000_000));
+
+      await expect(instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1)).to
+        .emit(instance, "EscrowUpdate")
+        .withArgs(deployerAddress, userAddress, expectedValue, false);
+    });
+
+    it("should set the values of current escrow when initiating the escrow", async function () {
+      const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+
+      await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+      const expectedValue = await DEXinstance.getSwapTargetAmount([ACA, AUSD], startingBalance.div(1_000_000));
+
+      await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1);
+
+      const blockNumber = await ethers.provider.getBlockNumber();
+      const currentId = await instance.numberOfEscrows();
+      const escrow = await instance.escrows(currentId.sub(1));
+
+      expect(escrow.initiator).to.equal(deployerAddress);
+      expect(escrow.beneficiary).to.equal(userAddress);
+      expect(escrow.ingressToken).to.equal(ACA);
+      expect(escrow.egressToken).to.equal(NULL_ADDRESS);
+      expect(escrow.AusdValue).to.equal(expectedValue);
+      expect(escrow.deadline).to.equal(blockNumber + 1);
+      expect(escrow.completed).to.be.false;
+    });
+
+    it("should revert when initiating a new escrow when there is a preexiting active escrow", async function () {
+      const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+
+      await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+      await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1);
+      
+      await expect(instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1)).to
+        .be.revertedWith("Escrow: current escrow not yet completed");
+    });
+
+    it("should revert when trying to set the egress token after the escrow has already been completed", async function () {
+      const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+
+      await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+      await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1);
+      await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
+      await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
+
+      await expect(instance.connect(user).setEgressToken(DOT)).to
+        .be.revertedWith("Escrow: already completed");
+    });
+
+    it("should revert when trying to set the egress token while not being the beneficiary", async function () {
+      const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+
+      await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+      await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1);
+
+      await expect(instance.connect(deployer).setEgressToken(DOT)).to
+        .be.revertedWith("Escrow: sender is not beneficiary");
+    });
+
+    it("should update the egress token", async function () {
+      const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+
+      await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+      const expectedValue = await DEXinstance.getSwapTargetAmount([ACA, AUSD], startingBalance.div(1_000_000));
+
+      await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 10);
+      const blockNumber = await ethers.provider.getBlockNumber();
+
+      await instance.connect(user).setEgressToken(DOT);
+
+      const currentId = await instance.numberOfEscrows();
+      const escrow = await instance.escrows(currentId.sub(1));
+
+      expect(escrow.initiator).to.equal(deployerAddress);
+      expect(escrow.beneficiary).to.equal(userAddress);
+      expect(escrow.ingressToken).to.equal(ACA);
+      expect(escrow.egressToken).to.equal(DOT);
+      expect(escrow.AusdValue).to.equal(expectedValue);
+      expect(escrow.deadline).to.equal(blockNumber + 10);
+      expect(escrow.completed).to.be.false;
+    });
+
+    it("should revert when trying to complete an already completed escrow", async function () {
+      const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+
+      await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+      await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1);
+      await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
+      await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
+
+      await expect(instance.connect(deployer).completeEscrow()).to
+        .be.revertedWith("Escrow: escrow already completed");
+    });
+
+    it("should revert when trying to complete an escrow when not being the initiator", async function () {
+      const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+
+      await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+      await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1);
+
+      await expect(instance.connect(user).completeEscrow()).to
+        .be.revertedWith("Escrow: caller is not initiator or this contract");
+    });
+
+    it("should pay out the escrow in AUSD if no egress token is set", async function () {
+      const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+      const initalBalance = await AUSDinstance.balanceOf(userAddress);
+
+      await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+      await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1);
+
+      await instance.connect(deployer).completeEscrow();
+      const finalBalance = await AUSDinstance.balanceOf(userAddress);
+
+      expect(finalBalance).to.be.above(initalBalance);
+    });
+
+    it("should pay out the escrow in set token when egress token is set", async function () {
+      const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+      const initalBalance = await DOTinstance.balanceOf(userAddress);
+
+      await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+      await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 10);
+      await instance.connect(user).setEgressToken(DOT);
+
+      await instance.connect(deployer).completeEscrow();
+      const finalBalance = await DOTinstance.balanceOf(userAddress);
+
+      expect(finalBalance).to.be.above(initalBalance);
+    });
+
+    it("should not pay out the escrow in set AUSD when egress token is set", async function () {
+      const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+      const initalBalance = await AUSDinstance.balanceOf(userAddress);
+
+      await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+      await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 10);
+      await instance.connect(user).setEgressToken(DOT);
+
+      await instance.connect(deployer).completeEscrow();
+      const finalBalance = await AUSDinstance.balanceOf(userAddress);
+
+      expect(finalBalance).to.equal(initalBalance);
+    });
+
+    it("should emit EscrowUpdate when escrow is completed", async function () {
+      const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+
+      await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+      const expectedValue = await DEXinstance.getSwapTargetAmount([ACA, AUSD], startingBalance.div(1_000_000));
+      await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 10);
+
+      await expect(instance.connect(deployer).completeEscrow()).to
+        .emit(instance, "EscrowUpdate")
+        .withArgs(deployerAddress, userAddress, expectedValue, true);
+    });
+
+    it("should automatically complete the escrow when given number of blocks has passed", async function () {
+      const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+
+      await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+      await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1);
+      const currentEscrow = await instance.numberOfEscrows();
+      const initalState = await instance.escrows(currentEscrow.sub(1));
+      await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
+      await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
+      const finalState = await instance.escrows(currentEscrow.sub(1));
+
+      expect(initalState.completed).to.be.false;
+      expect(finalState.completed).to.be.true;
+    });
+```
+
+This concludes our test.
+
+<details>
+    <summary>Your test/AdvancedEscrow.js should look like this:</summary>
+
+    const { ACA, AUSD, DEX, DOT } = require("@acala-network/contracts/utils/Address");
+    const { expect } = require("chai");
+    const { Contract, ContractFactory, BigNumber } = require("ethers");
+
+    const { txParams } = require("../utils/transactionHelper");
+    const AdvancedEscrowContract = require("../artifacts/contracts/AdvancedEscrow.sol/AdvancedEscrow.json");
+    const TokenContract = require("@acala-network/contracts/build/contracts/Token.json");
+    const DEXContract = require("@acala-network/contracts/build/contracts/DEX.json")
+    const { ApiPromise, WsProvider } = require("@polkadot/api");
+
+    require('console.mute');
+
+    const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
+    const ENDPOINT_URL = process.env.ENDPOINT_URL || 'ws://127.0.0.1:9944';
+    const provider = new WsProvider(ENDPOINT_URL);
+
+    describe("AdvancedEscrow contract", function () {
+        let AdvancedEscrow;
+        let instance;
+        let ACAinstance;
+        let AUSDinstance;
+        let DOTinstance;
+        let DEXinstance;
+        let deployer;
+        let user;
+        let deployerAddress;
+        let userAddress;
+        let ethParams;
+        let api;
+
+        beforeEach(async function () {
+            [deployer, user] = await ethers.getSigners();
+            deployerAddress = await deployer.getAddress();
+            userAddress = await user.getAddress();
+            AdvancedEscrow = new ContractFactory(AdvancedEscrowContract.abi, AdvancedEscrowContract.bytecode, deployer);
+            ethParams = await txParams();
+            instance = await AdvancedEscrow.deploy({
+                gasPrice: ethParams.txGasPrice,
+                gasLimit: ethParams.txGasLimit,
+            });
+            await instance.deployed();
+            ACAinstance = new Contract(ACA, TokenContract.abi, deployer);
+            AUSDinstance = new Contract(AUSD, TokenContract.abi, deployer);
+            DOTinstance = new Contract(DOT, TokenContract.abi, deployer);
+            DEXinstance = new Contract(DEX, DEXContract.abi, deployer);
+            console.mute();
+            api = await ApiPromise.create({ provider });
+            console.resume();
+        });
+
+        describe("Deployment", function () {
+            it("should set the initial number of escrows to 0", async function () {
+                expect(await instance.numberOfEscrows()).to.equal(0);
+            });
+        });
+
+        describe("Operation", function () {
+            it("should revert when beneficiary is 0x0", async function () {
+                await expect(instance.initiateEscrow(NULL_ADDRESS, ACA, 10_000, 10)).to
+                    .be.revertedWith("Escrow: beneficiary_ is 0x0");
+            });
+
+            it("should revert when ingress token is 0x0", async function () {
+                await expect(instance.initiateEscrow(userAddress, NULL_ADDRESS, 10_000, 10)).to
+                    .be.revertedWith("Escrow: ingressToken_ is 0x0");
+            });
+
+            it("should revert when period is 0", async function () {
+                await expect(instance.initiateEscrow(userAddress, ACA, 10_000, 0)).to
+                    .be.revertedWith("Escrow: period is 0");
+            });
+
+            it("should revert when balance of the contract is lower than ingressValue", async function () {
+                const balance = await ACAinstance.balanceOf(instance.address);
+
+                expect(balance).to.be.below(BigNumber.from("10000"));
+
+                await expect(instance.initiateEscrow(userAddress, ACA, 10_000, 10)).to
+                    .be.revertedWith("Escrow: contract balance is less than ingress value");
+            });
+
+            it("should initate escrow and emit EscrowUpdate when initating escrow", async function () {
+                const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+
+                await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+                const expectedValue = await DEXinstance.getSwapTargetAmount([ACA, AUSD], startingBalance.div(1_000_000));
+
+                await expect(instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1)).to
+                    .emit(instance, "EscrowUpdate")
+                    .withArgs(deployerAddress, userAddress, expectedValue, false);
+            });
+
+            it("should set the values of current escrow when initiating the escrow", async function () {
+                const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+
+                await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+                const expectedValue = await DEXinstance.getSwapTargetAmount([ACA, AUSD], startingBalance.div(1_000_000));
+
+                await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1);
+
+                const blockNumber = await ethers.provider.getBlockNumber();
+                const currentId = await instance.numberOfEscrows();
+                const escrow = await instance.escrows(currentId.sub(1));
+
+                expect(escrow.initiator).to.equal(deployerAddress);
+                expect(escrow.beneficiary).to.equal(userAddress);
+                expect(escrow.ingressToken).to.equal(ACA);
+                expect(escrow.egressToken).to.equal(NULL_ADDRESS);
+                expect(escrow.AusdValue).to.equal(expectedValue);
+                expect(escrow.deadline).to.equal(blockNumber + 1);
+                expect(escrow.completed).to.be.false;
+            });
+
+            it("should revert when initiating a new escrow when there is a preexiting active escrow", async function () {
+                const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+
+                await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+                await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1);
+                
+                await expect(instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1)).to
+                    .be.revertedWith("Escrow: current escrow not yet completed");
+            });
+
+            it("should revert when trying to set the egress token after the escrow has already been completed", async function () {
+                const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+
+                await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+                await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1);
+                await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
+                await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
+
+                await expect(instance.connect(user).setEgressToken(DOT)).to
+                    .be.revertedWith("Escrow: already completed");
+            });
+
+            it("should revert when trying to set the egress token while not being the beneficiary", async function () {
+                const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+
+                await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+                await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1);
+
+                await expect(instance.connect(deployer).setEgressToken(DOT)).to
+                    .be.revertedWith("Escrow: sender is not beneficiary");
+            });
+
+            it("should update the egress token", async function () {
+                const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+
+                await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+                const expectedValue = await DEXinstance.getSwapTargetAmount([ACA, AUSD], startingBalance.div(1_000_000));
+
+                await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 10);
+                const blockNumber = await ethers.provider.getBlockNumber();
+
+                await instance.connect(user).setEgressToken(DOT);
+
+                const currentId = await instance.numberOfEscrows();
+                const escrow = await instance.escrows(currentId.sub(1));
+
+                expect(escrow.initiator).to.equal(deployerAddress);
+                expect(escrow.beneficiary).to.equal(userAddress);
+                expect(escrow.ingressToken).to.equal(ACA);
+                expect(escrow.egressToken).to.equal(DOT);
+                expect(escrow.AusdValue).to.equal(expectedValue);
+                expect(escrow.deadline).to.equal(blockNumber + 10);
+                expect(escrow.completed).to.be.false;
+            });
+
+            it("should revert when trying to complete an already completed escrow", async function () {
+                const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+
+                await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+                await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1);
+                await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
+                await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
+
+                await expect(instance.connect(deployer).completeEscrow()).to
+                    .be.revertedWith("Escrow: escrow already completed");
+            });
+
+            it("should revert when trying to complete an escrow when not being the initiator", async function () {
+                const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+
+                await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+                await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1);
+
+                await expect(instance.connect(user).completeEscrow()).to
+                    .be.revertedWith("Escrow: caller is not initiator or this contract");
+            });
+
+            it("should pay out the escrow in AUSD if no egress token is set", async function () {
+                const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+                const initalBalance = await AUSDinstance.balanceOf(userAddress);
+
+                await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+                await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1);
+
+                await instance.connect(deployer).completeEscrow();
+                const finalBalance = await AUSDinstance.balanceOf(userAddress);
+
+                expect(finalBalance).to.be.above(initalBalance);
+            });
+
+            it("should pay out the escrow in set token when egress token is set", async function () {
+                const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+                const initalBalance = await DOTinstance.balanceOf(userAddress);
+
+                await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+                await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 10);
+                await instance.connect(user).setEgressToken(DOT);
+
+                await instance.connect(deployer).completeEscrow();
+                const finalBalance = await DOTinstance.balanceOf(userAddress);
+
+                expect(finalBalance).to.be.above(initalBalance);
+            });
+
+            it("should not pay out the escrow in set AUSD when egress token is set", async function () {
+                const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+                const initalBalance = await AUSDinstance.balanceOf(userAddress);
+
+                await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+                await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 10);
+                await instance.connect(user).setEgressToken(DOT);
+
+                await instance.connect(deployer).completeEscrow();
+                const finalBalance = await AUSDinstance.balanceOf(userAddress);
+
+                expect(finalBalance).to.equal(initalBalance);
+            });
+
+            it("should emit EscrowUpdate when escrow is completed", async function () {
+                const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+
+                await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+                const expectedValue = await DEXinstance.getSwapTargetAmount([ACA, AUSD], startingBalance.div(1_000_000));
+                await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 10);
+
+                await expect(instance.connect(deployer).completeEscrow()).to
+                    .emit(instance, "EscrowUpdate")
+                    .withArgs(deployerAddress, userAddress, expectedValue, true);
+            });
+
+            it("should automatically complete the escrow when given number of blocks has passed", async function () {
+                const startingBalance = await ACAinstance.balanceOf(deployerAddress);
+
+                await ACAinstance.connect(deployer).transfer(instance.address, startingBalance.div(100_000));
+
+                await instance.connect(deployer).initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1);
+                const currentEscrow = await instance.numberOfEscrows();
+                const initalState = await instance.escrows(currentEscrow.sub(1));
+                await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
+                await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
+                const finalState = await instance.escrows(currentEscrow.sub(1));
+
+                expect(initalState.completed).to.be.false;
+                expect(finalState.completed).to.be.true;
+            });
+        });
+    });
+
+</details>
+
+As our test is ready to be run, we have to add the scripts to be able to run the test. We will be adding two scripts. One to run the tests on the local development network and on the public test network:
+
+```json
+    "test-mandala": "hardhat test test/AdvancedEscrow.js --network mandala",
+    "test-mandala:pubDev": "hardhat test test/AdvancedEscrow.js --network mandalaPubDev"
+```
+
+Running the tests with `test-mandala` should give you the following output:
+
+```shell
+yarn test-mandala
+
+
+yarn run v1.22.18
+$ hardhat test test/AdvancedEscrow.js --network mandala
+
+  AdvancedEscrow contract
+    Deployment
+      ✔ should set the initial number of escrows to 0
+    Operation
+      ✔ should revert when beneficiary is 0x0
+      ✔ should revert when beneficiary is 0x0
+      ✔ should revert when period is 0
+      ✔ should revert when balance of the contract is lower than ingressValue
+      ✔ should initate escrow and emit EscrowUpdate when initating escrow (670ms)
+      ✔ should set the values of current escrow when initiating the escrow (788ms)
+      ✔ should revert when initiating a new escrow when there is a preexiting active escrow (839ms)
+      ✔ should revert when trying to set the egress token after the escrow has already been completed (826ms)
+      ✔ should revert when trying to set the egress token while not being the beneficiary (680ms)
+      ✔ should update the egress token (1055ms)
+      ✔ should revert when trying to complete an already completed escrow (880ms)
+      ✔ should revert when trying to complete an escrow when not being the initiator (724ms)
+      ✔ should pay out the escrow in AUSD if no egress token is set (995ms)
+      ✔ should pay out the escrow in set token when egress token is set (1474ms)
+      ✔ should not pay out the escrow in set AUSD when egress token is set (1228ms)
+      ✔ should emit EscrowUpdate when escrow is completed (1175ms)
+      ✔ should automatically complete the escrow when given number of blocks has passed (886ms)
+
+
+  18 passing (23s)
+
+✨  Done in 24.07s.
+```
+
 ## User journey
 
-FInally we are able to simulate the user journey through the `AdvancedEscrow`. We will create another script in the `scripts` directory called  `userJourney.js` and add three scenarios to it:
+Finally we are able to simulate the user journey through the `AdvancedEscrow`. We will create another script in the `scripts` directory called  `userJourney.js` and add three scenarios to it:
 
 Beneficiary accepts the funds in aUSD and the escrow is released by `Schedule` predeployed smart contract.
 Beneficiary accepts the funds in aUSD and the escrow is released by the initiator of the escrow, before it is released by the `Schedule`.

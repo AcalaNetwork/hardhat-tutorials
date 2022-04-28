@@ -28,9 +28,6 @@ describe('Token contract', function () {
       storageLimit: '64001',
       txFeePerGas,
       storageByteDeposit,
-      type: 0x60,
-      tip: '1',
-      accessList: []
     });
     [deployer, user] = await ethers.getSigners();
     deployerAddress = await deployer.getAddress();

@@ -141,9 +141,6 @@ parameters of the deployment transaction.Let's assign them values in the `before
                         storageLimit: '64001',
                         txFeePerGas,
                         storageByteDeposit,
-                        type: 0x60,
-                        tip: "1",
-                        accessList: []
                 });
                 [deployer, user] = await ethers.getSigners();
                 deployerAddress = await deployer.getAddress();
@@ -550,9 +547,6 @@ With that, our test is ready to be run.
                                 storageLimit: '64001',
                                 txFeePerGas,
                                 storageByteDeposit,
-                                type: 0x60,
-                                tip: "1",
-                                accessList: []
                         });
                         [deployer, user] = await ethers.getSigners();
                         deployerAddress = await deployer.getAddress();

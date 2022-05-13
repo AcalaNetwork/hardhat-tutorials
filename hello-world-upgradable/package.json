@@ -15,7 +15,7 @@
     "deploy-mandala:pubDev": "hardhat run scripts/deploy.ts --network mandalaPubDev",
     "deploy-mandala:CI": "hardhat run scripts/deploy.ts --network mandalaCI"
   },
-  "dependencies": {},
+  "dependencies": {"@openzeppelin/contracts-upgradeable":"~4.6.0"},
   "devDependencies": {
     "@acala-network/eth-providers": "workspace:*",
     "@nomiclabs/hardhat-ethers": "^2.0.2",

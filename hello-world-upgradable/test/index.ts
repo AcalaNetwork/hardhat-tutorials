@@ -17,12 +17,9 @@ describe("Greeter", function () {
     ).connect(provider);
 
     const Greeter = await ethers.getContractFactory("Greeter", signer);
-    const greeter = await upgrades.deployProxy(Greeter, [
-      "Hello, world!",
-      "Hello, world!",
-      "Hello, world!",
-    ]);
+    const greeter = await upgrades.deployProxy(Greeter, ["Hello, Hardhat!"]);
 
+    // const res = greeter.greet()
     expect(await greeter.greet()).to.equal("Hello, world!");
 
     // const setGreetingTx = await greeter.setGreeting("Hola, mundo!");

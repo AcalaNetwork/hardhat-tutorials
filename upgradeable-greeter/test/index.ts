@@ -1,9 +1,14 @@
 import { expect } from "chai";
 import { ethers, upgrades } from "hardhat";
 import { EvmRpcProvider } from "@acala-network/eth-providers";
+import { Contract, Signer } from "ethers";
 
 describe("Greeter", function () {
-  it("Should return the new greeting once it's changed", async function () {
+  let greeter: Contract;
+  let greeterV2: Contract;
+  let signer: Signer;
+
+  before("prepare signer with custom gas overrides", async () => {
     const provider = EvmRpcProvider.from("ws://localhost:9944");
     await provider.isReady();
 
@@ -25,13 +30,14 @@ describe("Greeter", function () {
       gasPrice: gasPriceOverrides,
     });
 
-    const signer = ethers.Wallet.fromMnemonic(
+    signer = ethers.Wallet.fromMnemonic(
       "fox sight canyon orphan hotel grow hedgehog build bless august weather swarm"
     ).connect(provider);
+  });
 
-    /* --------------- deploy V1 --------------- */
+  it("deploy Greeter V1 with proxy", async function () {
     const Greeter = await ethers.getContractFactory("Greeter", signer);
-    const greeter = await upgrades.deployProxy(Greeter, ["Hello, Goku!"]);
+    greeter = await upgrades.deployProxy(Greeter, ["Hello, Goku!"]);
     expect(await greeter.greet()).to.equal("Hello, Goku!");
 
     await greeter.setGreeting("Hola, Vegeta!");
@@ -40,10 +46,11 @@ describe("Greeter", function () {
     expect(() => greeter.setGreetingV2("Hola, Buu!")).to.throw(
       "greeter.setGreetingV2 is not a function"
     );
+  });
 
-    /* --------------- upgrade to V2 --------------- */
+  it("upgrade Greeter to V2 and call the new method setGreetingV2()", async function () {
     const GreeterV2 = await ethers.getContractFactory("GreeterV2", signer);
-    const greeterV2 = await upgrades.upgradeProxy(greeter.address, GreeterV2);
+    greeterV2 = await upgrades.upgradeProxy(greeter.address, GreeterV2);
     expect(await greeterV2.greet()).to.equal("Hola, Vegeta!");
 
     await greeterV2.setGreetingV2("Hola, Buu!");

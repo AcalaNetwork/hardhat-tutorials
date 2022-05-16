@@ -9,7 +9,8 @@ describe("Greeter", function () {
   let signer: Signer;
 
   before("prepare signer with custom gas overrides", async () => {
-    const provider = EvmRpcProvider.from("ws://localhost:9944");
+    const ENDPOINT_URL = process.env.ENDPOINT_URL || "ws://localhost:9944";
+    const provider = EvmRpcProvider.from(ENDPOINT_URL);
     await provider.isReady();
 
     /* ----------

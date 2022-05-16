@@ -21,6 +21,7 @@
     "build": "hardhat compile",
     "test-mandala": "hardhat test test/AdvancedEscrow.js --network mandala",
     "test-mandala:pubDev": "hardhat test test/AdvancedEscrow.js --network mandalaPubDev",
+    "test-mandala:CI": "hardhat test test/AdvancedEscrow.js --network mandalaCI",
     "deploy-mandala": "hardhat run scripts/deploy.js --network mandala",
     "deploy-mandala:pubDev": "hardhat run scripts/deploy.js --network mandalaPubDev",
     "user-journey-mandala": "hardhat run scripts/userJourney.js --network mandala",

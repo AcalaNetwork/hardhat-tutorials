@@ -12,7 +12,6 @@
     "test-mandala:pubDev": "yarn clean && hardhat test test/index.ts --network mandalaPubDev",
     "test-mandala:CI": "yarn clean && hardhat test --network mandalaCI"
   },
-  "dependencies": {},
   "devDependencies": {
     "@acala-network/eth-providers": "^2.4.11",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
@@ -36,9 +35,9 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-promise": "^5.1.0",
-    "ethereum-waffle": "~3.4.0",
-    "ethers": "~5.5.0",
-    "hardhat": "^2.6.8",
+    "ethereum-waffle": "^3.4.0",
+    "ethers": "^5.5.4",
+    "hardhat": "^2.9.1",
     "hardhat-gas-reporter": "^1.0.4",
     "prettier": "^2.3.2",
     "prettier-plugin-solidity": "^1.0.0-beta.13",

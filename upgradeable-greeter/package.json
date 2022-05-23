@@ -1,5 +1,5 @@
 {
-  "name": "hardhat-tutorial-token",
+  "name": "hardhat-tutorial-upgradeable-greeter",
   "version": "1.0.0",
   "main": "index.js",
   "author": "Jan Turk",

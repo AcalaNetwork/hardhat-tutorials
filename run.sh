@@ -10,7 +10,8 @@ build_all() {
     -t hardhat-tutorial-nft \
     -t hardhat-tutorial-precompiled-token \
     -t hardhat-tutorial-dex \
-    -t hardhat-tutorial-evm'
+    -t hardhat-tutorial-evm \
+    -t hardhat-tutorial-upgradeable-greeter'
 }
 
 rebuild_all() {
@@ -21,7 +22,8 @@ rebuild_all() {
     -t hardhat-tutorial-nft \
     -t hardhat-tutorial-precompiled-token \
     -t hardhat-tutorial-dex \
-    -t hardhat-tutorial-evm'
+    -t hardhat-tutorial-evm \
+    -t hardhat-tutorial-upgradeable-greeter'
 }
 
 test_all() {
@@ -33,6 +35,7 @@ test_all() {
     "precompiled-token"
     "DEX"
     # "EVM"       TODO: wait for mandala upgrade https://github.com/AcalaNetwork/bodhi.js/pull/324
+    "upgradeable-greeter"
   )
 
   ROOT=$(pwd)

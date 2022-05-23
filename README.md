@@ -46,3 +46,7 @@ account directly in the Acala EVM+.
 `Token`s and `Schedule` smart contracts in order to build an escrow service that accepts any of the
 predeployed ERC20 tokens, swaps them for `AUSD` and at a set block releases the funds in `AUSD` or
 in another predeployed ERC20 token.
+
+9. [UpgradeableGreeter](./upgradeable-greeter/README.md): This tutorial explores on how to use the
+proxy-upgrade pattern in order to deploy, manage and upgrade upgradeable smart contracts in Acala
+EVM+.

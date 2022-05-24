@@ -1,4 +1,4 @@
-# Hardhat example: UpgradeableEscrow
+# Hardhat example: UpgradeableGreeter
 
 ## Table of contents
 

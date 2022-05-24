@@ -21,9 +21,7 @@
     "upgrade-contract": "hardhat run scripts/upgrade.js",
     "upgrade-mandala": "hardhat run scripts/upgrade.js --network mandala",
     "upgrade-mandala:pubDev": "hardhat run scripts/upgrade.js --network mandalaPubDev",
-    "upgrade-mandala:CI": "hardhat run scripts/upgrade.js --network mandalaCI",
-    "loop": "hardhat run test/loop.js --network mandala",
-    "loop:CI": "hardhat run test/loop.js --network mandalaCI"
+    "upgrade-mandala:CI": "hardhat run scripts/upgrade.js --network mandalaCI"
   },
   "devDependencies": {
     "@acala-network/eth-providers": "^2.4.11",

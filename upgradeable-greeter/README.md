@@ -6,16 +6,16 @@
 - [Setting up](#setting-up)
 - [Smart contract](#smart-contract)
 - [Deploy script](#deploy-script)
-- [User journey](#user-journey)
+- [Test](#test)
 - [Conclusion](#conclusion)
 
 ## Intro
 
 This tutorial addresses the use of the upgradeable smart contracts using the proxy-upgrade
 development pattern. Since Acala EVM+ charges storage rent to the user modifying the storage, we
-have to accomodate this when deploying the smart contracts (which modify more storage than an
+have to accommodate this when deploying the smart contracts (which modify more storage than an
 ordinary smart contract call). Since `upgrades` method of `@openzepelin/hardhat-upgrades`
-dependency, which is used to deplou and upgrade the upgradeable smart contracts, doesn't accept
+dependency, which is used to deploy and upgrade the upgradeable smart contracts, doesn't accept
 transaction parameters, we need to overwrite the provider it uses, to ensure that correct parameters
 are provided to it.
 
@@ -113,7 +113,7 @@ Our original `Greeter` smart contract will accept the initializer parameter with
 greeting. We will have the ability to get the current greeting and update it.
 
 Hardhat has already created a smart contract within the `contracts/` folder when we ran its setup.
-This smart contract is named `Greeter`. We can just overwrtite it with our own if there are any
+This smart contract is named `Greeter`. We can just overwrite it with our own if there are any
 differences:
 
 ```solidity
@@ -211,7 +211,7 @@ contract GreeterV2 is Greeter  {
 ```
 
 We have to define the greeting variable in order to avoid storage collision and we will be adding
-another `setGreeting`, wich will append ` - V2` to the end of the string we are adding:
+another `setGreeting`, which will append ` - V2` to the end of the string we are adding:
 
 ```solidity
     string private greeting;
@@ -502,7 +502,7 @@ a cleanup script to the `package.json`:
 ```
 
 To ease the deploy procedure and not have to call two scripts, we can add the `clean` script to the
-etploymen ones. The deploy scripts should be updated to look like this:
+deployment ones. The deploy scripts should be updated to look like this:
 
 ```json
     "deploy-mandala": "yarn clean && hardhat run scripts/deploy.js --network mandala",
@@ -563,7 +563,7 @@ main()
 Within the `main` function, we first invoke the `providerOverrides` and instantiate our `Signer`.
 After we output its address and its balance to the console, we instantiate the upgraded smart
 contract to the `GreeterV2` and deploy it using the `upgrades` method. Finally we verify that the
-upgrade worked and output the geetings that demonstrate the expected operation:
+upgrade worked and output the greetings that demonstrate the expected operation:
 
 ```javascript
   const overrides = await providerOverrides();
@@ -678,7 +678,7 @@ rm test/sample-test.js && touch test/UpgradeableGreeter.js
 At the beginning of the file, we will be importing all of the methods that we will require to
 successfully run the tests. We will be using `chai`'s `expect` and `hardhat`'s `ethers` and
 `upgrades`. To be able to deploy the upgradeable smart contract for testing, we have to import
-`providerOverrides` that we added to the `overrideProvider` utility before. As initating the
+`providerOverrides` that we added to the `overrideProvider` utility before. As initiating the
 `EvmRpcProvider` generates a lot of output, our test console output would get very messy if we
 didn't silence it. To do this we use the `console.mute` dependency, that we have to add to the
 project by using:

@@ -34,7 +34,7 @@ test_all() {
     "NFT"
     "precompiled-token"
     "DEX"
-    # "EVM"       TODO: wait for mandala upgrade https://github.com/AcalaNetwork/bodhi.js/pull/324
+    "EVM"
     "upgradeable-greeter"
   )
 

@@ -98,8 +98,9 @@ describe('DEX contract', function () {
         await expect(instance.getSwapTargetAmount([ACA, DOT], 0)).to.be.revertedWith('DEX: supplyAmount is zero');
       });
 
-      it('should revert for an incompatible path', async function () {
-        await expect(instance.getSwapTargetAmount([ACA, DOT], 100)).to.be.reverted;
+      it('should return 0 for an incompatible path', async function () {
+        const response = await instance.getSwapTargetAmount([ACA, DOT], 100);
+        expect(response.toString()).to.equal("0");
       });
 
       it('should return a swap target amount', async function () {
@@ -132,8 +133,9 @@ describe('DEX contract', function () {
         await expect(instance.getSwapSupplyAmount([ACA, AUSD], 0)).to.be.revertedWith('DEX: targetAmount is zero');
       });
 
-      it('should revert for an incompatible path', async function () {
-        await expect(instance.getSwapSupplyAmount([ACA, DOT], 100)).to.be.reverted;
+      it('should return 0 for an incompatible path', async function () {
+        const response = await instance.getSwapSupplyAmount([ACA, DOT], 100);
+        expect(response.toString()).to.equal("0");
       });
 
       it('should return the supply amount', async function () {

@@ -248,9 +248,10 @@ The section should look like this:
                                         .be.revertedWith("DEX: supplyAmount is zero");
                         });
 
-                        it("should revert for an incompatible path", async function () {
-                                await expect(instance.getSwapTargetAmount([ACA, DOT], 100)).to
-                                        .be.reverted;
+                        it("should return 0 for an incompatible path", async function () {
+                                const response = await instance.getSwapTargetAmount([ACA, DOT], 100);
+
+                                expect(response.toString()).to.equal('0');
                         })
 
                         it("should return a swap target amount", async function () {
@@ -297,9 +298,10 @@ The section should look like this:
                                         .be.revertedWith("DEX: targetAmount is zero");
                         });
 
-                        it("should revert for an incompatible path", async function () {
-                                await expect(instance.getSwapSupplyAmount([ACA, DOT], 100)).to
-                                        .be.reverted;
+                        it("should return 0 for an incompatible path", async function () {
+                                const response = await instance.getSwapSupplyAmount([ACA, DOT], 100);
+
+                                expect(response.toString()).to.equal('0');
                         });
 
                         it("should return the supply amount", async function () {
@@ -639,9 +641,10 @@ With that, our test is ready to be run.
                                                 .be.revertedWith("DEX: supplyAmount is zero");
                                 });
 
-                                it("should revert for an incompatible path", async function () {
-                                        await expect(instance.getSwapTargetAmount([ACA, DOT], 100)).to
-                                                .be.reverted;
+                                it("should return 0 for an incompatible path", async function () {
+                                        const response = await instance.getSwapTargetAmount([ACA, DOT], 100);
+
+                                        expect(response.toString()).to.equal('0');
                                 })
 
                                 it("should return a swap target amount", async function () {
@@ -679,9 +682,10 @@ With that, our test is ready to be run.
                                                 .be.revertedWith("DEX: targetAmount is zero");
                                 });
 
-                                it("should revert for an incompatible path", async function () {
-                                        await expect(instance.getSwapSupplyAmount([ACA, DOT], 100)).to
-                                                .be.reverted;
+                                it("should return 0 for an incompatible path", async function () {
+                                        const response = await instance.getSwapSupplyAmount([ACA, DOT], 100);
+
+                                        expect(response.toString()).to.equal('0');
                                 });
 
                                 it("should return the supply amount", async function () {

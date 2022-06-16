@@ -215,7 +215,7 @@ When validating the `getSwapTargetAddress` function, we will check for the follo
 
 1. `path` should not include the `0x0` address.
 2. `supplyAmount` should not be 0.
-3. Getting swap target amount should revert for an incompatible path.
+3. Getting swap target amount should return 0 for an incompatible path.
 4. Swap target amount should be returned when all parameters are correct.
 
 The section should look like this:
@@ -265,7 +265,7 @@ When validating the `getSwapSupplyAmount` function, we will check for the follow
 
 1. `path` should not include the `0x0` address.
 2. `targetAmount` should not be 0.
-3. Getting swap supply amount should revert for an incompatible path.
+3. Getting swap supply amount should return 0 for an incompatible path.
 4. Swap supply amount should be returned when all parameters are correct.
 
 The section should look like this:

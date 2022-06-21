@@ -1,4 +1,4 @@
-const { EVM } = require('@acala-network/contracts/utils/Address');
+const { EVM } = require('@acala-network/contracts/utils/AcalaAddress');
 const { Contract } = require('ethers');
 
 const { txParams } = require('../utils/transactionHelper');

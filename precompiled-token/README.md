@@ -56,7 +56,7 @@ The test file with import statements and an empty test should look like this:
 ```js
 const { expect } = require("chai");
 const { Contract } = require("ethers");
-const { ACA } = require("@acala-network/contracts/utils/Address");
+const { ACA } = require("@acala-network/contracts/utils/AcalaAddress");
 
 const TokenContract = require("@acala-network/contracts/build/contracts/Token.json");
 
@@ -123,7 +123,7 @@ With that, our test is ready to be run.
 
         const { expect } = require("chai");
         const { Contract } = require("ethers");
-        const { ACA } = require("@acala-network/contracts/utils/Address");
+        const { ACA } = require("@acala-network/contracts/utils/AcalaAddress");
 
         const TokenContract = require("@acala-network/contracts/build/contracts/Token.json");
 
@@ -200,7 +200,7 @@ Let's name our script `getACAinfo.js` and import `ACA` from the `ADDRESS` utilit
 should look like this:
 
 ```js
-const { ACA } = require("@acala-network/contracts/utils/Address");
+const { ACA } = require("@acala-network/contracts/utils/AcalaAddress");
 const { Contract } = require("ethers");
 
 const TokenContract = require("@acala-network/contracts/build/contracts/Token.json");
@@ -290,7 +290,7 @@ definition:
 <details>
     <summary>Your script/getACAinfo.js should look like this:</summary>
 
-        const { ACA } = require("@acala-network/contracts/utils/Address");
+        const { ACA } = require("@acala-network/contracts/utils/AcalaAddress");
         const { Contract } = require("ethers");
 
         const TokenContract = require("@acala-network/contracts/build/contracts/Token.json");

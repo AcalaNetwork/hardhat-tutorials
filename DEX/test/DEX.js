@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const { Contract } = require('ethers');
-const { ACA, AUSD, LP_ACA_AUSD, DOT, RENBTC, DEX } = require('@acala-network/contracts/utils/Address');
+const { ACA, AUSD, LP_ACA_AUSD, DOT, RENBTC, DEX } = require('@acala-network/contracts/utils/AcalaAddress');
 
 const DEXContract = require('@acala-network/contracts/build/contracts/DEX.json');
 const TokenContract = require('@acala-network/contracts/build/contracts/Token.json');

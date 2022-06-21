@@ -1,4 +1,4 @@
-const { ACA, AUSD, DEX, DOT } = require('@acala-network/contracts/utils/Address');
+const { ACA, AUSD, DEX, DOT } = require('@acala-network/contracts/utils/AcalaAddress');
 const { Contract } = require('ethers');
 
 const DEXContract = require('@acala-network/contracts/build/contracts/DEX.json');

@@ -50,7 +50,7 @@ The test file with import statements and an empty test should look like this:
 ```js
 const { expect } = require("chai");
 const { Contract } = require("ethers");
-const { ACA, AUSD, LP_ACA_AUSD, DOT, RENBTC, DEX } = require("@acala-network/contracts/utils/Address");
+const { ACA, AUSD, LP_ACA_AUSD, DOT, RENBTC, DEX } = require("@acala-network/contracts/utils/AcalaAddress");
 
 const DEXContract = require("@acala-network/contracts/build/contracts/DEX.json");
 const TokenContract = require("@acala-network/contracts/build/contracts/Token.json");
@@ -538,7 +538,7 @@ With that, our test is ready to be run.
 
         const { expect } = require("chai");
         const { Contract } = require("ethers");
-        const { ACA, AUSD, LP_ACA_AUSD, DOT, RENBTC, DEX } = require("@acala-network/contracts/utils/Address");
+        const { ACA, AUSD, LP_ACA_AUSD, DOT, RENBTC, DEX } = require("@acala-network/contracts/utils/AcalaAddress");
 
         const DEXContract = require("@acala-network/contracts/build/contracts/DEX.json");
         const TokenContract = require("@acala-network/contracts/build/contracts/Token.json");
@@ -957,7 +957,7 @@ The empty user journey script together with the imports of `ACA`, `AUSD`, `DEX` 
 `DEX` and `Token` smart contracts from `@acala-network/contracts` should look like this:
 
 ```javascript
-const { ACA, AUSD, DEX, DOT } = require("@acala-network/contracts/utils/Address");
+const { ACA, AUSD, DEX, DOT } = require("@acala-network/contracts/utils/AcalaAddress");
 const { Contract } = require("ethers");
 
 const DEXContract = require("@acala-network/contracts/build/contracts/DEX.json");
@@ -1166,7 +1166,7 @@ console:
 <details>
     <summary>Your scripts/userJourney.js should look like this:</summary>
 
-        const { ACA, AUSD, DEX, DOT } = require("@acala-network/contracts/utils/Address");
+        const { ACA, AUSD, DEX, DOT } = require("@acala-network/contracts/utils/AcalaAddress");
         const { Contract } = require("ethers");
 
         const DEXContract = require("@acala-network/contracts/build/contracts/DEX.json");

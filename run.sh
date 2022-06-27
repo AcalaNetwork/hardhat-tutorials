@@ -11,6 +11,7 @@ build_all() {
     -t hardhat-tutorial-precompiled-token \
     -t hardhat-tutorial-dex \
     -t hardhat-tutorial-evm \
+    -t hardhat-tutorial-advanced-escrow \
     -t hardhat-tutorial-upgradeable-greeter'
 }
 
@@ -23,6 +24,7 @@ rebuild_all() {
     -t hardhat-tutorial-precompiled-token \
     -t hardhat-tutorial-dex \
     -t hardhat-tutorial-evm \
+    -t hardhat-tutorial-advanced-escrow \
     -t hardhat-tutorial-upgradeable-greeter'
 }
 
@@ -36,13 +38,16 @@ test_all() {
     "DEX"
     "EVM"
     "upgradeable-greeter"
+    "advanced-escrow"
   )
 
   ROOT=$(pwd)
 
   for e in "${examples[@]}"
   do
-    echo "--------------- Testing Hardhat examples ${e} ---------------"
+    echo "-------------------------------------------------------------"
+    echo "---------- testing hardhat examples: ${e} ----------"
+    echo "-------------------------------------------------------------"
 
     cd  "${ROOT}/${e}"
 

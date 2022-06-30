@@ -1,5 +1,5 @@
 const { txParams } = require('../utils/transactionHelper');
-const { ACA, AUSD, DOT } = require('@acala-network/contracts/utils/Address');
+const { ACA, AUSD, DOT } = require('@acala-network/contracts/utils/MandalaAddress');
 const { Contract } = require('ethers');
 const { formatUnits } = require('ethers/lib/utils');
 

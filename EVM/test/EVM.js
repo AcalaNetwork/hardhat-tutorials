@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const { Contract, BigNumber, Wallet } = require('ethers');
-const { EVM } = require('@acala-network/contracts/utils/AcalaAddress');
+const { EVM } = require('@acala-network/contracts/utils/MandalaAddress');
 
 const { txParams } = require('../utils/transactionHelper');
 

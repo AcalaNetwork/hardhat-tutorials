@@ -46,7 +46,7 @@ The test file with import statements and an empty test should look like this:
 ```js
 const { expect } = require("chai");
 const { Contract, BigNumber, Wallet } = require("ethers");
-const { EVM } = require("@acala-network/contracts/utils/AcalaAddress");
+const { EVM } = require("@acala-network/contracts/utils/MandalaAddress");
 
 const { txParams } = require("../utils/transactionHelper");
 
@@ -420,7 +420,7 @@ With that, our test is ready to be run.
 
         const { expect } = require("chai");
         const { Contract, BigNumber, Wallet } = require("ethers");
-        const { EVM } = require("@acala-network/contracts/utils/AcalaAddress");
+        const { EVM } = require("@acala-network/contracts/utils/MandalaAddress");
 
         const { txParams } = require("../utils/transactionHelper");
 
@@ -709,7 +709,7 @@ The empty user journey script together with the imports of `EVM` from `@acala-ne
 `Token` smart contracts from `@acala-network/contracts` should look like this:
 
 ```javascript
-const { EVM } = require("@acala-network/contracts/utils/AcalaAddress");
+const { EVM } = require("@acala-network/contracts/utils/MandalaAddress");
 const { Contract } = require("ethers");
 
 const { txParams } = require("../utils/transactionHelper");
@@ -888,7 +888,7 @@ console:
 <details>
     <summary>Your scripts/userJourney.js should look like this:</summary>
 
-        const { EVM } = require("@acala-network/contracts/utils/AcalaAddress");
+        const { EVM } = require("@acala-network/contracts/utils/MandalaAddress");
         const { Contract } = require("ethers");
 
         const { txParams } = require("../utils/transactionHelper");

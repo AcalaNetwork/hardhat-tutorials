@@ -1,4 +1,4 @@
-const { ACA } = require('@acala-network/contracts/utils/AcalaAddress');
+const { ACA } = require('@acala-network/contracts/utils/MandalaAddress');
 const { Contract } = require('ethers');
 
 const TokenContract = require('@acala-network/contracts/build/contracts/Token.json');

@@ -19,7 +19,7 @@
     "loop": "hardhat run test/loop.js --network mandala"
   },
   "devDependencies": {
-    "@acala-network/contracts": "^4.3.0",
+    "@acala-network/contracts": "^4.3.2",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@openzeppelin/contracts": "^4.4.2",

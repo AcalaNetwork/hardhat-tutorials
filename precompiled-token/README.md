@@ -44,8 +44,9 @@ Within it we import the `expect` from `chai` dependency and `Contract` from the 
 dependency. We are using `Contract` in stead of `ContractFactory`, because the contract is
 already deployed to the network. The `ACA`, which is an export from the `ADDRESS` utility of
 `@acala-network/contracts` dependency, is imported and it holds the value of the address of
-the `ACA` token. Additionally we are importing the compiled `Token` smart contract from the
-`@acala-network/contracts` dependency, which we will use to instantiate the smart contract.
+the `ACA` token. We will use the `MandalaAddress` to access the addresses of the predeployed smart
+contracts of the Mandala network. Additionally we are importing the compiled `Token` smart contract
+from the `@acala-network/contracts` dependency, which we will use to instantiate the smart contract.
 
 **NOTE: The ACA ERC20 token mirrors the balance of the native ACA currency, so you are able
 to transfer ACA within your smart contract the same way you would transfer a non-native ERC20
@@ -56,7 +57,7 @@ The test file with import statements and an empty test should look like this:
 ```js
 const { expect } = require("chai");
 const { Contract } = require("ethers");
-const { ACA } = require("@acala-network/contracts/utils/AcalaAddress");
+const { ACA } = require("@acala-network/contracts/utils/MandalaAddress");
 
 const TokenContract = require("@acala-network/contracts/build/contracts/Token.json");
 
@@ -123,7 +124,7 @@ With that, our test is ready to be run.
 
         const { expect } = require("chai");
         const { Contract } = require("ethers");
-        const { ACA } = require("@acala-network/contracts/utils/AcalaAddress");
+        const { ACA } = require("@acala-network/contracts/utils/MandalaAddress");
 
         const TokenContract = require("@acala-network/contracts/build/contracts/Token.json");
 
@@ -162,7 +163,7 @@ With that, our test is ready to be run.
 </details>
 
 **NOTE: If you want to interact with other precompiled and predeployed smart contracts,
-you can take a look at the list of all of the smart contracts supported in the [`ADDRESS` utility](https://github.com/AcalaNetwork/predeploy-contracts/blob/master/contracts/utils/Address.js)
+you can take a look at the list of all of the smart contracts supported in the [`ADDRESS` utility](https://github.com/AcalaNetwork/predeploy-contracts/blob/master/contracts/utils/MandalaAddress.js)
 and tweak this example test.**
 
 When you run the test with (for example) `yarn test-mandala:pubDev`, your tests should pass with the
@@ -200,7 +201,7 @@ Let's name our script `getACAinfo.js` and import `ACA` from the `ADDRESS` utilit
 should look like this:
 
 ```js
-const { ACA } = require("@acala-network/contracts/utils/AcalaAddress");
+const { ACA } = require("@acala-network/contracts/utils/MandalaAddress");
 const { Contract } = require("ethers");
 
 const TokenContract = require("@acala-network/contracts/build/contracts/Token.json");
@@ -290,7 +291,7 @@ definition:
 <details>
     <summary>Your script/getACAinfo.js should look like this:</summary>
 
-        const { ACA } = require("@acala-network/contracts/utils/AcalaAddress");
+        const { ACA } = require("@acala-network/contracts/utils/MandalaAddress");
         const { Contract } = require("ethers");
 
         const TokenContract = require("@acala-network/contracts/build/contracts/Token.json");

@@ -1,3 +1,5 @@
+**/.openzeppelin/
+
 node_modules/
 artifacts/
 cache/

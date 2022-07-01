@@ -2,14 +2,14 @@
 pragma solidity ^0.8.0;
 
 import "@acala-network/contracts/dex/IDEX.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@acala-network/contracts/token/Token.sol";
 import "@acala-network/contracts/schedule/ISchedule.sol";
  
-import "@acala-network/contracts/utils/Address.sol";
+import "@acala-network/contracts/utils/MandalaAddress.sol";
 
 contract AdvancedEscrow is ADDRESS {
     IDEX dex = IDEX(ADDRESS.DEX);
-    ISchedule schedule = ISchedule(ADDRESS.Schedule);
+    ISchedule schedule = ISchedule(ADDRESS.SCHEDULE);
 
     uint256 public numberOfEscrows;
 
@@ -55,13 +55,13 @@ contract AdvancedEscrow is ADDRESS {
         require(ingressToken_ != address(0), "Escrow: ingressToken_ is 0x0");
         require(period != 0, "Escrow: period is 0");
 
-        uint256 contractBalance = ERC20(ingressToken_).balanceOf(address(this));
+        uint256 contractBalance = Token(ingressToken_).balanceOf(address(this));
         require(
             contractBalance >= ingressValue,
             "Escrow: contract balance is less than ingress value"
         );
 
-        ERC20 AUSDtoken = ERC20(ADDRESS.AUSD);
+        Token AUSDtoken = Token(ADDRESS.AUSD);
         uint256 initalAusdBalance = AUSDtoken.balanceOf(address(this));
         
         address[] memory path = new address[](2);
@@ -114,7 +114,7 @@ contract AdvancedEscrow is ADDRESS {
         );
 
         if(currentEscrow.egressToken != address(0)){
-            ERC20 token = ERC20(currentEscrow.egressToken);
+            Token token = Token(currentEscrow.egressToken);
             uint256 initialBalance = token.balanceOf(address(this));
             
             address[] memory path = new address[](2);
@@ -129,7 +129,7 @@ contract AdvancedEscrow is ADDRESS {
 
             token.transfer(currentEscrow.beneficiary, finalBalance - initialBalance);
         } else {
-            ERC20 AusdToken = ERC20(ADDRESS.AUSD);
+            Token AusdToken = Token(ADDRESS.AUSD);
             AusdToken.transfer(currentEscrow.beneficiary, currentEscrow.AusdValue);
         }
 

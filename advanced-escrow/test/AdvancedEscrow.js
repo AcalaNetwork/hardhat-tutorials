@@ -1,4 +1,4 @@
-const { ACA, AUSD, DEX, DOT } = require('@acala-network/contracts/utils/Address');
+const { ACA, AUSD, DEX, DOT } = require('@acala-network/contracts/utils/MandalaAddress');
 const { expect } = require('chai');
 const { Contract, ContractFactory, BigNumber } = require('ethers');
 

@@ -228,7 +228,7 @@ contract:
 
                 it("should revert when trying to get the balance of the 0x0 address", async function () {
                         await expect(instance.balanceOf(NULL_ADDRESS)).to
-                                .be.revertedWith("ERC721: balance query for the zero address");
+                                .be.revertedWith("ERC721: address zero is not a valid owner");
                 });
 ```
 
@@ -333,7 +333,7 @@ These examples should look like this:
 
                         it("should revert when trying to get an URI of an nonexistent token", async function () {
                                 await expect(instance.tokenURI(42)).to
-                                        .be.revertedWith("ERC721URIStorage: URI query for nonexistent token");
+                                        .be.revertedWith("ERC721: invalid token ID");
                         });
 ```
 
@@ -350,12 +350,12 @@ These examples should look like this:
 ```js
                         it("should revert when trying to get balance of 0x0 address", async function () {
                                 await expect(instance.balanceOf(NULL_ADDRESS)).to
-                                        .be.revertedWith("ERC721: balance query for the zero address");
+                                        .be.revertedWith("ERC721: address zero is not a valid owner");
                         });
 
                         it("should revert when trying to get the owner of a nonexistent token", async function () {
                                 await expect(instance.ownerOf(42)).to
-                                        .be.revertedWith("ERC721: owner query for nonexistent token");
+                                        .be.revertedWith("ERC721: invalid token ID");
                         });
 
                         it("should return the token owner", async function () {
@@ -428,12 +428,12 @@ These examples should look like this:
                                 await instance.connect(deployer).mintNFT(userAddress, "");
 
                                 await expect(instance.connect(deployer).approve(deployerAddress, 1)).to
-                                        .be.revertedWith("ERC721: approve caller is not owner nor approved for all");
+                                        .be.revertedWith("ERC721: approve caller is not token owner nor approved for all");
                         });
 
                         it("should revert when trying to get an approval of a nonexistent token", async function() {
                                 await expect(instance.getApproved(42)).to
-                                        .be.revertedWith("ERC721: approved query for nonexistent token");
+                                        .be.revertedWith("ERC721: invalid token ID");
                         });
 
                         it("should return 0x0 address as approved for a token for which no approval is given", async function () {

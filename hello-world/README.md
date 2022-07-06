@@ -115,12 +115,12 @@ given mnemonic
 In addition to the local development network, we can also add the network configuration for the
 public development network. Most of the parameters are the same as for the local development network
 (unless you plan on using your own development accounts). The only change that we need to do is to
-change the URL of the network from `http://127.0.0.1:8545` to `http://mandala-eth-rpc-adapter.thechaindata.com/public`. The
+change the URL of the network from `http://127.0.0.1:8545` to `https://acala-mandala-adapter.api.onfinality.io/public`. The
 following should be added to the `network`  section of the `hardhat.config.js`:
 
 ```
     mandalaPubDev: {
-      url: 'http://mandala-eth-rpc-adapter.thechaindata.com/public',
+      url: 'https://acala-mandala-adapter.api.onfinality.io/public',
       accounts: {
         mnemonic: 'fox sight canyon orphan hotel grow hedgehog build bless august weather swarm',
         path: "m/44'/60'/0'/0",
@@ -166,7 +166,7 @@ This concludes the configuration of Hardhat. Now we can move on to the smart con
           chainId: 595,
         },
         mandalaPubDev: {
-          url: 'http://mandala-eth-rpc-adapter.thechaindata.com/public',
+          url: 'https://acala-mandala-adapter.api.onfinality.io/public',
           accounts: {
             mnemonic: 'fox sight canyon orphan hotel grow hedgehog build bless august weather swarm',
             path: "m/44'/60'/0'/0",

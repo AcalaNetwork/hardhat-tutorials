@@ -260,12 +260,12 @@ The section should look like this:
 
                         it("should revert if trying to transfer maintainer of 0x0", async function () {
                                 await expect(instance.connect(deployer).transferMaintainer(NULL_ADDRESS, userAddress)).to
-                                        .be.revertedWith("EVM: the contract_address is the zero address");
+                                        .be.revertedWith("EVM: the contractAddress is the zero address");
                         });
 
                         it("should revert when trying to transfer maintainer to 0x0 address", async function () {
                                 await expect(instance.connect(deployer).transferMaintainer(contract.address, NULL_ADDRESS)).to
-                                        .be.revertedWith("EVM: the new_maintainer is the zero address");
+                                        .be.revertedWith("EVM: the newMaintainer is the zero address");
                         });
 ```
 
@@ -291,7 +291,7 @@ The section should look like this:
 
                         it("should revert when trying to publish 0x0 contract", async function () {
                                 await expect(instance.connect(deployer).publishContract(NULL_ADDRESS)).to
-                                        .be.revertedWith("EVM: the contract_address is the zero address");
+                                        .be.revertedWith("EVM: the contractAddress is the zero address");
                         });
 ```
 
@@ -517,12 +517,12 @@ With that, our test is ready to be run.
 
                                 it("should revert if trying to transfer maintainer of 0x0", async function () {
                                         await expect(instance.connect(deployer).transferMaintainer(NULL_ADDRESS, userAddress)).to
-                                                .be.revertedWith("EVM: the contract_address is the zero address");
+                                                .be.revertedWith("EVM: the contractAddress is the zero address");
                                 });
 
                                 it("should revert when trying to transfer maintainer to 0x0 address", async function () {
                                         await expect(instance.connect(deployer).transferMaintainer(contract.address, NULL_ADDRESS)).to
-                                                .be.revertedWith("EVM: the new_maintainer is the zero address");
+                                                .be.revertedWith("EVM: the newMaintainer is the zero address");
                                 });
                         });
 
@@ -540,7 +540,7 @@ With that, our test is ready to be run.
 
                                 it("should revert when trying to publish 0x0 contract", async function () {
                                         await expect(instance.connect(deployer).publishContract(NULL_ADDRESS)).to
-                                                .be.revertedWith("EVM: the contract_address is the zero address");
+                                                .be.revertedWith("EVM: the contractAddress is the zero address");
                                 });
                         });
 

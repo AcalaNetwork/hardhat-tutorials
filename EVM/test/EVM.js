@@ -96,7 +96,7 @@ describe('EVM contract', function () {
 
       it('should revert if trying to transfer maintainer of 0x0', async function () {
         await expect(instance.connect(deployer).transferMaintainer(NULL_ADDRESS, userAddress)).to.be.revertedWith(
-          'EVM: the contract_address is the zero address'
+          'EVM: the contractAddress is the zero address'
         );
       });
 
@@ -120,7 +120,7 @@ describe('EVM contract', function () {
 
       it('should revert when trying to publish 0x0 contract', async function () {
         await expect(instance.connect(deployer).publishContract(NULL_ADDRESS)).to.be.revertedWith(
-          'EVM: the contract_address is the zero address'
+          'EVM: the contractAddress is the zero address'
         );
       });
     });

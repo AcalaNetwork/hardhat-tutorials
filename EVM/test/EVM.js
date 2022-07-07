@@ -102,7 +102,7 @@ describe('EVM contract', function () {
 
       it('should revert when trying to transfer maintainer to 0x0 address', async function () {
         await expect(instance.connect(deployer).transferMaintainer(contract.address, NULL_ADDRESS)).to.be.revertedWith(
-          'EVM: the new_maintainer is the zero address'
+          'EVM: the newMaintainer is the zero address'
         );
       });
     });

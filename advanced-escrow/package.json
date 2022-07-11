@@ -28,6 +28,6 @@
     "deploy-mandala:pubDev": "hardhat run scripts/deploy.js --network mandalaPubDev",
     "user-journey-mandala": "hardhat run scripts/userJourney.js --network mandala",
     "user-journey-mandala:pubDev": "hardhat run scripts/userJourney.js --network mandalaPubDev",
-    "loop": "hardhat run test/loop.js --network mandala"
+    "loop": "hardhat run utils/loop.js --network mandala"
   }
 }

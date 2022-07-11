@@ -1850,7 +1850,7 @@ be run when needed.
 
 **NOTE: If the `--instant-sealing` flag is used in the local development network, the block
 generation has to be forced and the tests might fail because of the package manager waiting for
-new blocks. To avoid test failure, a helper `loop.js` method is added to the `test/` directory.**
+new blocks. To avoid script failure, a helper `loop.js` method is added to the `utils/` directory.**
 
 Usage of `--instant-sealing` flag in a development network is beneficial, as it decreases the time
 needed to test out the behaviour of the project, but it also requires the `loop.js` helper, which
@@ -1930,7 +1930,7 @@ is at least one transaction within the transaction pool. As we only care that th
 generated, we set both to `true`.**
 
 <details>
-    <summary>Your test/loop.js should look like this:</summary>
+    <summary>Your utils/loop.js should look like this:</summary>
 
     const { ApiPromise, WsProvider } = require('@polkadot/api');
 
@@ -1962,11 +1962,11 @@ section of our `package.json`. Since we will only be using it in a local develop
 that uses the `--instant-sealing` flag, we only need to add one execution script:
 
 ```json
-    "loop": "hardhat run test/loop.js --network mandala"
+    "loop": "hardhat run utils/loop.js --network mandala"
 ```
 
-This has to be run in its own terminal only when testing and deploying to a local development
-network that uses `--instant-sealing` flag with:
+This has to be run in its own terminal only when running the user yourney script in the local
+development network that uses `--instant-sealing` flag with:
 
 ```bash
 yarn loop

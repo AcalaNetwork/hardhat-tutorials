@@ -1858,7 +1858,7 @@ forces the block creation. To add `loop.js` helper, run the following comand in 
 project:
 
 ```shell
-touch test/loop.js
+touch utils/loop.js
 ```
 
 The `loop.js` helper will continuously force the block generation using the `@polkadot/api`
@@ -1965,7 +1965,7 @@ that uses the `--instant-sealing` flag, we only need to add one execution script
     "loop": "hardhat run utils/loop.js --network mandala"
 ```
 
-This has to be run in its own terminal only when running the user yourney script in the local
+This has to be run in its own terminal only when running the user journey script in the local
 development network that uses `--instant-sealing` flag with:
 
 ```bash

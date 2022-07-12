@@ -5,6 +5,9 @@
   "main": "index.js",
   "author": "Acala engineers",
   "license": "MIT",
+  "dependencies": {
+    "hardhat": "^2.6.8"
+  },
   "devDependencies": {
     "@acala-network/contracts": "^4.3.2",
     "@acala-network/eth-providers": "^2.4.11",
@@ -14,8 +17,7 @@
     "chai": "~4.3.4",
     "console.mute": "^0.3.0",
     "ethereum-waffle": "~3.4.0",
-    "ethers": "~5.5.0",
-    "hardhat": "^2.6.8"
+    "ethers": "~5.5.0"
   },
   "scripts": {
     "build": "hardhat compile",
@@ -26,6 +28,6 @@
     "deploy-mandala:pubDev": "hardhat run scripts/deploy.js --network mandalaPubDev",
     "user-journey-mandala": "hardhat run scripts/userJourney.js --network mandala",
     "user-journey-mandala:pubDev": "hardhat run scripts/userJourney.js --network mandalaPubDev",
-    "loop": "hardhat run test/loop.js --network mandala"
+    "loop": "hardhat run utils/loop.js --network mandala"
   }
 }

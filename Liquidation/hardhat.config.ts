@@ -25,16 +25,30 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 const config: HardhatUserConfig = {
   solidity: "0.8.4",
   networks: {
-    mandalaTest: {
-      url: "http://127.0.0.1:8545",
+    mandala: {
+      url: 'http://127.0.0.1:8545',
       accounts: {
-        mnemonic:
-          "fox sight canyon orphan hotel grow hedgehog build bless august weather swarm",
-        path: "m/44'/60'/0'/0",
+        mnemonic: 'fox sight canyon orphan hotel grow hedgehog build bless august weather swarm',
+        path: "m/44'/60'/0'/0"
       },
-      chainId: 595,
-      timeout: 60000,
+      chainId: 595
     },
+    mandalaPubDev: {
+      url: 'https://acala-mandala-adapter.api.onfinality.io/public',
+      accounts: {
+        mnemonic: 'fox sight canyon orphan hotel grow hedgehog build bless august weather swarm',
+        path: "m/44'/60'/0'/0"
+      },
+      chainId: 595
+    },
+    mandalaCI: {
+      url: 'http://eth-rpc-adapter-server:8545',
+      accounts: {
+        mnemonic: 'fox sight canyon orphan hotel grow hedgehog build bless august weather swarm',
+        path: "m/44'/60'/0'/0"
+      },
+      chainId: 595
+    }
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,

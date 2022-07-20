@@ -2,6 +2,7 @@
 import { TestProvider, AccountSigningKey } from '@acala-network/bodhi';
 import { WsProvider } from '@polkadot/api';
 import { createTestPairs } from '@polkadot/keyring/testingPairs';
+import type { ISubmittableResult } from '@polkadot/types/types';
 
 export const LOCAL_WS_URL = 'ws://127.0.0.1:9944';
 export const testPairs = createTestPairs();
@@ -40,27 +41,27 @@ export const getTestProvider = async (urlOverwrite?: string): Promise<TestProvid
     return provider;
 };
 
-export const feedOraclePrice = async (provider: TestProvider, token: string, price: string) => {
+export const feedOraclePrice = async (provider: TestProvider, token: string, price: string): Promise<ISubmittableResult> => {
     console.log(`feeding oracle price ${token} ${price}`);
     return new Promise((resolve) => {
         provider.api.tx.acalaOracle
             .feedValues([[{ Token: token }, price]])
             .signAndSend(testPairs.alice.address, (result) => {
                 if (result.status.isFinalized || result.status.isInBlock) {
-                    resolve(undefined);
+                    resolve(result);
                 }
             });
     });
 };
 
-export const feedTestOraclePrices = async (provider: TestProvider) => {
+export const feedTestOraclePrices = async (provider: TestProvider): Promise<ISubmittableResult> => {
     console.log(`feeding test oracle default prices ${DEFAULT_ORACLE_PRICE.map(([{ Token }, price]) => `${Token} ${price}`).join(', ')}`);
     return new Promise((resolve) => {
         provider.api.tx.acalaOracle
             .feedValues(DEFAULT_ORACLE_PRICE)
             .signAndSend(testPairs.alice.address, (result) => {
                 if (result.status.isFinalized || result.status.isInBlock) {
-                    resolve(undefined);
+                    resolve(result);
                 }
             });
     });

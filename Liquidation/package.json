@@ -1,7 +1,11 @@
 {
-  "name": "hardhat-project",
+  "name": "hardhat-tutorial-liquidation-example",
+  "version": "1.0.0",
+  "author": "Syed Mehdi",
+  "license": "MIT",
   "scripts": {
-    "build": "hardhat compile"
+    "build": "hardhat compile",
+    "test-mandala": "hardhat test test/index.ts --network mandala"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.6",

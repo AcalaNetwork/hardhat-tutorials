@@ -5,7 +5,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@acala-network/contracts/dex/IDEX.sol";
 
-/* Import precompiled contract addresses of desired network. */
+/* 
+    Import precompiled contract addresses of desired network. 
+    NOTE: This is for testing purpose, to reduce contract size
+          it is better to take parameters in constructor.
+*/
 import "@acala-network/contracts/utils/MandalaAddress.sol"; //Testnet
 
 // import "@acala-network/contracts/utils/AcalaAddress.sol"; //Acala
@@ -33,6 +37,8 @@ contract Liquidation is Ownable, Pausable, ADDRESS {
     event OnRepaymentRefund(address collateral, uint256 amount);
 
     address private _evm;
+    address private _USD_;
+    address private _DEX_;
     mapping(address => CollateralPreference) public collateralPreference;
 
     /**
@@ -40,13 +46,18 @@ contract Liquidation is Ownable, Pausable, ADDRESS {
      */
     constructor(address evm) {
         _evm = evm;
+        _USD_ = AUSD;
+        _DEX_ = DEX;
     }
 
     /**
      * @dev Modifier to check if the caller is the evm.
      */
     modifier onlyEvm() {
-        require(_evm == msg.sender, "Only evm can call this function");
+        require(
+            _evm == msg.sender,
+            "Liqudation: Only evm can call this function"
+        );
         _;
     }
 
@@ -63,7 +74,7 @@ contract Liquidation is Ownable, Pausable, ADDRESS {
         CollateralPreference memory pref = collateralPreference[collateral];
         require(
             !pref.limitedSupply || pref.supply > 0,
-            "Collateral is not allowed"
+            "Liquidation: Collateral is not allowed"
         );
         _;
     }
@@ -81,14 +92,14 @@ contract Liquidation is Ownable, Pausable, ADDRESS {
     modifier collateralSupplyAllowed(address collateral, uint256 target) {
         CollateralPreference memory pref = collateralPreference[collateral];
         if (pref.limitedSupply) {
-            require(pref.supply > 0, "Collateral is not allowed");
+            require(pref.supply > 0, "Liquidation: Collateral is not allowed");
             require(
-                pref.totalSupplied <= target,
-                "Collateral supply not satisfied"
+                pref.totalSupplied <= pref.supply,
+                "Liquidation: Collateral supply not satisfied"
             );
             require(
                 pref.supply - pref.totalSupplied >= target,
-                "Not enough collateral supply"
+                "Liquidation: Not enough collateral supply"
             );
         }
         _;
@@ -146,6 +157,20 @@ contract Liquidation is Ownable, Pausable, ADDRESS {
     }
 
     /**
+     * @dev Set DEX address.
+     */
+    function setDexAddress(address dex) public onlyOwner {
+        _DEX_ = dex;
+    }
+
+    /**
+     * @dev Set USD address.
+     */
+    function setUsdAddress(address usd) public onlyOwner {
+        _USD_ = usd;
+    }
+
+    /**
      * @dev Perform liquidation of collateral, callable only by EVM.
      * @param collateral Collateral address.
      * @param repayDest Repayment destination address.
@@ -176,11 +201,17 @@ contract Liquidation is Ownable, Pausable, ADDRESS {
     {
         if (collateralPreference[collateral].swapWithUSD) {
             uint256 balanceOf = IERC20(collateral).balanceOf(address(this));
-            address[] memory path = new address[](2);
-            path[0] = collateral;
-            path[1] = AUSD;
-            bool success = IDEX(DEX).swapWithExactSupply(path, balanceOf, 1);
-            require(success, "DEX.swapWithExactSupply failed");
+            if (balanceOf > 0) {
+                address[] memory path = new address[](2);
+                path[0] = collateral;
+                path[1] = AUSD;
+                bool success = IDEX(DEX).swapWithExactSupply(
+                    path,
+                    balanceOf,
+                    1
+                );
+                require(success, "DEX.swapWithExactSupply failed");
+            }
         }
         emit OnCollateralTransfer(collateral, amount);
     }
@@ -190,8 +221,16 @@ contract Liquidation is Ownable, Pausable, ADDRESS {
      * @param collateral Collateral address.
      * @param amount refunded amount.
      */
-    function onRepaymentRefund(address collateral, uint256 amount) public {
-        collateralPreference[collateral].totalSupplied -= amount;
+    function onRepaymentRefund(address collateral, uint256 amount)
+        public
+        whenNotPaused
+        onlyEvm
+    {
+        if (collateralPreference[collateral].totalSupplied < amount) {
+            collateralPreference[collateral].totalSupplied = 0;
+        } else {
+            collateralPreference[collateral].totalSupplied -= amount;
+        }
         emit OnRepaymentRefund(collateral, amount);
     }
 

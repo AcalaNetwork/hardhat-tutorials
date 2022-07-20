@@ -2,11 +2,11 @@ import { calcEthereumTransactionParams } from "@acala-network/eth-providers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { EVM } from "@acala-network/contracts/utils/MandalaAddress";
 import EVMContract from "@acala-network/contracts/build/contracts/EVM.json";
-import { Contract, BigNumber } from "ethers";
+import { Contract, BigNumber, ContractReceipt } from "ethers";
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
-export const publishContract = async (options: { signer: SignerWithAddress, contractAddress: string }) => {
+export const publishContract = async (options: { signer: SignerWithAddress, contractAddress: string }): Promise<ContractReceipt> => {
     const { signer, contractAddress } = options;
     process.stdout.write(`Publishing ${contractAddress} deployer: ${signer.address} ...`);
     const res = await (await new Contract(EVM, EVMContract.abi, signer).publishContract(contractAddress)).wait();

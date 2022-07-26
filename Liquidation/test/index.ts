@@ -5,7 +5,7 @@ import BN from 'bignumber.js'
 import { ethers } from "hardhat";
 import { publishContract, txParams } from "../utils/deployUtil";
 import { feedOraclePrice, feedTestOraclePrices, getTestProvider, testPairs } from "../utils/testUtil";
-import { DOT, AUSD, ACA, DEX } from "@acala-network/contracts/utils/MandalaAddress";
+import { EVM, DOT, AUSD, ACA, DEX, ORACLE } from "@acala-network/contracts/utils/MandalaAddress";
 import { abi as IERC20ABI } from "@openzeppelin/contracts/build/contracts/IERC20Metadata.json";
 import { TestProvider } from "@acala-network/bodhi";
 import { Liquidation, Liquidation__factory } from "../typechain";
@@ -30,7 +30,8 @@ describe("Liquidation", () => {
             swapWithUSD: false,
             limitedSupply: false,
             supply: '0',
-            totalSupplied: '0'
+            totalSupplied: '0',
+            minDiscount: '0'
         }).then((r) => r.wait());
 
     const transferToken = async (token: string, amount: string, to: string): Promise<ContractReceipt> => {
@@ -48,10 +49,15 @@ describe("Liquidation", () => {
         signers = await ethers.getSigners();
         provider = await getTestProvider();
         Liquidation = await ethers.getContractFactory("Liquidation");
-        liquidation = await Liquidation.deploy(signers[0].address, {
-            gasPrice: param.txGasPrice,
-            gasLimit: param.txGasLimit,
-        });
+        liquidation = await Liquidation.deploy(
+            signers[0].address,
+            AUSD,
+            DEX,
+            ORACLE,
+            {
+                gasPrice: param.txGasPrice,
+                gasLimit: param.txGasLimit,
+            });
         await liquidation.deployed();
     })
 
@@ -163,7 +169,8 @@ describe("Liquidation", () => {
             swapWithUSD: false,
             limitedSupply: false,
             supply: '0',
-            totalSupplied: '10'
+            totalSupplied: '10',
+            minDiscount: '0'
         }).then((r) => r.wait());
         let pref = await liquidation.collateralPreference(liquidation.address);
         expect(pref.totalSupplied.toString()).to.equal('10');
@@ -228,10 +235,15 @@ describe("Liquidation", () => {
 
         it('e2e - redeploy fresh liquidation contract', async () => {
             const param = await txParams();
-            liquidation = await Liquidation.deploy(signers[0].address, {
-                gasPrice: param.txGasPrice,
-                gasLimit: param.txGasLimit,
-            });
+            liquidation = await Liquidation.deploy(
+                signers[0].address,
+                AUSD,
+                DEX,
+                ORACLE,
+                {
+                    gasPrice: param.txGasPrice,
+                    gasLimit: param.txGasLimit,
+                });
             await liquidation.deployed();
         })
 
@@ -396,6 +408,75 @@ describe("Liquidation", () => {
             const dot = await ethers.getContractAt(IERC20ABI, DOT);
             const liquidationDotBalanceBefore = await dot.balanceOf(liquidation.address);
             expect(+liquidationDotBalanceBefore).to.be.gt(40000000000);
+            let currentblockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
+            let waitforBlocks = 5;
+            // Set DOT price to liquidation price
+            await feedOraclePrice(provider, 'DOT', new BN(12.2).shiftedBy(18).toFixed(0));
+
+            // wait for blocks to pass
+            await new Promise((resolve) => {
+                const checkBlock = async () => {
+                    const blockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
+                    if (blockNumber - currentblockNumber >= waitforBlocks) {
+                        resolve(undefined);
+                    } else {
+                        setTimeout(checkBlock, 1000);
+                    }
+                }
+                checkBlock();
+            })
+
+            const loanPositionAfter: any = await firstValueFrom(provider.api.rx.query.loans.positions({
+                Token: 'DOT',
+            }, testPairs.ferdie.address));
+            expect(+loanPositionAfter.debit).to.be.eq(0);
+            expect(+loanPositionAfter.collateral).to.be.eq(0);
+
+            const liquidationDotBalanceAfter = await dot.balanceOf(liquidation.address);
+            expect(+liquidationDotBalanceAfter).to.be.eq(0);
+        })
+
+        it('e2e - (ferdie-liquidated-by-auction) again mint aUSD loan by depositing DOT as collateral', async () => {
+            await feedOraclePrice(provider, 'DOT', new BN(17.387).shiftedBy(18).toFixed(0));
+            let currentblockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
+            let waitforBlocks = 1;
+            // (Ferdie) mint aUSD by depositing DOT as collateral 
+            await new Promise((resolve) => {
+                provider.api.tx.honzon.adjustLoan(
+                    { Token: 'DOT' },
+                    "50000000000",
+                    "414334815622508"
+                ).signAndSend(testPairs.ferdie, (result) => {
+                    if (result.status.isFinalized || result.status.isInBlock) {
+                        resolve(undefined);
+                    }
+                })
+            })
+
+            const loanPosition: any = await firstValueFrom(provider.api.rx.query.loans.positions({
+                Token: 'DOT',
+            }, testPairs.ferdie.address));
+            // wait for blocks to pass
+            await new Promise((resolve) => {
+                const checkBlock = async () => {
+                    const blockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
+                    if (blockNumber - currentblockNumber >= waitforBlocks) {
+                        resolve(undefined);
+                    } else {
+                        setTimeout(checkBlock, 1000);
+                    }
+                }
+                checkBlock();
+            })
+            expect((+loanPosition.collateral).toString()).to.be.eq('50000000000');
+            expect((+loanPosition.debit).toString()).to.be.eq('414334815622508');
+        })
+
+        it('e2e - (ferdie-liquidated-by-auction) again get below collateral but will not be liquidated by contract because discounted < minDiscount', async () => {
+            await liquidation.setCollateralSwapWithUSD(DOT, false).then(res => res.wait());
+            await liquidation.setCollateralMinDiscount(DOT, '200000000000000000').then(res => res.wait());
+
+            const dot = await ethers.getContractAt(IERC20ABI, DOT);
             let currentblockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
             let waitforBlocks = 5;
             // Set DOT price to liquidation price

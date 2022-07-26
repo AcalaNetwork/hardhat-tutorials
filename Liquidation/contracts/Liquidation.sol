@@ -1,26 +1,18 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.0;
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+pragma solidity ^0.8.14;
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@acala-network/contracts/dex/IDEX.sol";
+import "@acala-network/contracts/oracle/IOracle.sol";
 
-/* 
-    Import precompiled contract addresses of desired network. 
-    NOTE: This is for testing purpose, to reduce contract size
-          it is better to take parameters in constructor.
-*/
-import "@acala-network/contracts/utils/MandalaAddress.sol"; //Testnet
-
-// import "@acala-network/contracts/utils/AcalaAddress.sol"; //Acala
-// import "@acala-network/contracts/utils/KaruraAddress.sol"; //Karura
-
-contract Liquidation is Ownable, Pausable, ADDRESS {
+contract Liquidation is Ownable, Pausable {
     struct CollateralPreference {
         bool swapWithUSD;
         bool limitedSupply;
         uint256 supply;
         uint256 totalSupplied;
+        uint256 minDiscount;
     }
 
     event Liquidate(
@@ -39,15 +31,25 @@ contract Liquidation is Ownable, Pausable, ADDRESS {
     address private _evm;
     address private _USD_;
     address private _DEX_;
+    address private _ORACLE_;
+
+    uint256 internal usdDecimals;
     mapping(address => CollateralPreference) public collateralPreference;
 
     /**
      * @dev Initializes the contract with evm address.
      */
-    constructor(address evm) {
-        _evm = evm;
-        _USD_ = AUSD;
+    constructor(
+        address EVM,
+        address USD,
+        address DEX,
+        address ORACLE
+    ) {
+        _evm = EVM;
+        _USD_ = USD;
         _DEX_ = DEX;
+        _ORACLE_ = ORACLE;
+        usdDecimals = IERC20Metadata(USD).decimals();
     }
 
     /**
@@ -146,6 +148,17 @@ contract Liquidation is Ownable, Pausable, ADDRESS {
     }
 
     /**
+     * @dev Set minimum discount in collateral preference.
+     */
+    function setCollateralMinDiscount(address collateral, uint256 value)
+        public
+        onlyOwner
+    {
+        collateralPreference[collateral].minDiscount = value;
+        _emitCollateralPreferenceUpdated(collateral);
+    }
+
+    /**
      * @dev Set entire collateral preference.
      */
     function setCollateralPreference(
@@ -168,6 +181,14 @@ contract Liquidation is Ownable, Pausable, ADDRESS {
      */
     function setUsdAddress(address usd) public onlyOwner {
         _USD_ = usd;
+        usdDecimals = IERC20Metadata(usd).decimals();
+    }
+
+    /**
+     * @dev Set Oracle address.
+     */
+    function setOracleAddress(address oracle) public onlyOwner {
+        _ORACLE_ = oracle;
     }
 
     /**
@@ -183,8 +204,21 @@ contract Liquidation is Ownable, Pausable, ADDRESS {
         uint256 supply,
         uint256 target
     ) public whenNotPaused onlyEvm collateralSupplyAllowed(collateral, target) {
+        uint256 minDiscount = collateralPreference[collateral].minDiscount;
+        if (minDiscount > 0) {
+            uint256 decimals = 18 - IERC20Metadata(collateral).decimals();
+            uint256 discounted = 10**18 -
+                (((target * (10**(54 - usdDecimals))) /
+                    (supply * (10**decimals))) /
+                    IOracle(_ORACLE_).getPrice(collateral));
+            require(
+                discounted >= minDiscount,
+                "Liquidation: Not enough discount"
+            );
+        }
+
         collateralPreference[collateral].totalSupplied += target;
-        IERC20(AUSD).transfer(repayDest, target);
+        IERC20(_USD_).transfer(repayDest, target);
         emit Liquidate(collateral, repayDest, supply, target);
     }
 
@@ -204,8 +238,8 @@ contract Liquidation is Ownable, Pausable, ADDRESS {
             if (balanceOf > 0) {
                 address[] memory path = new address[](2);
                 path[0] = collateral;
-                path[1] = AUSD;
-                bool success = IDEX(DEX).swapWithExactSupply(
+                path[1] = _USD_;
+                bool success = IDEX(_DEX_).swapWithExactSupply(
                     path,
                     balanceOf,
                     1

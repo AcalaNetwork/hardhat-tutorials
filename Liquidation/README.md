@@ -1714,7 +1714,7 @@ This concludes our test.
 As our test is ready to be run, we have already added the script in `package.json` to be able to run the test:
 
 ```json
-    "test-mandala": "hardhat test test/AdvancedEscrow.js --network mandala",
+    "test-mandala": "hardhat test test/index.ts --network mandala",
 ```
 
 Running the tests with `test-mandala` should give you the following output:

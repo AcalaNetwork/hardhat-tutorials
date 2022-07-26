@@ -5,7 +5,9 @@
   "license": "MIT",
   "scripts": {
     "build": "hardhat compile",
-    "test-mandala": "hardhat test test/index.ts --network mandala"
+    "test-mandala": "hardhat test test/index.ts --network mandala",
+    "deploy-mandala": "hardhat run scripts/deploy.ts --network mandala",
+    "deploy-mandala:pubDev": "hardhat run scripts/deploy.ts --network mandalaPubDev"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.6",

@@ -1,31 +1,26 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { expect, use } from "chai";
-import { ContractReceipt } from "ethers";
-import BN from 'bignumber.js'
-import { ethers } from "hardhat";
-import { publishContract, txParams } from "../utils/deployUtil";
-import { feedOraclePrice, feedTestOraclePrices, getTestProvider, testPairs } from "../utils/testUtil";
-import { EVM, DOT, AUSD, ACA, DEX, ORACLE } from "@acala-network/contracts/utils/MandalaAddress";
-import { abi as IERC20ABI } from "@openzeppelin/contracts/build/contracts/IERC20Metadata.json";
-import { TestProvider } from "@acala-network/bodhi";
-import { Liquidation, Liquidation__factory } from "../typechain";
+require('console.mute');
+console.mute();
+const { expect, use } = require("chai");
+const BN = require('bignumber.js');
+const { ethers } = require("hardhat");
+const { publishContract, txParams } = require("../utils/deployUtil");
+const { feedOraclePrice, feedTestOraclePrices, getTestProvider, testPairs } = require("../utils/testUtil");
+const { DOT, AUSD, ACA } = require("@acala-network/contracts/utils/MandalaAddress");
+const IERC20ABI = require("@openzeppelin/contracts/build/contracts/IERC20Metadata.json").abi;
 
-import { solidity } from "ethereum-waffle";
-import { evmChai } from "@acala-network/bodhi";
-import { firstValueFrom } from "rxjs";
-
+const { evmChai } = require("@acala-network/bodhi");
+const { firstValueFrom } = require("rxjs");
 use(evmChai);
-use(solidity);
+console.resume();
 
 const EVM_PALLET_ADDRESS = '0x31382d495FEd5A6820d9C07e8B6eFe8D2166e9dD';
-
 describe("Liquidation", () => {
-    let signers: SignerWithAddress[];
-    let provider: TestProvider;
-    let Liquidation: Liquidation__factory;
-    let liquidation: Liquidation;
+    let signers;
+    let provider;
+    let Liquidation;
+    let liquidation;
 
-    const resetLiquidationPerf = async (collateral: string): Promise<ContractReceipt> =>
+    const resetLiquidationPerf = async (collateral) =>
         liquidation.setCollateralPreference(collateral, {
             swapWithUSD: false,
             limitedSupply: false,
@@ -34,7 +29,7 @@ describe("Liquidation", () => {
             minDiscount: '0'
         }).then((r) => r.wait());
 
-    const transferToken = async (token: string, amount: string, to: string): Promise<ContractReceipt> => {
+    const transferToken = async (token, amount, to) => {
         console.log(`Transferring ${amount} ${token} to ${to}`);
         const tokenContract = await ethers.getContractAt(IERC20ABI, token);
         const res = await tokenContract.connect(signers[1]).transfer(to, amount);
@@ -43,17 +38,39 @@ describe("Liquidation", () => {
         return receipt;
     }
 
+    const createBlocks = async (blocks = 1) => {
+        if (provider.api.rpc.engine.createBlock) {
+            // with instant-sealing flag
+            for (let i = 0; i < blocks; i++) {
+                await provider.api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
+            }
+        } else {
+            const currentblockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
+            // without instant-sealing flag
+            // wait for blocks to pass
+            await new Promise((resolve) => {
+                const checkBlock = async () => {
+                    const blockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
+                    if (blockNumber - currentblockNumber >= blocks) {
+                        resolve(undefined);
+                    } else {
+                        setTimeout(checkBlock, 1000);
+                    }
+                }
+                checkBlock();
+            })
+        }
+    }
+
 
     before(async () => {
+
         const param = await txParams();
         signers = await ethers.getSigners();
         provider = await getTestProvider();
         Liquidation = await ethers.getContractFactory("Liquidation");
         liquidation = await Liquidation.deploy(
             signers[0].address,
-            AUSD,
-            DEX,
-            ORACLE,
             {
                 gasPrice: param.txGasPrice,
                 gasLimit: param.txGasLimit,
@@ -69,7 +86,7 @@ describe("Liquidation", () => {
     it('liquidate - Should fail if collateral is not allowed', async () => {
         await liquidation.setCollateralLimitedSupply(liquidation.address, true).then(r => r.wait())
         await expect(liquidation.liquidate(liquidation.address, liquidation.address, '0', '0'))
-            .to.be.revertedWith("Liquidation: Collateral is not allowed");
+            .to.be.rejectedWith("Liquidation: Collateral is not allowed");
     })
 
     it('liquidate - Should fail if collateralSupply is exhausted', async () => {
@@ -77,7 +94,7 @@ describe("Liquidation", () => {
         await (await liquidation.setCollateralSupply(liquidation.address, '1')).wait();
         await (await liquidation.liquidate(liquidation.address, liquidation.address, '1', '1')).wait();
         await expect(liquidation.liquidate(liquidation.address, liquidation.address, '1', '1'))
-            .to.be.revertedWith("Liquidation: Not enough collateral supply");
+            .to.be.rejectedWith("Liquidation: Not enough collateral supply");
     });
 
     it('liquidate - Should fail if collateralSupply is reduced after more supply', async () => {
@@ -86,20 +103,20 @@ describe("Liquidation", () => {
         await liquidation.liquidate(liquidation.address, liquidation.address, '2', '2').then(r => r.wait())
         await liquidation.setCollateralSupply(liquidation.address, '1').then(r => r.wait())
         await expect(liquidation.liquidate(liquidation.address, liquidation.address, '1', '1'))
-            .to.be.revertedWith("Liquidation: Collateral supply not satisfied");
+            .to.be.rejectedWith("Liquidation: Collateral supply not satisfied");
     });
 
     it('liquidate - should fail if paused', async () => {
         await liquidation.pause().then(r => r.wait())
         await expect(liquidation.liquidate(liquidation.address, liquidation.address, '0', '0'))
-            .to.be.revertedWith("Pausable: paused");
+            .to.be.rejectedWith("Pausable: paused");
         await liquidation.unpause().then(r => r.wait())
 
     })
 
     it('liquidate - should fail if not called by EVM', async () => {
         await expect(liquidation.connect(signers[1]).liquidate(liquidation.address, liquidation.address, '0', '0'))
-            .to.be.revertedWith("Liqudation: Only evm can call this function");
+            .to.be.rejectedWith("Liqudation: Only evm can call this function");
     })
 
     it('liquidate - Should transfer target amount to target', async () => {
@@ -116,20 +133,20 @@ describe("Liquidation", () => {
     it('onCollateralTransfer - Should fail if collateral is not allowed', async () => {
         await liquidation.setCollateralLimitedSupply(liquidation.address, true).then(r => r.wait())
         await expect(liquidation.onCollateralTransfer(liquidation.address, '10'))
-            .to.be.revertedWith("Liquidation: Collateral is not allowed");
+            .to.be.rejectedWith("Liquidation: Collateral is not allowed");
     })
 
     it('onCollateralTransfer - should fail if paused', async () => {
         await liquidation.pause().then(r => r.wait())
         await expect(liquidation.onCollateralTransfer(liquidation.address, '10'))
-            .to.be.revertedWith("Pausable: paused");
+            .to.be.rejectedWith("Pausable: paused");
         await liquidation.unpause().then(r => r.wait())
 
     })
 
     it('onCollateralTransfer - should fail if not called by EVM', async () => {
         await expect(liquidation.connect(signers[1]).onCollateralTransfer(liquidation.address, '10'))
-            .to.be.revertedWith("Liqudation: Only evm can call this function");
+            .to.be.rejectedWith("Liqudation: Only evm can call this function");
     })
 
     it('onCollateralTransfer - Should emit OnCollateralTransfer event', async () => {
@@ -153,14 +170,14 @@ describe("Liquidation", () => {
     it('onRepaymentRefund - should fail if paused', async () => {
         await liquidation.pause().then(r => r.wait())
         await expect(liquidation.onRepaymentRefund(liquidation.address, '10'))
-            .to.be.revertedWith("Pausable: paused");
+            .to.be.rejectedWith("Pausable: paused");
         await liquidation.unpause().then(r => r.wait())
 
     })
 
     it('onRepaymentRefund - should fail if not called by EVM', async () => {
         await expect(liquidation.connect(signers[1]).onRepaymentRefund(liquidation.address, '10'))
-            .to.be.revertedWith("Liqudation: Only evm can call this function");
+            .to.be.rejectedWith("Liqudation: Only evm can call this function");
     })
 
 
@@ -205,11 +222,11 @@ describe("Liquidation", () => {
             })
         })
 
-        it('e2e - transfer some tokens to test account(ferdie)', async () => {
-            // transfer few DOT to Ferdie
+        it('e2e - transfer some tokens to test account(ferdie-random)', async () => {
+            // transfer few DOT to Ferdie-Random
             await new Promise((resolve) => {
                 provider.api.tx.currencies.transfer(
-                    { "Id": testPairs.ferdie.address },
+                    { "Id": testPairs.random.address },
                     { "Token": "DOT" },
                     new BN(15).shiftedBy(10).toFixed(0)
                 ).signAndSend(testPairs.alice.address, (result) => {
@@ -219,10 +236,10 @@ describe("Liquidation", () => {
                 })
             })
 
-            // transfer some ACA to Ferdie
+            // transfer some ACA to Ferdie-Random
             await new Promise((resolve) => {
                 provider.api.tx.currencies.transfer(
-                    { "Id": testPairs.ferdie.address },
+                    { "Id": testPairs.random.address },
                     { "Token": "ACA" },
                     new BN(150).shiftedBy(12).toFixed(0)
                 ).signAndSend(testPairs.alice.address, (result) => {
@@ -237,9 +254,6 @@ describe("Liquidation", () => {
             const param = await txParams();
             liquidation = await Liquidation.deploy(
                 signers[0].address,
-                AUSD,
-                DEX,
-                ORACLE,
                 {
                     gasPrice: param.txGasPrice,
                     gasLimit: param.txGasLimit,
@@ -274,7 +288,7 @@ describe("Liquidation", () => {
         })
 
         it('e2e - deregister old liquidation contracts', async () => {
-            let contracts: any = await firstValueFrom(provider.api.rx.query.cdpEngine.liquidationContracts());
+            let contracts = await firstValueFrom(provider.api.rx.query.cdpEngine.liquidationContracts());
             for (let i = 0; i < contracts.length; i++) {
                 await new Promise((resolve) => {
                     provider.api.tx.sudo.sudo(provider.api.tx.cdpEngine.deregisterLiquidationContract(contracts[i].toString()))
@@ -299,66 +313,44 @@ describe("Liquidation", () => {
             })
         })
 
-        it('e2e - (ferdie) mint aUSD loan by depositing DOT as collateral', async () => {
-            let currentblockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-            let waitforBlocks = 1;
-            // (Ferdie) mint aUSD by depositing DOT as collateral 
+        it('e2e - (ferdie-random) mint aUSD loan by depositing DOT as collateral', async () => {
+            const waitforBlocks = 5;
+            // (ferdie-random) mint aUSD by depositing DOT as collateral 
             await new Promise((resolve) => {
                 provider.api.tx.honzon.adjustLoan(
                     { Token: 'DOT' },
                     "50000000000",
                     "414334815622508"
-                ).signAndSend(testPairs.ferdie, (result) => {
+                ).signAndSend(testPairs.random, (result) => {
                     if (result.status.isFinalized || result.status.isInBlock) {
                         resolve(undefined);
                     }
                 })
             })
 
-            const loanPosition: any = await firstValueFrom(provider.api.rx.query.loans.positions({
+            const loanPosition = await firstValueFrom(provider.api.rx.query.loans.positions({
                 Token: 'DOT',
-            }, testPairs.ferdie.address));
+            }, testPairs.random.address));
             // wait for blocks to pass
-            await new Promise((resolve) => {
-                const checkBlock = async () => {
-                    const blockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-                    if (blockNumber - currentblockNumber >= waitforBlocks) {
-                        resolve(undefined);
-                    } else {
-                        setTimeout(checkBlock, 1000);
-                    }
-                }
-                checkBlock();
-            })
+            await createBlocks(waitforBlocks);
             expect((+loanPosition.collateral).toString()).to.be.eq('50000000000');
             expect((+loanPosition.debit).toString()).to.be.eq('414334815622508');
         })
 
-        it('e2e - (ferdie) get below collateral and liquidated', async () => {
+        it('e2e - (ferdie-random) get below collateral and liquidated', async () => {
             const dot = await ethers.getContractAt(IERC20ABI, DOT);
             const liquidationDotBalanceBefore = await dot.balanceOf(liquidation.address);
             expect(+liquidationDotBalanceBefore).to.be.eq(0);
-            let currentblockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-            let waitforBlocks = 5;
+            const waitforBlocks = 15;
             // Set DOT price to liquidation price
             await feedOraclePrice(provider, 'DOT', new BN(12.2).shiftedBy(18).toFixed(0));
 
             // wait for blocks to pass
-            await new Promise((resolve) => {
-                const checkBlock = async () => {
-                    const blockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-                    if (blockNumber - currentblockNumber >= waitforBlocks) {
-                        resolve(undefined);
-                    } else {
-                        setTimeout(checkBlock, 1000);
-                    }
-                }
-                checkBlock();
-            })
+            await createBlocks(waitforBlocks);
 
-            const loanPositionAfter: any = await firstValueFrom(provider.api.rx.query.loans.positions({
+            const loanPositionAfter = await firstValueFrom(provider.api.rx.query.loans.positions({
                 Token: 'DOT',
-            }, testPairs.ferdie.address));
+            }, testPairs.random.address));
             expect(+loanPositionAfter.debit).to.be.eq(0);
             expect(+loanPositionAfter.collateral).to.be.eq(0);
 
@@ -367,68 +359,46 @@ describe("Liquidation", () => {
             expect(+liquidationDotBalanceAfter).to.be.gt(40000000000);
         })
 
-        it('e2e - (ferdie) again mint aUSD loan by depositing DOT as collateral', async () => {
+        it('e2e - (ferdie-random) again mint aUSD loan by depositing DOT as collateral', async () => {
             await feedOraclePrice(provider, 'DOT', new BN(17.387).shiftedBy(18).toFixed(0));
-            let currentblockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-            let waitforBlocks = 1;
-            // (Ferdie) mint aUSD by depositing DOT as collateral 
+            const waitforBlocks = 5;
+            // (ferdie-random) mint aUSD by depositing DOT as collateral 
             await new Promise((resolve) => {
                 provider.api.tx.honzon.adjustLoan(
                     { Token: 'DOT' },
                     "50000000000",
                     "414334815622508"
-                ).signAndSend(testPairs.ferdie, (result) => {
+                ).signAndSend(testPairs.random, (result) => {
                     if (result.status.isFinalized || result.status.isInBlock) {
                         resolve(undefined);
                     }
                 })
             })
 
-            const loanPosition: any = await firstValueFrom(provider.api.rx.query.loans.positions({
+            const loanPosition = await firstValueFrom(provider.api.rx.query.loans.positions({
                 Token: 'DOT',
-            }, testPairs.ferdie.address));
+            }, testPairs.random.address));
             // wait for blocks to pass
-            await new Promise((resolve) => {
-                const checkBlock = async () => {
-                    const blockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-                    if (blockNumber - currentblockNumber >= waitforBlocks) {
-                        resolve(undefined);
-                    } else {
-                        setTimeout(checkBlock, 1000);
-                    }
-                }
-                checkBlock();
-            })
+            await createBlocks(waitforBlocks);
             expect((+loanPosition.collateral).toString()).to.be.eq('50000000000');
             expect((+loanPosition.debit).toString()).to.be.eq('414334815622508');
         })
 
-        it('e2e - (ferdie) again get below collateral and liquidated with swap enabled', async () => {
+        it('e2e - (ferdie-random) again get below collateral and liquidated with swap enabled', async () => {
             await liquidation.setCollateralSwapWithUSD(DOT, true).then(res => res.wait());
             const dot = await ethers.getContractAt(IERC20ABI, DOT);
             const liquidationDotBalanceBefore = await dot.balanceOf(liquidation.address);
             expect(+liquidationDotBalanceBefore).to.be.gt(40000000000);
-            let currentblockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-            let waitforBlocks = 5;
+            const waitforBlocks = 15;
             // Set DOT price to liquidation price
             await feedOraclePrice(provider, 'DOT', new BN(12.2).shiftedBy(18).toFixed(0));
 
             // wait for blocks to pass
-            await new Promise((resolve) => {
-                const checkBlock = async () => {
-                    const blockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-                    if (blockNumber - currentblockNumber >= waitforBlocks) {
-                        resolve(undefined);
-                    } else {
-                        setTimeout(checkBlock, 1000);
-                    }
-                }
-                checkBlock();
-            })
+            await createBlocks(waitforBlocks);
 
-            const loanPositionAfter: any = await firstValueFrom(provider.api.rx.query.loans.positions({
+            const loanPositionAfter = await firstValueFrom(provider.api.rx.query.loans.positions({
                 Token: 'DOT',
-            }, testPairs.ferdie.address));
+            }, testPairs.random.address));
             expect(+loanPositionAfter.debit).to.be.eq(0);
             expect(+loanPositionAfter.collateral).to.be.eq(0);
 
@@ -436,68 +406,46 @@ describe("Liquidation", () => {
             expect(+liquidationDotBalanceAfter).to.be.eq(0);
         })
 
-        it('e2e - (ferdie-liquidated-by-auction) again mint aUSD loan by depositing DOT as collateral', async () => {
+        it('e2e - (ferdie-random-liquidated-by-auction) again mint aUSD loan by depositing DOT as collateral', async () => {
             await feedOraclePrice(provider, 'DOT', new BN(17.387).shiftedBy(18).toFixed(0));
-            let currentblockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-            let waitforBlocks = 1;
-            // (Ferdie) mint aUSD by depositing DOT as collateral 
+            const waitforBlocks = 5;
+            // (ferdie-random) mint aUSD by depositing DOT as collateral 
             await new Promise((resolve) => {
                 provider.api.tx.honzon.adjustLoan(
                     { Token: 'DOT' },
                     "50000000000",
                     "414334815622508"
-                ).signAndSend(testPairs.ferdie, (result) => {
+                ).signAndSend(testPairs.random, (result) => {
                     if (result.status.isFinalized || result.status.isInBlock) {
                         resolve(undefined);
                     }
                 })
             })
 
-            const loanPosition: any = await firstValueFrom(provider.api.rx.query.loans.positions({
+            const loanPosition = await firstValueFrom(provider.api.rx.query.loans.positions({
                 Token: 'DOT',
-            }, testPairs.ferdie.address));
+            }, testPairs.random.address));
             // wait for blocks to pass
-            await new Promise((resolve) => {
-                const checkBlock = async () => {
-                    const blockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-                    if (blockNumber - currentblockNumber >= waitforBlocks) {
-                        resolve(undefined);
-                    } else {
-                        setTimeout(checkBlock, 1000);
-                    }
-                }
-                checkBlock();
-            })
+            await createBlocks(waitforBlocks);
             expect((+loanPosition.collateral).toString()).to.be.eq('50000000000');
             expect((+loanPosition.debit).toString()).to.be.eq('414334815622508');
         })
 
-        it('e2e - (ferdie-liquidated-by-auction) again get below collateral but will not be liquidated by contract because discounted < minDiscount', async () => {
+        it('e2e - (ferdie-random-liquidated-by-auction) again get below collateral but will not be liquidated by contract because discounted < minDiscount', async () => {
             await liquidation.setCollateralSwapWithUSD(DOT, false).then(res => res.wait());
             await liquidation.setCollateralMinDiscount(DOT, '200000000000000000').then(res => res.wait());
 
             const dot = await ethers.getContractAt(IERC20ABI, DOT);
-            let currentblockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-            let waitforBlocks = 5;
+            const waitforBlocks = 15;
             // Set DOT price to liquidation price
             await feedOraclePrice(provider, 'DOT', new BN(12.2).shiftedBy(18).toFixed(0));
 
             // wait for blocks to pass
-            await new Promise((resolve) => {
-                const checkBlock = async () => {
-                    const blockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-                    if (blockNumber - currentblockNumber >= waitforBlocks) {
-                        resolve(undefined);
-                    } else {
-                        setTimeout(checkBlock, 1000);
-                    }
-                }
-                checkBlock();
-            })
+            await createBlocks(waitforBlocks);
 
-            const loanPositionAfter: any = await firstValueFrom(provider.api.rx.query.loans.positions({
+            const loanPositionAfter = await firstValueFrom(provider.api.rx.query.loans.positions({
                 Token: 'DOT',
-            }, testPairs.ferdie.address));
+            }, testPairs.random.address));
             expect(+loanPositionAfter.debit).to.be.eq(0);
             expect(+loanPositionAfter.collateral).to.be.eq(0);
 

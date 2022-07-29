@@ -1,6 +1,6 @@
 # Hardhat example: Liquidation Contract
 
-__*NOTE: Mandala Node should run without `--instant-sealing` flag to run liquidation tests*__
+__*NOTE: tests will always pass when mandala node is running without `--instant-sealing` flag*__
 
 ## Table of contents
 
@@ -8,6 +8,7 @@ __*NOTE: Mandala Node should run without `--instant-sealing` flag to run liquida
 - [Setting up](#setting-up)
 - [Smart contract](#smart-contract)
 - [Deploy script](#deploy-script)
+- [Test](#test)
 - [Conclusion](#conclusion)
 
 ## Intro
@@ -22,7 +23,7 @@ We will be exploring capabilities of these function in this tutorial, let’s ge
 
 ## Setting up
 
-The tutorial project will live in the `Liquidation/` folder. We can create it using `mkdir Liquidation`. As we will be using Hardhat development framework, we need to initiate the `yarn` project and add `hardhat` as a development dependency:
+The tutorial project will live in the `liquidation/` folder. We can create it using `mkdir liquidation`. As we will be using Hardhat development framework, we need to initiate the `yarn` project and add `hardhat` as a development dependency:
 
 ```shell
 yarn init && yarn add --dev hardhat
@@ -48,21 +49,70 @@ yarn run v1.22.19
 Welcome to Hardhat v2.10.1
 
 ? What do you want to do? … 
-  Create a JavaScript project
-▸ Create a TypeScript project
+▸ Create a JavaScript project
+  Create a TypeScript project
   Create an empty hardhat.config.js
   Quit
 
 ```
 
-When the Hardhat prompt appears, we will select `Create a TypeScript project` as this will help us write tests easily without errors.
+When the Hardhat prompt appears, we will select `Create a JavaScript project` as this will help us write tests easily without errors.
 
-**NOTE: Once again, the default settings from Hardhat are acceptable, so we only need to confirm them using the enter key.**
+__NOTE: Once again, the default settings from Hardhat are acceptable, so we only need to confirm them using the enter key.__
 
-As we will be using the Mandala test network, we need to add it to `hardhat.config.ts`. Networks are added in the `const config: HardhatUserConfig` section below the `solidity` compiler version configuration. We will be adding two networks to the configuration. The local development network, which we will call `mandala`, and the public test network, which we will call `mandalaPubDev`:
+As we will be using the Mandala test network, we need to add it to `hardhat.config.js`. Networks are added in the `module.exports` section below the `solidity` compiler version configuration. We will be adding two networks to the configuration. The local development network, which we will call `mandala`, and the public test network, which we will call `mandalaPubDev`:
 
-```typescript
-  const config: HardhatUserConfig = {
+```javascript
+ networks: {
+   mandala: {
+     url: 'http://127.0.0.1:8545',
+     accounts: {
+       mnemonic: 'fox sight canyon orphan hotel grow hedgehog build bless august weather swarm',
+       path: "m/44'/60'/0'/0",
+     },
+     chainId: 595,
+   },
+   mandalaPubDev: {
+     url: 'https://acala-mandala-adapter.api.onfinality.io/public',
+     accounts: {
+       mnemonic: YOUR_MNEMONIC,
+       path: "m/44'/60'/0'/0",
+     },
+     chainId: 595,
+     timeout: 60000,
+   },
+ }
+```
+
+Next we will change solidity key with following settings
+
+```javascript
+  solidity: {
+    version: "0.8.14",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 1000,
+      },
+    },
+  },
+```
+
+We will also add `mocha` timeout below `network` configurations to 5 minutes since our tests take longer time when tested without `--instant-sealing` flag to complete
+
+```javascript
+mocha: {
+    timeout: 300000
+  },
+```
+
+This is how our `hardhat.config.js` will look like
+
+```javascript
+require("@nomicfoundation/hardhat-toolbox");
+
+/** @type import('hardhat/config').HardhatUserConfig */
+module.exports = {
   solidity: {
     version: "0.8.14",
     settings: {
@@ -96,12 +146,12 @@ As we will be using the Mandala test network, we need to add it to `hardhat.conf
 };
 ```
 
-Let’s take a look at the network configurations:
+Let’s take a look at the our configurations:
 
 - `optimizer`: optimizer tries to simplify complicated expressions, which reduces both code size and execution cost, i.e., it can reduce gas needed for contract deployment as well as for external calls made to the contract.
 - `url`: Used to specify the RPC endpoint of the network
 - `accounts`: Section to describe how Hardhat should acquire or derive the EVM accounts
-- `mnemonic`: Mnemonic used to derive the accounts. **Add your mnemonic here**
+- `mnemonic`: Mnemonic used to derive the accounts. __Add your mnemonic here__
 - `path`: Derivation path to create the accounts from the mnemonic
 - `chainId`: Specific chain ID of the Mandala chain. The value of `595` is used for both, local development network as well as the public test network
 - `timeout`: An override value for the built in transaction response timeout. It is needed only on the public test network
@@ -136,65 +186,55 @@ contract Liquidation {
 }
 ```
 
-Update `package.json` with this
+We will be adding following `@acala-network` dependencies,
+
+```
+yarn add --dev @acala-network/bodhi@2.4.13 \
+               @acala-network/contracts@4.3.2 \
+               @acala-network/eth-providers@2.4.12 \
+               @polkadot/api@8.7.1 \
+               @openzeppelin/contracts@4.7.0
+```
+
+Let have a look at what we have added and how will it help,
+
+- `@acala-network/bodhi`: SDK implements a web3 provider to allow existing Ethereum dApp to be able to interact with Acala EVM. (will help to build TestProvider which contains polkadot-api WS provider with test accounts)
+- `@acala-network/contracts`: Generated bytecode for predeployment of ERC20 smart contracts in Acala. (will be used to retrieve predeployed contract addresses and interface)
+- `@acala-network/eth-providers`: Providers that contain some reusable functionalities for bodhi and eth-rpc-adapter.
+- `@polkadot/api`: It handles all the encoding and decoding or parameters, provides access to RPC functions and allows for the query of chain state and the submission of transactions.
+- `@openzeppelin/contracts`: A library for secure smart contract development. Build on a solid foundation of community-vetted code.
+
+This is how our `package.json` will look like,
 
 ```json
 {
-  "name": "hardhat-tutorial-liquidation-example",
+  "name": "liquidation",
   "version": "1.0.0",
+  "main": "index.js",
   "license": "MIT",
-  "scripts": {
-    "build": "hardhat compile",
-    "test-mandala": "hardhat test test/index.ts --network mandala"
-  },
   "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.0.6",
-    "@nomiclabs/hardhat-etherscan": "^3.1.0",
-    "@nomiclabs/hardhat-waffle": "^2.0.3",
-    "@openzeppelin/contracts": "^4.7.0",
-    "@typechain/ethers-v5": "^7.2.0",
-    "@typechain/hardhat": "^2.3.1",
-    "@types/chai": "^4.3.1",
-    "@types/mocha": "^9.1.1",
-    "@types/node": "^12.20.55",
-    "@typescript-eslint/eslint-plugin": "^4.33.0",
-    "@typescript-eslint/parser": "^4.33.0",
-    "chai": "^4.3.6",
-    "dotenv": "^16.0.1",
-    "eslint": "^7.32.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-config-standard": "^16.0.3",
-    "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-prettier": "^3.4.1",
-    "eslint-plugin-promise": "^5.2.0",
-    "ethereum-waffle": "^3.4.4",
-    "ethers": "^5.6.9",
-    "hardhat": "^2.9.9",
+    "@acala-network/bodhi": "2.4.13",
+    "@acala-network/contracts": "4.2.1",
+    "@acala-network/eth-providers": "2.4.12",
+    "@ethersproject/abi": "^5.4.7",
+    "@ethersproject/providers": "^5.4.7",
+    "@nomicfoundation/hardhat-chai-matchers": "^1.0.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
+    "@nomicfoundation/hardhat-toolbox": "^1.0.1",
+    "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "@nomiclabs/hardhat-etherscan": "^3.0.0",
+    "@openzeppelin/contracts": "4.7.0",
+    "@polkadot/api": "8.7.1",
+    "@typechain/ethers-v5": "^10.1.0",
+    "@typechain/hardhat": "^6.1.2",
+    "chai": "^4.2.0",
+    "ethers": "^5.4.7",
+    "hardhat": "^2.10.1",
     "hardhat-gas-reporter": "^1.0.8",
-    "prettier": "^2.7.1",
-    "prettier-plugin-solidity": "^1.0.0-beta.19",
-    "solhint": "^3.3.7",
     "solidity-coverage": "^0.7.21",
-    "ts-node": "^10.8.2",
-    "typechain": "^5.2.0",
-    "typescript": "^4.7.4",
-    "@nomiclabs/hardhat-web3": "^2.0.0",
-    "@polkadot/api": "^8.7.1",
-    "bignumber.js": "^9.0.2",
-    "hardhat-contract-sizer": "^2.5.1",
-    "hardhat-deploy": "^0.11.10",
-    "hardhat-deploy-ethers": "^0.3.0-beta.13",
-    "web3": "^1.7.4"
-  },
-  "dependencies": {
-    "@acala-network/bodhi": "^2.4.13",
-    "@acala-network/contracts": "^4.2.1",
-    "@acala-network/eth-providers": "^2.4.12",
-    "@polkadot/api": "^8.7.1"
+    "typechain": "^8.1.0"
   }
 }
-
 ```
 
 To add all dependencies in project we will simply call `yarn`
@@ -212,12 +252,13 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@acala-network/contracts/dex/IDEX.sol";
 import "@acala-network/contracts/oracle/IOracle.sol";
+import "@acala-network/contracts/utils/MandalaAddress.sol";
 ```
 
-Now that we have sorted out all of the imports, we need to make sure that our `Liquidation` smart contract inherits the `Ownable` and `Pausable`. We have to add the inheritance statement to the contract definition line:
+Now that we have sorted out all of the imports, we need to make sure that our `Liquidation` smart contract inherits the `Ownable`, `Pausable` and `ADDRESS`. We have to add the inheritance statement to the contract definition line:
 
 ```solidity
-contract Liquidation is Ownable, Pausable {
+contract Liquidation is Ownable, Pausable, ADDRESS {
 ```
 
 We will now add `CollateralPreference` struct which will hold preference of liquidating specific collateral:
@@ -310,27 +351,22 @@ We will now add internal storage variables
 Will initialize storage in constructor:
 
 ```solidity
-/**
-  * @dev Initializes the contract.
-  */
-constructor(
-    address EVM,
-    address USD,
-    address DEX,
-    address ORACLE
-) {
-    _evm = EVM;
-    _USD_ = USD;
-    _DEX_ = DEX;
-    _ORACLE_ = ORACLE;
-    usdDecimals = IERC20Metadata(USD).decimals();
-}
+    /**
+     * @dev Initializes the contract.
+     */
+    constructor(address EVM) {
+        _evm = EVM;
+        _USD_ = ADDRESS.AUSD;
+        _DEX_ = ADDRESS.DEX;
+        _ORACLE_ = ADDRESS.Oracle;
+        usdDecimals = IERC20Metadata(_USD_).decimals();
+    }
 ```
 
 Let’s start adding modifier and setter functions that will help while writing main logic.
 
 ```solidity
-/**
+    /**
      * @dev Modifier to check if the caller is the evm.
      */
     modifier onlyEvm() {
@@ -507,7 +543,7 @@ Let’s start adding modifier and setter functions that will help while writing 
 Now we will begin with main logic functions which will be called by CDP module
 
 ```solidity
- /**
+    /**
      * @dev Perform liquidation of collateral, callable only by EVM.
      * @param collateral Collateral address.
      * @param repayDest Repayment destination address.
@@ -606,8 +642,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@acala-network/contracts/dex/IDEX.sol";
 import "@acala-network/contracts/oracle/IOracle.sol";
+import "@acala-network/contracts/utils/Address.sol";
 
-contract Liquidation is Ownable, Pausable {
+contract Liquidation is Ownable, Pausable, ADDRESS {
     struct CollateralPreference {
         bool swapWithUSD;
         bool limitedSupply;
@@ -622,12 +659,12 @@ contract Liquidation is Ownable, Pausable {
         uint256 supply,
         uint256 target
     );
+    event OnCollateralTransfer(address collateral, uint256 amount);
+    event OnRepaymentRefund(address collateral, uint256 amount);
     event CollateralPreferenceUpdated(
         address collateral,
         CollateralPreference preference
     );
-    event OnCollateralTransfer(address collateral, uint256 amount);
-    event OnRepaymentRefund(address collateral, uint256 amount);
 
     address private _evm;
     address private _USD_;
@@ -638,19 +675,14 @@ contract Liquidation is Ownable, Pausable {
     mapping(address => CollateralPreference) public collateralPreference;
 
     /**
-     * @dev Initializes the contract with evm address.
+     * @dev Initializes the contract.
      */
-    constructor(
-        address EVM,
-        address USD,
-        address DEX,
-        address ORACLE
-    ) {
+    constructor(address EVM) {
         _evm = EVM;
-        _USD_ = USD;
-        _DEX_ = DEX;
-        _ORACLE_ = ORACLE;
-        usdDecimals = IERC20Metadata(USD).decimals();
+        _USD_ = ADDRESS.AUSD;
+        _DEX_ = ADDRESS.DEX;
+        _ORACLE_ = ADDRESS.Oracle;
+        usdDecimals = IERC20Metadata(_USD_).decimals();
     }
 
     /**
@@ -793,6 +825,39 @@ contract Liquidation is Ownable, Pausable {
     }
 
     /**
+     * @dev Triggers stopped state.
+     *
+     * Requirements:
+     *
+     * - The contract must not be paused.
+     */
+    function pause() public onlyOwner {
+        _pause();
+    }
+
+    /**
+     * @dev Returns to normal state.
+     *
+     * Requirements:
+     *
+     * - The contract must be paused.
+     */
+    function unpause() public onlyOwner {
+        _unpause();
+    }
+
+    /**
+     * @dev Emit CollateralPreferenceUpdated event.
+     * @param collateral Collateral address.
+     */
+    function _emitCollateralPreferenceUpdated(address collateral) internal {
+        emit CollateralPreferenceUpdated(
+            collateral,
+            collateralPreference[collateral]
+        );
+    }
+
+    /**
      * @dev Perform liquidation of collateral, callable only by EVM.
      * @param collateral Collateral address.
      * @param repayDest Repayment destination address.
@@ -868,50 +933,17 @@ contract Liquidation is Ownable, Pausable {
         }
         emit OnRepaymentRefund(collateral, amount);
     }
-
-    /**
-     * @dev Emit CollateralPreferenceUpdated event.
-     * @param collateral Collateral address.
-     */
-    function _emitCollateralPreferenceUpdated(address collateral) internal {
-        emit CollateralPreferenceUpdated(
-            collateral,
-            collateralPreference[collateral]
-        );
-    }
-
-    /**
-     * @dev Triggers stopped state.
-     *
-     * Requirements:
-     *
-     * - The contract must not be paused.
-     */
-    function pause() public onlyOwner {
-        _pause();
-    }
-
-    /**
-     * @dev Returns to normal state.
-     *
-     * Requirements:
-     *
-     * - The contract must be paused.
-     */
-    function unpause() public onlyOwner {
-        _unpause();
-    }
 }
 ```
 
 </details>
 
-In order to be able to compile our smart contract with the `yarn build` command, we have already added that in package.json:
+In order to be able to compile our smart contract with the `yarn build` command, we will add script in our `package.json` by adding `scripts` above devDependencies:
 
 ```json
  "scripts": {
    "build": "hardhat compile"
- }
+ },
 ```
 
 With that, the smart contract can be compiled using:
@@ -933,24 +965,21 @@ will create a custom deploy utility, which will use `calcEthereumTransactionPara
 We can create the utility:
 
 ```shell
-mkdir utils && touch utils/deployUtil.ts
+mkdir utils && touch utils/deployUtil.js
 ```
 
 The `calcEthereumTransactionParams` is imported at the top of the file and let's define the
 `txParams()` below it:
 
-```typescript
-import { calcEthereumTransactionParams } from "@acala-network/eth-providers";
-import { EVM } from "@acala-network/contracts/utils/MandalaAddress";
-import EVMContract from "@acala-network/contracts/build/contracts/EVM.json";
-import { Contract, BigNumber, ContractReceipt } from "ethers";
-import { ethers } from "hardhat";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+```javascript
+const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+const { EVM } = require("@acala-network/contracts/utils/MandalaAddress")
+const EVMContract = require("@acala-network/contracts/build/contracts/EVM.json")
+const { Contract, BigNumber, ContractReceipt } = require("ethers")
+const { ethers } = require("hardhat")
+const { SignerWithAddress } = require("@nomiclabs/hardhat-ethers/signers")
 
-export const txParams = async (): Promise<{
-    txGasPrice: BigNumber;
-    txGasLimit: BigNumber;
-}> => {
+const txParams = async () => {
 }
 ```
 
@@ -958,7 +987,7 @@ Within the `txParams()` function, we set the parameters needed to be passed to t
 `calcEthereumTransactionParams` and then assign its return values to the `ethParams`. At the end of
 the function we return the gas price and gas limit needed to deploy a smart contract:
 
-```typescript
+```javascript
     const txFeePerGas = '199999946752';
     const storageByteDeposit = '100000000000000';
     const blockNumber = await ethers.provider.getBlockNumber();
@@ -979,8 +1008,8 @@ the function we return the gas price and gas limit needed to deploy a smart cont
 
 We will also add `publishContract` function, which will help publish deployed contract to be accessible.  
 
-```typescript
-export const publishContract = async (options: { signer: SignerWithAddress, contractAddress: string }): Promise<ContractReceipt> => {
+```javascript
+const publishContract = async (options) => {
     const { signer, contractAddress } = options;
     process.stdout.write(`Publishing ${contractAddress} deployer: ${signer.address} ...`);
     const res = await (await new Contract(EVM, EVMContract.abi, signer).publishContract(contractAddress)).wait();
@@ -993,54 +1022,64 @@ export const publishContract = async (options: { signer: SignerWithAddress, cont
 }
 ```
 
+In order to be able to use the `txParams` and `publishContract` from our new utility, we have to export it at the bottom
+of the utility:
+
+```javascript
+module.exports = {
+    txParams,
+    publishContract
+}
+```
+
 This concludes the `deployUtil` and we can move on to writing the deploy script where we will
 use it.
 
 <details>
     <summary>Your utils/deployUtil.ts should look like this:</summary>
 
-  ```typescript
-    import { calcEthereumTransactionParams } from "@acala-network/eth-providers";
-    import { EVM } from "@acala-network/contracts/utils/MandalaAddress";
-    import EVMContract from "@acala-network/contracts/build/contracts/EVM.json";
-    import { Contract, BigNumber, ContractReceipt } from "ethers";
-    import { ethers } from "hardhat";
-    import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+  ```javascript
+    const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
+    const { EVM } = require("@acala-network/contracts/utils/MandalaAddress")
+    const EVMContract = require("@acala-network/contracts/build/contracts/EVM.json")
+    const { Contract } = require("ethers")
+    const { ethers } = require("hardhat")
 
-    export const publishContract = async (options: { signer: SignerWithAddress, contractAddress: string }): Promise<ContractReceipt> => {
-        const { signer, contractAddress } = options;
-        process.stdout.write(`Publishing ${contractAddress} deployer: ${signer.address} ...`);
-        const res = await (await new Contract(EVM, EVMContract.abi, signer).publishContract(contractAddress)).wait();
-        if (res?.events[0]?.event === "ContractPublished") {
-            process.stdout.write(`Done!\n`);
-        } else {
-            process.stdout.write(`Failed!\n`);
-        }
-        return res;
-    }
-
-    export const txParams = async (): Promise<{
-        txGasPrice: BigNumber;
-        txGasLimit: BigNumber;
-    }> => {
-        const txFeePerGas = "199999946752";
-        const storageByteDeposit = "100000000000000";
+    const txParams = async () => {
+        const txFeePerGas = '199999946752';
+        const storageByteDeposit = '100000000000000';
         const blockNumber = await ethers.provider.getBlockNumber();
 
         const ethParams = calcEthereumTransactionParams({
-            gasLimit: "31000000",
+            gasLimit: '31000000',
             validUntil: (blockNumber + 100).toString(),
-            storageLimit: "64001",
+            storageLimit: '64001',
             txFeePerGas,
-            storageByteDeposit,
+            storageByteDeposit
         });
 
         return {
             txGasPrice: ethParams.txGasPrice,
-            txGasLimit: ethParams.txGasLimit,
+            txGasLimit: ethParams.txGasLimit
         };
     }
 
+    const publishContract = async (options) => {
+        const { signer, contractAddress } = options;
+        process.stdout.write(`Publishing ${contractAddress} deployer: ${signer.address} ...`);
+        const res = await (await new Contract(EVM, EVMContract.abi, signer).publishContract(contractAddress)).wait();
+        if (res?.events[0]?.event === "ContractPublished") {
+            process.stdout.write(` Done!\n`);
+        } else {
+            process.stdout.write(` Failed!\n`);
+        }
+        return res;
+    }
+
+    module.exports = {
+        txParams,
+        publishContract
+    }
   ```
 
 </details>
@@ -1049,21 +1088,19 @@ use it.
 
 Now that we have our smart contract ready, we can deploy it, so we can use it.
 
-Initiating Hardhat also created a `scripts` folder and within it a sample script `scripts/deploy.ts`. We will modify it with our own deploy script instead:
+Initiating Hardhat also created a `scripts` folder and within it a sample script `scripts/deploy.js`. We will modify it with our own deploy script instead:
 
-We will  import the `txParams` from the
+We will import the `txParams` from the
 `transactionHelper` we added in the subsection above at the top of the file:
 
-```typescript
-import { txParams } from "../utils/deployUtil";
-// also importing mandala addresses used for deploying Liquidation contract
-import { EVM, AUSD, DEX, ORACLE } from "@acala-network/contracts/utils/MandalaAddress";
+```javascript
+const { txParams } = require("../utils/deployUtil");
 ```
 
 At the beginning of the `main` function definition, we will set the transaction parameters, by
 invoking the `txParams`:
 
-```typescript
+```javascript
   const ethParams = await txParams();
 ```
 
@@ -1073,62 +1110,64 @@ contract within the contract factory and deploy it, passing the transaction para
 transaction. Once the smart contract is successfully deployed, we will log its address to the
 console:
 
-```typescript
-  const param = await txParams();
+```javascript
+  const ethParams = await txParams();
+  const CDP_EVM_ADDRESS = '0x31382d495FEd5A6820d9C07e8B6eFe8D2166e9dD';
   const Liquidation = await ethers.getContractFactory("Liquidation");
-  const liquidation = await Liquidation.deploy(EVM,
-    AUSD,
-    DEX,
-    ORACLE,
+  const liquidation = await Liquidation.deploy(CDP_EVM_ADDRESS,
     {
-      gasPrice: param.txGasPrice,
-      gasLimit: param.txGasLimit,
+      gasPrice: ethParams.txGasPrice,
+      gasLimit: ethParams.txGasLimit,
     });
 
   await liquidation.deployed();
-  console.log(liquidation.address);
+  console.log("Liquidation Address: ",liquidation.address);
 ```
 
 With that, our deploy script is ready to be run.
 
 <details>
- <summary>Your `scripts/deploy.ts` should look like this:</summary>
+ <summary>Your `scripts/deploy.js` should look like this:</summary>
 
-  ```typescript
-    import { ethers } from "hardhat";
-    import { txParams } from "../utils/deployUtil";
-    import { EVM, AUSD, DEX, ORACLE } from "@acala-network/contracts/utils/MandalaAddress";
+  ```javascript
+    // We require the Hardhat Runtime Environment explicitly here. This is optional
+    // but useful for running the script in a standalone fashion through `node <script>`.
+    //
+    // You can also run a script with `npx hardhat run <script>`. If you do that, Hardhat
+    // will compile your contracts, add the Hardhat Runtime Environment's members to the
+    // global scope, and execute the script.
+    const hre = require("hardhat");
+    const { txParams } = require("../utils/deployUtil");
+
     async function main() {
-
-      const param = await txParams();
-      const Liquidation = await ethers.getContractFactory("Liquidation");
-      const liquidation = await Liquidation.deploy(EVM,
-        AUSD,
-        DEX,
-        ORACLE,
+    const ethParams = await txParams();
+    const CDP_EVM_ADDRESS = '0x31382d495FEd5A6820d9C07e8B6eFe8D2166e9dD';
+    const Liquidation = await ethers.getContractFactory("Liquidation");
+    const liquidation = await Liquidation.deploy(CDP_EVM_ADDRESS,
         {
-          gasPrice: param.txGasPrice,
-          gasLimit: param.txGasLimit,
+        gasPrice: ethParams.txGasPrice,
+        gasLimit: ethParams.txGasLimit,
         });
 
-      await liquidation.deployed();
-      console.log(`Liquidation Address: ${liquidation.address}`);
+    await liquidation.deployed();
+    console.log("Liquidation Address: ",liquidation.address);
     }
 
+    // We recommend this pattern to be able to use async/await everywhere
+    // and properly handle errors.
     main().catch((error) => {
-      console.error(error);
-      process.exitCode = 1;
+    console.error(error);
+    process.exitCode = 1;
     });
-
   ```
 
 </details>
 
-In order to be able to run the `deploy.ts` script, we need to add a script to the `package.json`. To add our custom script to the `package.json`, we need to place our custom script into the `"scripts”` section. Let’s add two scripts, one for the local development network and one for the public test network:
+In order to be able to run the `deploy.js` script, we need to add a script to the `package.json`. To add our custom script to the `package.json`, we need to place our custom script into the `"scripts”` section. Let’s add two scripts, one for the local development network and one for the public test network:
 
 ```json
-   "deploy-mandala": "hardhat run scripts/deploy.ts --network mandala",
-   "deploy-mandala:pubDev": "hardhat run scripts/deploy.ts --network mandalaPubDev"
+   "deploy-mandala": "hardhat run scripts/deploy.js --network mandala",
+   "deploy-mandala:pubDev": "hardhat run scripts/deploy.js --network mandalaPubDev"
 ```
 
 With that, we are able to run the deploy script using `yarn deploy-mandala` or `yarn deploy-mandala:pubDev`. Using the latter command should result in the following output:
@@ -1147,7 +1186,102 @@ Initiating Hardhat also created a `test` folder and within it a sample test. We 
 and add our own test instead:
 
 ```shell
-rm test/Lock.ts && touch test/index.ts
+rm test/Lock.js && touch test/index.js
+```
+
+Before adding tests, we need `testUtil` which will help write tests easily and reduce redundant code.
+
+```shell
+touch utils/testUtil.js
+```
+
+We will be adding following code there
+
+```javascript
+const { TestProvider, AccountSigningKey } = require('@acala-network/bodhi');
+const { WsProvider } = require('@polkadot/api');
+const { createTestPairs } = require('@polkadot/keyring/testingPairs');
+const { Keyring } = require('@polkadot/api');
+const crypto = require("crypto");
+
+const LOCAL_WS_URL = 'ws://127.0.0.1:9944';
+const testPairs = createTestPairs();
+const DEFAULT_ORACLE_PRICE = [
+    [{ Token: 'AUSD' }, '1000000000000000000'],
+    [{ Token: 'DOT' }, '17387000000000000000'],
+    [{ Token: 'ACA' }, '10267010356479'],
+    [{ Token: 'LDOT' }, '7015000000000000000'],
+    [{ Token: 'RENBTC' }, '25559881000000002000000'],
+    [{ Token: 'CASH' }, '766705100327601'],
+    [{ Token: 'KAR' }, '414399529583857728'],
+    [{ Token: 'KUSD' }, '1000000000000000000'],
+    [{ Token: 'KSM' }, '46910000000000000000'],
+    [{ Token: 'LKSM' }, '46910000000000000000'],
+    [{ Token: 'TAI' }, '15000000000000000'],
+    [{ Token: 'BNC' }, '247651000000000000'],
+    [{ Token: 'VSKSM' }, '46910000000000000000'],
+    [{ Token: 'KBTC' }, '25559881000000002000000'],
+];
+
+const getTestProvider = async (urlOverwrite) => {
+    const url = urlOverwrite || process.env.ENDPOINT_URL || LOCAL_WS_URL;
+
+    const provider = new TestProvider({
+        provider: new WsProvider(url),
+    });
+
+    console.log(`test provider connected to ${url}`);
+    await provider.isReady();
+    const pair = testPairs.alice;
+    const keyring = new Keyring({ type: 'sr25519' });
+    const uri = '0x' + crypto.randomBytes(32).toString('hex')
+    testPairs['random'] = keyring.addFromUri(uri);
+    const signingKey = new AccountSigningKey(provider.api.registry);
+    signingKey.addKeyringPair(pair);
+    provider.api.setSigner(signingKey);
+    return provider;
+};
+
+const feedOraclePrice = async (provider, token, price) => {
+    console.log(`feeding oracle price ${token} ${price}`);
+    return new Promise((resolve) => {
+        provider.api.tx.acalaOracle
+            .feedValues([[{ Token: token }, price]])
+            .signAndSend(testPairs.alice.address, (result) => {
+                if (result.status.isFinalized || result.status.isInBlock) {
+                    resolve(result);
+                }
+            });
+    });
+};
+
+const feedTestOraclePrices = async (provider) => {
+    console.log(`feeding test oracle default prices ${DEFAULT_ORACLE_PRICE.map(([{ Token }, price]) => `${Token} ${price}`).join(', ')}`);
+    return new Promise((resolve) => {
+        provider.api.tx.acalaOracle
+            .feedValues(DEFAULT_ORACLE_PRICE)
+            .signAndSend(testPairs.alice.address, (result) => {
+                if (result.status.isFinalized || result.status.isInBlock) {
+                    resolve(result);
+                }
+            });
+    });
+}
+
+module.exports = {
+    LOCAL_WS_URL,
+    testPairs,
+    DEFAULT_ORACLE_PRICE,
+    getTestProvider,
+    feedOraclePrice,
+    feedTestOraclePrices
+}
+```
+
+Our tests uses `ApiPromise` and `WsProvider` from `@polkadot/api`, and initating the `ApiPromise` generates a lot of output, our test output wolud get very messy if we didn't silence it. To do this we use the `console.mute` dependency, that we have to add to the project by using:
+
+```shell
+yarn add --dev console.mute
 ```
 
 Our test cases will be split into one subgroup. Main will be called `Liquidation` and it will verify that the deployed smart contract logic. The sub one will be called `e2e` and it will validate the expected behaviour of our smart contract with CDP module. The empty sections should look like this:
@@ -1199,34 +1333,29 @@ And subgroup `e2e` will have following examples:
 Our test script will look like this:
 
 ```typescript
-    import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { expect, use } from "chai";
-import { ContractReceipt } from "ethers";
-import BN from 'bignumber.js'
-import { ethers } from "hardhat";
-import { publishContract, txParams } from "../utils/deployUtil";
-import { feedOraclePrice, feedTestOraclePrices, getTestProvider, testPairs } from "../utils/testUtil";
-import { EVM, DOT, AUSD, ACA, DEX, ORACLE } from "@acala-network/contracts/utils/MandalaAddress";
-import { abi as IERC20ABI } from "@openzeppelin/contracts/build/contracts/IERC20Metadata.json";
-import { TestProvider } from "@acala-network/bodhi";
-import { Liquidation, Liquidation__factory } from "../typechain";
+require('console.mute');
+console.mute();
+const { expect, use } = require("chai");
+const BN = require('bignumber.js');
+const { ethers } = require("hardhat");
+const { publishContract, txParams } = require("../utils/deployUtil");
+const { feedOraclePrice, feedTestOraclePrices, getTestProvider, testPairs } = require("../utils/testUtil");
+const { DOT, AUSD, ACA } = require("@acala-network/contracts/utils/MandalaAddress");
+const IERC20ABI = require("@openzeppelin/contracts/build/contracts/IERC20Metadata.json").abi;
 
-import { solidity } from "ethereum-waffle";
-import { evmChai } from "@acala-network/bodhi";
-import { firstValueFrom } from "rxjs";
-
+const { evmChai } = require("@acala-network/bodhi");
+const { firstValueFrom } = require("rxjs");
 use(evmChai);
-use(solidity);
+console.resume();
 
 const EVM_PALLET_ADDRESS = '0x31382d495FEd5A6820d9C07e8B6eFe8D2166e9dD';
-
 describe("Liquidation", () => {
-    let signers: SignerWithAddress[];
-    let provider: TestProvider;
-    let Liquidation: Liquidation__factory;
-    let liquidation: Liquidation;
+    let signers;
+    let provider;
+    let Liquidation;
+    let liquidation;
 
-    const resetLiquidationPerf = async (collateral: string): Promise<ContractReceipt> =>
+    const resetLiquidationPerf = async (collateral) =>
         liquidation.setCollateralPreference(collateral, {
             swapWithUSD: false,
             limitedSupply: false,
@@ -1235,7 +1364,7 @@ describe("Liquidation", () => {
             minDiscount: '0'
         }).then((r) => r.wait());
 
-    const transferToken = async (token: string, amount: string, to: string): Promise<ContractReceipt> => {
+    const transferToken = async (token, amount, to) => {
         console.log(`Transferring ${amount} ${token} to ${to}`);
         const tokenContract = await ethers.getContractAt(IERC20ABI, token);
         const res = await tokenContract.connect(signers[1]).transfer(to, amount);
@@ -1244,17 +1373,39 @@ describe("Liquidation", () => {
         return receipt;
     }
 
+    const createBlocks = async (blocks = 1) => {
+        if (provider.api.rpc.engine.createBlock) {
+            // with instant-sealing flag
+            for (let i = 0; i < blocks; i++) {
+                await provider.api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
+            }
+        } else {
+            const currentblockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
+            // without instant-sealing flag
+            // wait for blocks to pass
+            await new Promise((resolve) => {
+                const checkBlock = async () => {
+                    const blockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
+                    if (blockNumber - currentblockNumber >= blocks) {
+                        resolve(undefined);
+                    } else {
+                        setTimeout(checkBlock, 1000);
+                    }
+                }
+                checkBlock();
+            })
+        }
+    }
+
 
     before(async () => {
+
         const param = await txParams();
         signers = await ethers.getSigners();
         provider = await getTestProvider();
         Liquidation = await ethers.getContractFactory("Liquidation");
         liquidation = await Liquidation.deploy(
             signers[0].address,
-            AUSD,
-            DEX,
-            ORACLE,
             {
                 gasPrice: param.txGasPrice,
                 gasLimit: param.txGasLimit,
@@ -1270,7 +1421,7 @@ describe("Liquidation", () => {
     it('liquidate - Should fail if collateral is not allowed', async () => {
         await liquidation.setCollateralLimitedSupply(liquidation.address, true).then(r => r.wait())
         await expect(liquidation.liquidate(liquidation.address, liquidation.address, '0', '0'))
-            .to.be.revertedWith("Liquidation: Collateral is not allowed");
+            .to.be.rejectedWith("Liquidation: Collateral is not allowed");
     })
 
     it('liquidate - Should fail if collateralSupply is exhausted', async () => {
@@ -1278,7 +1429,7 @@ describe("Liquidation", () => {
         await (await liquidation.setCollateralSupply(liquidation.address, '1')).wait();
         await (await liquidation.liquidate(liquidation.address, liquidation.address, '1', '1')).wait();
         await expect(liquidation.liquidate(liquidation.address, liquidation.address, '1', '1'))
-            .to.be.revertedWith("Liquidation: Not enough collateral supply");
+            .to.be.rejectedWith("Liquidation: Not enough collateral supply");
     });
 
     it('liquidate - Should fail if collateralSupply is reduced after more supply', async () => {
@@ -1287,20 +1438,20 @@ describe("Liquidation", () => {
         await liquidation.liquidate(liquidation.address, liquidation.address, '2', '2').then(r => r.wait())
         await liquidation.setCollateralSupply(liquidation.address, '1').then(r => r.wait())
         await expect(liquidation.liquidate(liquidation.address, liquidation.address, '1', '1'))
-            .to.be.revertedWith("Liquidation: Collateral supply not satisfied");
+            .to.be.rejectedWith("Liquidation: Collateral supply not satisfied");
     });
 
     it('liquidate - should fail if paused', async () => {
         await liquidation.pause().then(r => r.wait())
         await expect(liquidation.liquidate(liquidation.address, liquidation.address, '0', '0'))
-            .to.be.revertedWith("Pausable: paused");
+            .to.be.rejectedWith("Pausable: paused");
         await liquidation.unpause().then(r => r.wait())
 
     })
 
     it('liquidate - should fail if not called by EVM', async () => {
         await expect(liquidation.connect(signers[1]).liquidate(liquidation.address, liquidation.address, '0', '0'))
-            .to.be.revertedWith("Liqudation: Only evm can call this function");
+            .to.be.rejectedWith("Liqudation: Only evm can call this function");
     })
 
     it('liquidate - Should transfer target amount to target', async () => {
@@ -1317,20 +1468,20 @@ describe("Liquidation", () => {
     it('onCollateralTransfer - Should fail if collateral is not allowed', async () => {
         await liquidation.setCollateralLimitedSupply(liquidation.address, true).then(r => r.wait())
         await expect(liquidation.onCollateralTransfer(liquidation.address, '10'))
-            .to.be.revertedWith("Liquidation: Collateral is not allowed");
+            .to.be.rejectedWith("Liquidation: Collateral is not allowed");
     })
 
     it('onCollateralTransfer - should fail if paused', async () => {
         await liquidation.pause().then(r => r.wait())
         await expect(liquidation.onCollateralTransfer(liquidation.address, '10'))
-            .to.be.revertedWith("Pausable: paused");
+            .to.be.rejectedWith("Pausable: paused");
         await liquidation.unpause().then(r => r.wait())
 
     })
 
     it('onCollateralTransfer - should fail if not called by EVM', async () => {
         await expect(liquidation.connect(signers[1]).onCollateralTransfer(liquidation.address, '10'))
-            .to.be.revertedWith("Liqudation: Only evm can call this function");
+            .to.be.rejectedWith("Liqudation: Only evm can call this function");
     })
 
     it('onCollateralTransfer - Should emit OnCollateralTransfer event', async () => {
@@ -1354,14 +1505,14 @@ describe("Liquidation", () => {
     it('onRepaymentRefund - should fail if paused', async () => {
         await liquidation.pause().then(r => r.wait())
         await expect(liquidation.onRepaymentRefund(liquidation.address, '10'))
-            .to.be.revertedWith("Pausable: paused");
+            .to.be.rejectedWith("Pausable: paused");
         await liquidation.unpause().then(r => r.wait())
 
     })
 
     it('onRepaymentRefund - should fail if not called by EVM', async () => {
         await expect(liquidation.connect(signers[1]).onRepaymentRefund(liquidation.address, '10'))
-            .to.be.revertedWith("Liqudation: Only evm can call this function");
+            .to.be.rejectedWith("Liqudation: Only evm can call this function");
     })
 
 
@@ -1406,11 +1557,11 @@ describe("Liquidation", () => {
             })
         })
 
-        it('e2e - transfer some tokens to test account(ferdie)', async () => {
-            // transfer few DOT to Ferdie
+        it('e2e - transfer some tokens to test account(ferdie-random)', async () => {
+            // transfer few DOT to Ferdie-Random
             await new Promise((resolve) => {
                 provider.api.tx.currencies.transfer(
-                    { "Id": testPairs.ferdie.address },
+                    { "Id": testPairs.random.address },
                     { "Token": "DOT" },
                     new BN(15).shiftedBy(10).toFixed(0)
                 ).signAndSend(testPairs.alice.address, (result) => {
@@ -1420,10 +1571,10 @@ describe("Liquidation", () => {
                 })
             })
 
-            // transfer some ACA to Ferdie
+            // transfer some ACA to Ferdie-Random
             await new Promise((resolve) => {
                 provider.api.tx.currencies.transfer(
-                    { "Id": testPairs.ferdie.address },
+                    { "Id": testPairs.random.address },
                     { "Token": "ACA" },
                     new BN(150).shiftedBy(12).toFixed(0)
                 ).signAndSend(testPairs.alice.address, (result) => {
@@ -1438,9 +1589,6 @@ describe("Liquidation", () => {
             const param = await txParams();
             liquidation = await Liquidation.deploy(
                 signers[0].address,
-                AUSD,
-                DEX,
-                ORACLE,
                 {
                     gasPrice: param.txGasPrice,
                     gasLimit: param.txGasLimit,
@@ -1475,7 +1623,7 @@ describe("Liquidation", () => {
         })
 
         it('e2e - deregister old liquidation contracts', async () => {
-            let contracts: any = await firstValueFrom(provider.api.rx.query.cdpEngine.liquidationContracts());
+            let contracts = await firstValueFrom(provider.api.rx.query.cdpEngine.liquidationContracts());
             for (let i = 0; i < contracts.length; i++) {
                 await new Promise((resolve) => {
                     provider.api.tx.sudo.sudo(provider.api.tx.cdpEngine.deregisterLiquidationContract(contracts[i].toString()))
@@ -1500,66 +1648,44 @@ describe("Liquidation", () => {
             })
         })
 
-        it('e2e - (ferdie) mint aUSD loan by depositing DOT as collateral', async () => {
-            let currentblockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-            let waitforBlocks = 1;
-            // (Ferdie) mint aUSD by depositing DOT as collateral 
+        it('e2e - (ferdie-random) mint aUSD loan by depositing DOT as collateral', async () => {
+            const waitforBlocks = 1;
+            // (ferdie-random) mint aUSD by depositing DOT as collateral 
             await new Promise((resolve) => {
                 provider.api.tx.honzon.adjustLoan(
                     { Token: 'DOT' },
                     "50000000000",
                     "414334815622508"
-                ).signAndSend(testPairs.ferdie, (result) => {
+                ).signAndSend(testPairs.random, (result) => {
                     if (result.status.isFinalized || result.status.isInBlock) {
                         resolve(undefined);
                     }
                 })
             })
 
-            const loanPosition: any = await firstValueFrom(provider.api.rx.query.loans.positions({
+            const loanPosition = await firstValueFrom(provider.api.rx.query.loans.positions({
                 Token: 'DOT',
-            }, testPairs.ferdie.address));
+            }, testPairs.random.address));
             // wait for blocks to pass
-            await new Promise((resolve) => {
-                const checkBlock = async () => {
-                    const blockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-                    if (blockNumber - currentblockNumber >= waitforBlocks) {
-                        resolve(undefined);
-                    } else {
-                        setTimeout(checkBlock, 1000);
-                    }
-                }
-                checkBlock();
-            })
+            await createBlocks(waitforBlocks);
             expect((+loanPosition.collateral).toString()).to.be.eq('50000000000');
             expect((+loanPosition.debit).toString()).to.be.eq('414334815622508');
         })
 
-        it('e2e - (ferdie) get below collateral and liquidated', async () => {
+        it('e2e - (ferdie-random) get below collateral and liquidated', async () => {
             const dot = await ethers.getContractAt(IERC20ABI, DOT);
             const liquidationDotBalanceBefore = await dot.balanceOf(liquidation.address);
             expect(+liquidationDotBalanceBefore).to.be.eq(0);
-            let currentblockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-            let waitforBlocks = 5;
+            const waitforBlocks = 5;
             // Set DOT price to liquidation price
             await feedOraclePrice(provider, 'DOT', new BN(12.2).shiftedBy(18).toFixed(0));
 
             // wait for blocks to pass
-            await new Promise((resolve) => {
-                const checkBlock = async () => {
-                    const blockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-                    if (blockNumber - currentblockNumber >= waitforBlocks) {
-                        resolve(undefined);
-                    } else {
-                        setTimeout(checkBlock, 1000);
-                    }
-                }
-                checkBlock();
-            })
+            await createBlocks(waitforBlocks);
 
-            const loanPositionAfter: any = await firstValueFrom(provider.api.rx.query.loans.positions({
+            const loanPositionAfter = await firstValueFrom(provider.api.rx.query.loans.positions({
                 Token: 'DOT',
-            }, testPairs.ferdie.address));
+            }, testPairs.random.address));
             expect(+loanPositionAfter.debit).to.be.eq(0);
             expect(+loanPositionAfter.collateral).to.be.eq(0);
 
@@ -1568,68 +1694,46 @@ describe("Liquidation", () => {
             expect(+liquidationDotBalanceAfter).to.be.gt(40000000000);
         })
 
-        it('e2e - (ferdie) again mint aUSD loan by depositing DOT as collateral', async () => {
+        it('e2e - (ferdie-random) again mint aUSD loan by depositing DOT as collateral', async () => {
             await feedOraclePrice(provider, 'DOT', new BN(17.387).shiftedBy(18).toFixed(0));
-            let currentblockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-            let waitforBlocks = 1;
-            // (Ferdie) mint aUSD by depositing DOT as collateral 
+            const waitforBlocks = 1;
+            // (ferdie-random) mint aUSD by depositing DOT as collateral 
             await new Promise((resolve) => {
                 provider.api.tx.honzon.adjustLoan(
                     { Token: 'DOT' },
                     "50000000000",
                     "414334815622508"
-                ).signAndSend(testPairs.ferdie, (result) => {
+                ).signAndSend(testPairs.random, (result) => {
                     if (result.status.isFinalized || result.status.isInBlock) {
                         resolve(undefined);
                     }
                 })
             })
 
-            const loanPosition: any = await firstValueFrom(provider.api.rx.query.loans.positions({
+            const loanPosition = await firstValueFrom(provider.api.rx.query.loans.positions({
                 Token: 'DOT',
-            }, testPairs.ferdie.address));
+            }, testPairs.random.address));
             // wait for blocks to pass
-            await new Promise((resolve) => {
-                const checkBlock = async () => {
-                    const blockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-                    if (blockNumber - currentblockNumber >= waitforBlocks) {
-                        resolve(undefined);
-                    } else {
-                        setTimeout(checkBlock, 1000);
-                    }
-                }
-                checkBlock();
-            })
+            await createBlocks(waitforBlocks);
             expect((+loanPosition.collateral).toString()).to.be.eq('50000000000');
             expect((+loanPosition.debit).toString()).to.be.eq('414334815622508');
         })
 
-        it('e2e - (ferdie) again get below collateral and liquidated with swap enabled', async () => {
+        it('e2e - (ferdie-random) again get below collateral and liquidated with swap enabled', async () => {
             await liquidation.setCollateralSwapWithUSD(DOT, true).then(res => res.wait());
             const dot = await ethers.getContractAt(IERC20ABI, DOT);
             const liquidationDotBalanceBefore = await dot.balanceOf(liquidation.address);
             expect(+liquidationDotBalanceBefore).to.be.gt(40000000000);
-            let currentblockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-            let waitforBlocks = 5;
+            const waitforBlocks = 5;
             // Set DOT price to liquidation price
             await feedOraclePrice(provider, 'DOT', new BN(12.2).shiftedBy(18).toFixed(0));
 
             // wait for blocks to pass
-            await new Promise((resolve) => {
-                const checkBlock = async () => {
-                    const blockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-                    if (blockNumber - currentblockNumber >= waitforBlocks) {
-                        resolve(undefined);
-                    } else {
-                        setTimeout(checkBlock, 1000);
-                    }
-                }
-                checkBlock();
-            })
+            await createBlocks(waitforBlocks);
 
-            const loanPositionAfter: any = await firstValueFrom(provider.api.rx.query.loans.positions({
+            const loanPositionAfter = await firstValueFrom(provider.api.rx.query.loans.positions({
                 Token: 'DOT',
-            }, testPairs.ferdie.address));
+            }, testPairs.random.address));
             expect(+loanPositionAfter.debit).to.be.eq(0);
             expect(+loanPositionAfter.collateral).to.be.eq(0);
 
@@ -1637,68 +1741,46 @@ describe("Liquidation", () => {
             expect(+liquidationDotBalanceAfter).to.be.eq(0);
         })
 
-        it('e2e - (ferdie-liquidated-by-auction) again mint aUSD loan by depositing DOT as collateral', async () => {
+        it('e2e - (ferdie-random-liquidated-by-auction) again mint aUSD loan by depositing DOT as collateral', async () => {
             await feedOraclePrice(provider, 'DOT', new BN(17.387).shiftedBy(18).toFixed(0));
-            let currentblockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-            let waitforBlocks = 1;
-            // (Ferdie) mint aUSD by depositing DOT as collateral 
+            const waitforBlocks = 1;
+            // (ferdie-random) mint aUSD by depositing DOT as collateral 
             await new Promise((resolve) => {
                 provider.api.tx.honzon.adjustLoan(
                     { Token: 'DOT' },
                     "50000000000",
                     "414334815622508"
-                ).signAndSend(testPairs.ferdie, (result) => {
+                ).signAndSend(testPairs.random, (result) => {
                     if (result.status.isFinalized || result.status.isInBlock) {
                         resolve(undefined);
                     }
                 })
             })
 
-            const loanPosition: any = await firstValueFrom(provider.api.rx.query.loans.positions({
+            const loanPosition = await firstValueFrom(provider.api.rx.query.loans.positions({
                 Token: 'DOT',
-            }, testPairs.ferdie.address));
+            }, testPairs.random.address));
             // wait for blocks to pass
-            await new Promise((resolve) => {
-                const checkBlock = async () => {
-                    const blockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-                    if (blockNumber - currentblockNumber >= waitforBlocks) {
-                        resolve(undefined);
-                    } else {
-                        setTimeout(checkBlock, 1000);
-                    }
-                }
-                checkBlock();
-            })
+            await createBlocks(waitforBlocks);
             expect((+loanPosition.collateral).toString()).to.be.eq('50000000000');
             expect((+loanPosition.debit).toString()).to.be.eq('414334815622508');
         })
 
-        it('e2e - (ferdie-liquidated-by-auction) again get below collateral but will not be liquidated by contract because discounted < minDiscount', async () => {
+        it('e2e - (ferdie-random-liquidated-by-auction) again get below collateral but will not be liquidated by contract because discounted < minDiscount', async () => {
             await liquidation.setCollateralSwapWithUSD(DOT, false).then(res => res.wait());
             await liquidation.setCollateralMinDiscount(DOT, '200000000000000000').then(res => res.wait());
 
             const dot = await ethers.getContractAt(IERC20ABI, DOT);
-            let currentblockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-            let waitforBlocks = 5;
+            const waitforBlocks = 5;
             // Set DOT price to liquidation price
             await feedOraclePrice(provider, 'DOT', new BN(12.2).shiftedBy(18).toFixed(0));
 
             // wait for blocks to pass
-            await new Promise((resolve) => {
-                const checkBlock = async () => {
-                    const blockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-                    if (blockNumber - currentblockNumber >= waitforBlocks) {
-                        resolve(undefined);
-                    } else {
-                        setTimeout(checkBlock, 1000);
-                    }
-                }
-                checkBlock();
-            })
+            await createBlocks(waitforBlocks);
 
-            const loanPositionAfter: any = await firstValueFrom(provider.api.rx.query.loans.positions({
+            const loanPositionAfter = await firstValueFrom(provider.api.rx.query.loans.positions({
                 Token: 'DOT',
-            }, testPairs.ferdie.address));
+            }, testPairs.random.address));
             expect(+loanPositionAfter.debit).to.be.eq(0);
             expect(+loanPositionAfter.collateral).to.be.eq(0);
 
@@ -1714,7 +1796,7 @@ This concludes our test.
 As our test is ready to be run, we have already added the script in `package.json` to be able to run the test:
 
 ```json
-    "test-mandala": "hardhat test test/index.ts --network mandala",
+    "test-mandala": "hardhat test test/index.js --network mandala",
 ```
 
 Running the tests with `test-mandala` should give you the following output:
@@ -1726,57 +1808,55 @@ yarn run v1.22.18
 $ hardhat test test/index.ts --network mandala
   Liquidation
 test provider connected to ws://127.0.0.1:9944
-2022-07-27 00:10:28        API/INIT: RPC methods not decorated: evm_blockLimits
-    ✔ liquidate - Should fail if collateral is not allowed (12180ms)
-    ✔ liquidate - Should fail if collateralSupply is exhausted (36512ms)
-    ✔ liquidate - Should fail if collateralSupply is reduced after more supply (48651ms)
-    ✔ liquidate - should fail if paused (24304ms)
-    ✔ liquidate - should fail if not called by EVM (75ms)
-Transferring 5000000000000000 0x0000000000000000000100000000000000000001 to 0xD26e19913ca16B5B59aF7f07472f97cC9eA3f12B
-Transferred 5000000000000000 0x0000000000000000000100000000000000000001 to 0xD26e19913ca16B5B59aF7f07472f97cC9eA3f12B
-    ✔ liquidate - Should transfer target amount to target (24343ms)
-    ✔ onCollateralTransfer - Should fail if collateral is not allowed (12162ms)
-    ✔ onCollateralTransfer - should fail if paused (24286ms)
-    ✔ onCollateralTransfer - should fail if not called by EVM (56ms)
-    ✔ onCollateralTransfer - Should emit OnCollateralTransfer event (12136ms)
-Transferring 10000000000 0x0000000000000000000100000000000000000002 to 0xD26e19913ca16B5B59aF7f07472f97cC9eA3f12B
-Transferred 10000000000 0x0000000000000000000100000000000000000002 to 0xD26e19913ca16B5B59aF7f07472f97cC9eA3f12B
-    ✔ onCollateralTransfer - Should swap collateral with AUSD (36547ms)
-    ✔ onRepaymentRefund - should fail if paused (24303ms)
-    ✔ onRepaymentRefund - should fail if not called by EVM (55ms)
-    ✔ onRepaymentRefund - Should emit OnRepaymentRefund event and reduce totalSupply (24303ms)
+2022-07-29 19:05:13        API/INIT: RPC methods not decorated: evm_blockLimits
+    ✔ liquidate - Should fail if collateral is not allowed (170ms)
+    ✔ liquidate - Should fail if collateralSupply is exhausted (4462ms)
+    ✔ liquidate - Should fail if collateralSupply is reduced after more supply (8575ms)
+    ✔ liquidate - should fail if paused (4269ms)
+    ✔ liquidate - should fail if not called by EVM (73ms)
+Transferring 5000000000000000 0x0000000000000000000100000000000000000001 to 0x412131331282B0F3F6eC32Be6b3053daE83C7DaF
+Transferred 5000000000000000 0x0000000000000000000100000000000000000001 to 0x412131331282B0F3F6eC32Be6b3053daE83C7DaF
+    ✔ liquidate - Should transfer target amount to target (4356ms)
+    ✔ onCollateralTransfer - Should fail if collateral is not allowed (147ms)
+    ✔ onCollateralTransfer - should fail if paused (4294ms)
+    ✔ onCollateralTransfer - should fail if not called by EVM (67ms)
+    ✔ onCollateralTransfer - Should emit OnCollateralTransfer event (122ms)
+Transferring 10000000000 0x0000000000000000000100000000000000000002 to 0x412131331282B0F3F6eC32Be6b3053daE83C7DaF
+Transferred 10000000000 0x0000000000000000000100000000000000000002 to 0x412131331282B0F3F6eC32Be6b3053daE83C7DaF
+    ✔ onCollateralTransfer - Should swap collateral with AUSD (4451ms)
+    ✔ onRepaymentRefund - should fail if paused (4296ms)
+    ✔ onRepaymentRefund - should fail if not called by EVM (94ms)
+    ✔ onRepaymentRefund - Should emit OnRepaymentRefund event and reduce totalSupply (4331ms)
     e2e
 feeding test oracle default prices AUSD 1000000000000000000, DOT 17387000000000000000, ACA 10267010356479, LDOT 7015000000000000000, RENBTC 25559881000000002000000, CASH 766705100327601, KAR 414399529583857728, KUSD 1000000000000000000, KSM 46910000000000000000, LKSM 46910000000000000000, TAI 15000000000000000, BNC 247651000000000000, VSKSM 46910000000000000000, KBTC 25559881000000002000000
-      ✔ e2e - feed default test prices (8435ms)
-      ✔ e2e - set collateral params for DOT asset (11827ms)
-      ✔ e2e - transfer some tokens to test account(ferdie) (23845ms)
-      ✔ e2e - redeploy fresh liquidation contract (12149ms)
-      ✔ e2e - set liquidation contract evm address (12137ms)
-Publishing 0xABF19A80370F59152dC0Cd0D906C61DfE2282Ea3 deployer: 0x75E480dB528101a381Ce68544611C169Ad7EB342 ... Done!
-      ✔ e2e - publish liquidation contract (12139ms)
+      ✔ e2e - feed default test prices (143ms)
+      ✔ e2e - set collateral params for DOT asset (90ms)
+      ✔ e2e - transfer some tokens to test account(ferdie-random) (129ms)
+      ✔ e2e - redeploy fresh liquidation contract (181ms)
+      ✔ e2e - set liquidation contract evm address (154ms)
+Publishing 0xEE575b7856efdc04fF8Ea200E27Feda6C9C87CbD deployer: 0x75E480dB528101a381Ce68544611C169Ad7EB342 ... Done!
+      ✔ e2e - publish liquidation contract (128ms)
 Transferring 5000 aUSD to liquidation contract
 Transferred 5000 aUSD to liquidation contract
 Transferring 5000 aca to liquidation contract
 Transferred 5000 aca to liquidation contract
-      ✔ e2e - transfer few aUSD and ACA to liquidation contract (24308ms)
-      ✔ e2e - deregister old liquidation contracts
-      ✔ e2e - register liquidation contract (10352ms)
-      ✔ e2e - (ferdie) mint aUSD loan by depositing DOT as collateral (11846ms)
+      ✔ e2e - transfer few aUSD and ACA to liquidation contract (4368ms)
+      ✔ e2e - deregister old liquidation contracts (91ms)
+      ✔ e2e - register liquidation contract (70ms)
+      ✔ e2e - (ferdie-random) mint aUSD loan by depositing DOT as collateral (100ms)
 feeding oracle price DOT 12200000000000000000
-      ✔ e2e - (ferdie) get below collateral and liquidated (59923ms)
+      ✔ e2e - (ferdie-random) get below collateral and liquidated (208ms)
 feeding oracle price DOT 17387000000000000000
-      ✔ e2e - (ferdie) again mint aUSD loan by depositing DOT as collateral (23776ms)
+      ✔ e2e - (ferdie-random) again mint aUSD loan by depositing DOT as collateral (198ms)
 feeding oracle price DOT 12200000000000000000
-      ✔ e2e - (ferdie) again get below collateral and liquidated with swap enabled (71909ms)
+      ✔ e2e - (ferdie-random) again get below collateral and liquidated with swap enabled (314ms)
 feeding oracle price DOT 17387000000000000000
-      ✔ e2e - (ferdie-liquidated-by-auction) again mint aUSD loan by depositing DOT as collateral (23775ms)
+      ✔ e2e - (ferdie-random-liquidated-by-auction) again mint aUSD loan by depositing DOT as collateral (426ms)
 feeding oracle price DOT 12200000000000000000
-      ✔ e2e - (ferdie-liquidated-by-auction) again get below collateral but will not be liquidated by contract because discounted < minDiscount (83921ms)
+      ✔ e2e - (ferdie-random-liquidated-by-auction) again get below collateral but will not be liquidated by contract because discounted < minDiscount (4571ms)
 
 
-  29 passing (17m)
-
-Done in 1033.19s.
+  29 passing (2m)
 ```
 
 ## Conclusion

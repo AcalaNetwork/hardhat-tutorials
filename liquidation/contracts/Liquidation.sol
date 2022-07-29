@@ -5,8 +5,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@acala-network/contracts/dex/IDEX.sol";
 import "@acala-network/contracts/oracle/IOracle.sol";
+import "@acala-network/contracts/utils/MandalaAddress.sol";
 
-contract Liquidation is Ownable, Pausable {
+contract Liquidation is Ownable, Pausable, ADDRESS {
     struct CollateralPreference {
         bool swapWithUSD;
         bool limitedSupply;
@@ -21,12 +22,12 @@ contract Liquidation is Ownable, Pausable {
         uint256 supply,
         uint256 target
     );
+    event OnCollateralTransfer(address collateral, uint256 amount);
+    event OnRepaymentRefund(address collateral, uint256 amount);
     event CollateralPreferenceUpdated(
         address collateral,
         CollateralPreference preference
     );
-    event OnCollateralTransfer(address collateral, uint256 amount);
-    event OnRepaymentRefund(address collateral, uint256 amount);
 
     address private _evm;
     address private _USD_;
@@ -37,19 +38,14 @@ contract Liquidation is Ownable, Pausable {
     mapping(address => CollateralPreference) public collateralPreference;
 
     /**
-     * @dev Initializes the contract with evm address.
+     * @dev Initializes the contract.
      */
-    constructor(
-        address EVM,
-        address USD,
-        address DEX,
-        address ORACLE
-    ) {
+    constructor(address EVM) {
         _evm = EVM;
-        _USD_ = USD;
-        _DEX_ = DEX;
-        _ORACLE_ = ORACLE;
-        usdDecimals = IERC20Metadata(USD).decimals();
+        _USD_ = ADDRESS.AUSD;
+        _DEX_ = ADDRESS.DEX;
+        _ORACLE_ = ADDRESS.ORACLE;
+        usdDecimals = IERC20Metadata(_USD_).decimals();
     }
 
     /**
@@ -192,6 +188,39 @@ contract Liquidation is Ownable, Pausable {
     }
 
     /**
+     * @dev Triggers stopped state.
+     *
+     * Requirements:
+     *
+     * - The contract must not be paused.
+     */
+    function pause() public onlyOwner {
+        _pause();
+    }
+
+    /**
+     * @dev Returns to normal state.
+     *
+     * Requirements:
+     *
+     * - The contract must be paused.
+     */
+    function unpause() public onlyOwner {
+        _unpause();
+    }
+
+    /**
+     * @dev Emit CollateralPreferenceUpdated event.
+     * @param collateral Collateral address.
+     */
+    function _emitCollateralPreferenceUpdated(address collateral) internal {
+        emit CollateralPreferenceUpdated(
+            collateral,
+            collateralPreference[collateral]
+        );
+    }
+
+    /**
      * @dev Perform liquidation of collateral, callable only by EVM.
      * @param collateral Collateral address.
      * @param repayDest Repayment destination address.
@@ -266,38 +295,5 @@ contract Liquidation is Ownable, Pausable {
             collateralPreference[collateral].totalSupplied -= amount;
         }
         emit OnRepaymentRefund(collateral, amount);
-    }
-
-    /**
-     * @dev Emit CollateralPreferenceUpdated event.
-     * @param collateral Collateral address.
-     */
-    function _emitCollateralPreferenceUpdated(address collateral) internal {
-        emit CollateralPreferenceUpdated(
-            collateral,
-            collateralPreference[collateral]
-        );
-    }
-
-    /**
-     * @dev Triggers stopped state.
-     *
-     * Requirements:
-     *
-     * - The contract must not be paused.
-     */
-    function pause() public onlyOwner {
-        _pause();
-    }
-
-    /**
-     * @dev Returns to normal state.
-     *
-     * Requirements:
-     *
-     * - The contract must be paused.
-     */
-    function unpause() public onlyOwner {
-        _unpause();
     }
 }

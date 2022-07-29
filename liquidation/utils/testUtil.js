@@ -1,12 +1,13 @@
 
-import { TestProvider, AccountSigningKey } from '@acala-network/bodhi';
-import { WsProvider } from '@polkadot/api';
-import { createTestPairs } from '@polkadot/keyring/testingPairs';
-import type { ISubmittableResult } from '@polkadot/types/types';
+const { TestProvider, AccountSigningKey } = require('@acala-network/bodhi');
+const { WsProvider } = require('@polkadot/api');
+const { createTestPairs } = require('@polkadot/keyring/testingPairs');
+const { Keyring } = require('@polkadot/api');
+const crypto = require("crypto");
 
-export const LOCAL_WS_URL = 'ws://127.0.0.1:9944';
-export const testPairs = createTestPairs();
-export const DEFAULT_ORACLE_PRICE = [
+const LOCAL_WS_URL = 'ws://127.0.0.1:9944';
+const testPairs = createTestPairs();
+const DEFAULT_ORACLE_PRICE = [
     [{ Token: 'AUSD' }, '1000000000000000000'],
     [{ Token: 'DOT' }, '17387000000000000000'],
     [{ Token: 'ACA' }, '10267010356479'],
@@ -21,11 +22,9 @@ export const DEFAULT_ORACLE_PRICE = [
     [{ Token: 'BNC' }, '247651000000000000'],
     [{ Token: 'VSKSM' }, '46910000000000000000'],
     [{ Token: 'KBTC' }, '25559881000000002000000'],
-] as [{ Token: string }, string][];
+];
 
-
-
-export const getTestProvider = async (urlOverwrite?: string): Promise<TestProvider> => {
+const getTestProvider = async (urlOverwrite) => {
     const url = urlOverwrite || process.env.ENDPOINT_URL || LOCAL_WS_URL;
 
     const provider = new TestProvider({
@@ -35,13 +34,16 @@ export const getTestProvider = async (urlOverwrite?: string): Promise<TestProvid
     console.log(`test provider connected to ${url}`);
     await provider.isReady();
     const pair = testPairs.alice;
+    const keyring = new Keyring({ type: 'sr25519' });
+    const uri = '0x' + crypto.randomBytes(32).toString('hex')
+    testPairs['random'] = keyring.addFromUri(uri);
     const signingKey = new AccountSigningKey(provider.api.registry);
     signingKey.addKeyringPair(pair);
     provider.api.setSigner(signingKey);
     return provider;
 };
 
-export const feedOraclePrice = async (provider: TestProvider, token: string, price: string): Promise<ISubmittableResult> => {
+const feedOraclePrice = async (provider, token, price) => {
     console.log(`feeding oracle price ${token} ${price}`);
     return new Promise((resolve) => {
         provider.api.tx.acalaOracle
@@ -54,7 +56,7 @@ export const feedOraclePrice = async (provider: TestProvider, token: string, pri
     });
 };
 
-export const feedTestOraclePrices = async (provider: TestProvider): Promise<ISubmittableResult> => {
+const feedTestOraclePrices = async (provider) => {
     console.log(`feeding test oracle default prices ${DEFAULT_ORACLE_PRICE.map(([{ Token }, price]) => `${Token} ${price}`).join(', ')}`);
     return new Promise((resolve) => {
         provider.api.tx.acalaOracle
@@ -65,4 +67,13 @@ export const feedTestOraclePrices = async (provider: TestProvider): Promise<ISub
                 }
             });
     });
+}
+
+module.exports = {
+    LOCAL_WS_URL,
+    testPairs,
+    DEFAULT_ORACLE_PRICE,
+    getTestProvider,
+    feedOraclePrice,
+    feedTestOraclePrices
 }

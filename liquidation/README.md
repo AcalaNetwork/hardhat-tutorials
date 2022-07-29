@@ -1284,14 +1284,15 @@ Our tests uses `ApiPromise` and `WsProvider` from `@polkadot/api`, and initating
 yarn add --dev console.mute
 ```
 
-Our test cases will be split into one subgroup. Main will be called `Liquidation` and it will verify that the deployed smart contract logic. The sub one will be called `e2e` and it will validate the expected behaviour of our smart contract with CDP module. The empty sections should look like this:
+Our test cases will be in two groups. One will be called `Liquidation` and it will verify that the deployed smart contract logic. The second will be called `e2e` and it will validate the expected behaviour of our smart contract with CDP module. The empty sections should look like this:
 
 ```javascript
   describe("Liquidation", () => {
-    describe("e2e", function () {
-
-    });
   })
+
+  describe("e2e", function () {
+
+   });
 
 ```
 
@@ -1312,7 +1313,7 @@ The `Liquidation` section will hold following test examples:
 13. onRepaymentRefund - should fail if not called by EVM
 14. onRepaymentRefund - Should emit OnRepaymentRefund event and reduce totalSupply
 
-And subgroup `e2e` will have following examples:
+And `e2e` will have following examples:
 
 1. e2e - feed default test prices
 2. e2e - set collateral params for DOT asset
@@ -1349,12 +1350,12 @@ use(evmChai);
 console.resume();
 
 const EVM_PALLET_ADDRESS = '0x31382d495FEd5A6820d9C07e8B6eFe8D2166e9dD';
-describe("Liquidation", () => {
-    let signers;
-    let provider;
-    let Liquidation;
-    let liquidation;
+let signers;
+let provider;
+let Liquidation;
+let liquidation;
 
+describe("Liquidation", () => {
     const resetLiquidationPerf = async (collateral) =>
         liquidation.setCollateralPreference(collateral, {
             swapWithUSD: false,
@@ -1372,31 +1373,6 @@ describe("Liquidation", () => {
         console.log(`Transferred ${amount} ${token} to ${to}`);
         return receipt;
     }
-
-    const createBlocks = async (blocks = 1) => {
-        if (provider.api.rpc.engine.createBlock) {
-            // with instant-sealing flag
-            for (let i = 0; i < blocks; i++) {
-                await provider.api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
-            }
-        } else {
-            const currentblockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-            // without instant-sealing flag
-            // wait for blocks to pass
-            await new Promise((resolve) => {
-                const checkBlock = async () => {
-                    const blockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
-                    if (blockNumber - currentblockNumber >= blocks) {
-                        resolve(undefined);
-                    } else {
-                        setTimeout(checkBlock, 1000);
-                    }
-                }
-                checkBlock();
-            })
-        }
-    }
-
 
     before(async () => {
 
@@ -1531,264 +1507,300 @@ describe("Liquidation", () => {
         pref = await liquidation.collateralPreference(liquidation.address);
         expect(pref.totalSupplied.toString()).to.equal('8');
     })
+});
 
+describe('e2e', () => {
+    const sleep = async (time = 1) => {
+        await new Promise((resolve) => {
+            setTimeout(resolve, time);
+        });
+    }
 
-    describe('e2e', () => {
-        it('e2e - feed default test prices', async () => {
-            await feedTestOraclePrices(provider);
-        })
-
-        it('e2e - set collateral params for DOT asset', async () => {
-            const ext = provider.api.tx.cdpEngine.setCollateralParams(
-                { Token: "DOT" },
-                { NewValue: new BN(1).div(100000).shiftedBy(18).toFixed(0) },
-                { NewValue: new BN(3).div(2).shiftedBy(18).toFixed(0) },
-                { NewValue: new BN(2).div(10).shiftedBy(18).toFixed(0) },
-                { NewValue: new BN(9).div(5).shiftedBy(18).toFixed(0) },
-                { NewValue: new BN(10000).shiftedBy(18).toFixed(0) },
-            );
-            // set params for DOT
-            await new Promise((resolve) => {
-                provider.api.tx.sudo.sudo(ext).signAndSend(testPairs.alice.address, (result) => {
-                    if (result.status.isFinalized || result.status.isInBlock) {
-                        resolve(undefined);
-                    }
-                });
-            })
-        })
-
-        it('e2e - transfer some tokens to test account(ferdie-random)', async () => {
-            // transfer few DOT to Ferdie-Random
-            await new Promise((resolve) => {
-                provider.api.tx.currencies.transfer(
-                    { "Id": testPairs.random.address },
-                    { "Token": "DOT" },
-                    new BN(15).shiftedBy(10).toFixed(0)
-                ).signAndSend(testPairs.alice.address, (result) => {
-                    if (result.status.isFinalized || result.status.isInBlock) {
-                        resolve(undefined);
-                    }
-                })
-            })
-
-            // transfer some ACA to Ferdie-Random
-            await new Promise((resolve) => {
-                provider.api.tx.currencies.transfer(
-                    { "Id": testPairs.random.address },
-                    { "Token": "ACA" },
-                    new BN(150).shiftedBy(12).toFixed(0)
-                ).signAndSend(testPairs.alice.address, (result) => {
-                    if (result.status.isFinalized || result.status.isInBlock) {
-                        resolve(undefined);
-                    }
-                })
-            })
-        })
-
-        it('e2e - redeploy fresh liquidation contract', async () => {
-            const param = await txParams();
-            liquidation = await Liquidation.deploy(
-                signers[0].address,
-                {
-                    gasPrice: param.txGasPrice,
-                    gasLimit: param.txGasLimit,
-                });
-            await liquidation.deployed();
-        })
-
-        it('e2e - set liquidation contract evm address', async () => {
-            await liquidation.setEvm(EVM_PALLET_ADDRESS).then(r => r.wait())
-        })
-
-        it('e2e - publish liquidation contract', async () => {
-            const receipt = await publishContract({
-                signer: signers[0],
-                contractAddress: liquidation.address,
-            });
-            expect((receipt.events || []).find((e) => e.event === 'ContractPublished')).to.not.be.undefined;
-        })
-
-        it('e2e - transfer few aUSD and ACA to liquidation contract', async () => {
-            console.log('Transferring 5000 aUSD to liquidation contract');
-            const ausd = await ethers.getContractAt(IERC20ABI, AUSD);
-            const res = await ausd.connect(signers[1]).transfer(liquidation.address, new BN(5000).shiftedBy(12).toFixed(0));
-            await res.wait();
-            console.log('Transferred 5000 aUSD to liquidation contract');
-
-            console.log('Transferring 5000 aca to liquidation contract');
-            const aca = await ethers.getContractAt(IERC20ABI, ACA);
-            const res1 = await aca.connect(signers[1]).transfer(liquidation.address, new BN(5000).shiftedBy(12).toFixed(0));
-            await res1.wait();
-            console.log('Transferred 5000 aca to liquidation contract');
-        })
-
-        it('e2e - deregister old liquidation contracts', async () => {
-            let contracts = await firstValueFrom(provider.api.rx.query.cdpEngine.liquidationContracts());
-            for (let i = 0; i < contracts.length; i++) {
-                await new Promise((resolve) => {
-                    provider.api.tx.sudo.sudo(provider.api.tx.cdpEngine.deregisterLiquidationContract(contracts[i].toString()))
-                        .signAndSend(testPairs.alice.address, (result) => {
-                            if (result.status.isFinalized || result.status.isInBlock) {
-                                resolve(undefined);
-                            }
-                        });
-                })
+    const createBlocks = async (blocks = 1) => {
+        if (provider.api.rpc.engine.createBlock) {
+            // with instant-sealing flag
+            for (let i = 0; i < blocks; i++) {
+                await sleep(100);
+                await provider.api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
             }
+        } else {
+            const currentblockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
+            // without instant-sealing flag
+            // wait for blocks to pass
+            await new Promise((resolve) => {
+                const checkBlock = async () => {
+                    const blockNumber = +(await firstValueFrom(provider.api.rx.query.system.number()));
+                    if (blockNumber - currentblockNumber >= blocks) {
+                        resolve(undefined);
+                    } else {
+                        setTimeout(checkBlock, 1000);
+                    }
+                }
+                checkBlock();
+            })
+        }
+    }
+
+    before(async () => {
+        signers = await ethers.getSigners();
+        provider = await getTestProvider();
+        Liquidation = await ethers.getContractFactory("Liquidation");
+    })
+
+    it('e2e - feed default test prices', async () => {
+        await feedTestOraclePrices(provider);
+    })
+
+    it('e2e - set collateral params for DOT asset', async () => {
+        const ext = provider.api.tx.cdpEngine.setCollateralParams(
+            { Token: "DOT" },
+            { NewValue: new BN(1).div(100000).shiftedBy(18).toFixed(0) },
+            { NewValue: new BN(3).div(2).shiftedBy(18).toFixed(0) },
+            { NewValue: new BN(2).div(10).shiftedBy(18).toFixed(0) },
+            { NewValue: new BN(9).div(5).shiftedBy(18).toFixed(0) },
+            { NewValue: new BN(10000).shiftedBy(18).toFixed(0) },
+        );
+        // set params for DOT
+        await new Promise((resolve) => {
+            provider.api.tx.sudo.sudo(ext).signAndSend(testPairs.alice.address, (result) => {
+                if (result.status.isFinalized || result.status.isInBlock) {
+                    resolve(undefined);
+                }
+            });
+        })
+    })
+
+    it('e2e - transfer some tokens to test account(ferdie-random)', async () => {
+        // transfer few DOT to Ferdie-Random
+        await new Promise((resolve) => {
+            provider.api.tx.currencies.transfer(
+                { "Id": testPairs.random.address },
+                { "Token": "DOT" },
+                new BN(15).shiftedBy(10).toFixed(0)
+            ).signAndSend(testPairs.alice.address, (result) => {
+                if (result.status.isFinalized || result.status.isInBlock) {
+                    resolve(undefined);
+                }
+            })
         })
 
-        it('e2e - register liquidation contract', async () => {
-            // register that liquidation contract
+        // transfer some ACA to Ferdie-Random
+        await new Promise((resolve) => {
+            provider.api.tx.currencies.transfer(
+                { "Id": testPairs.random.address },
+                { "Token": "ACA" },
+                new BN(150).shiftedBy(12).toFixed(0)
+            ).signAndSend(testPairs.alice.address, (result) => {
+                if (result.status.isFinalized || result.status.isInBlock) {
+                    resolve(undefined);
+                }
+            })
+        })
+    })
+
+    it('e2e - redeploy fresh liquidation contract', async () => {
+        const param = await txParams();
+        liquidation = await Liquidation.deploy(
+            signers[0].address,
+            {
+                gasPrice: param.txGasPrice,
+                gasLimit: param.txGasLimit,
+            });
+        await liquidation.deployed();
+    })
+
+    it('e2e - set liquidation contract evm address', async () => {
+        await liquidation.setEvm(EVM_PALLET_ADDRESS).then(r => r.wait())
+    })
+
+    it('e2e - publish liquidation contract', async () => {
+        const receipt = await publishContract({
+            signer: signers[0],
+            contractAddress: liquidation.address,
+        });
+        expect((receipt.events || []).find((e) => e.event === 'ContractPublished')).to.not.be.undefined;
+    })
+
+    it('e2e - transfer few aUSD and ACA to liquidation contract', async () => {
+        console.log('Transferring 5000 aUSD to liquidation contract');
+        const ausd = await ethers.getContractAt(IERC20ABI, AUSD);
+        const res = await ausd.connect(signers[1]).transfer(liquidation.address, new BN(5000).shiftedBy(12).toFixed(0));
+        await res.wait();
+        console.log('Transferred 5000 aUSD to liquidation contract');
+
+        console.log('Transferring 5000 aca to liquidation contract');
+        const aca = await ethers.getContractAt(IERC20ABI, ACA);
+        const res1 = await aca.connect(signers[1]).transfer(liquidation.address, new BN(5000).shiftedBy(12).toFixed(0));
+        await res1.wait();
+        console.log('Transferred 5000 aca to liquidation contract');
+    })
+
+    it('e2e - deregister old liquidation contracts', async () => {
+        let contracts = await firstValueFrom(provider.api.rx.query.cdpEngine.liquidationContracts());
+        for (let i = 0; i < contracts.length; i++) {
             await new Promise((resolve) => {
-                provider.api.tx.sudo.sudo(provider.api.tx.cdpEngine.registerLiquidationContract(liquidation.address))
+                provider.api.tx.sudo.sudo(provider.api.tx.cdpEngine.deregisterLiquidationContract(contracts[i].toString()))
                     .signAndSend(testPairs.alice.address, (result) => {
                         if (result.status.isFinalized || result.status.isInBlock) {
                             resolve(undefined);
                         }
                     });
             })
-        })
+        }
+    })
 
-        it('e2e - (ferdie-random) mint aUSD loan by depositing DOT as collateral', async () => {
-            const waitforBlocks = 5;
-            // (ferdie-random) mint aUSD by depositing DOT as collateral 
-            await new Promise((resolve) => {
-                provider.api.tx.honzon.adjustLoan(
-                    { Token: 'DOT' },
-                    "50000000000",
-                    "414334815622508"
-                ).signAndSend(testPairs.random, (result) => {
+    it('e2e - register liquidation contract', async () => {
+        // register that liquidation contract
+        await new Promise((resolve) => {
+            provider.api.tx.sudo.sudo(provider.api.tx.cdpEngine.registerLiquidationContract(liquidation.address))
+                .signAndSend(testPairs.alice.address, (result) => {
                     if (result.status.isFinalized || result.status.isInBlock) {
                         resolve(undefined);
                     }
-                })
-            })
-
-            const loanPosition = await firstValueFrom(provider.api.rx.query.loans.positions({
-                Token: 'DOT',
-            }, testPairs.random.address));
-            // wait for blocks to pass
-            await createBlocks(waitforBlocks);
-            expect((+loanPosition.collateral).toString()).to.be.eq('50000000000');
-            expect((+loanPosition.debit).toString()).to.be.eq('414334815622508');
-        })
-
-        it('e2e - (ferdie-random) get below collateral and liquidated', async () => {
-            const dot = await ethers.getContractAt(IERC20ABI, DOT);
-            const liquidationDotBalanceBefore = await dot.balanceOf(liquidation.address);
-            expect(+liquidationDotBalanceBefore).to.be.eq(0);
-            const waitforBlocks = 15;
-            // Set DOT price to liquidation price
-            await feedOraclePrice(provider, 'DOT', new BN(12.2).shiftedBy(18).toFixed(0));
-
-            // wait for blocks to pass
-            await createBlocks(waitforBlocks);
-
-            const loanPositionAfter = await firstValueFrom(provider.api.rx.query.loans.positions({
-                Token: 'DOT',
-            }, testPairs.random.address));
-            expect(+loanPositionAfter.debit).to.be.eq(0);
-            expect(+loanPositionAfter.collateral).to.be.eq(0);
-
-            const liquidationDotBalanceAfter = await dot.balanceOf(liquidation.address);
-            // considering fee deduction
-            expect(+liquidationDotBalanceAfter).to.be.gt(40000000000);
-        })
-
-        it('e2e - (ferdie-random) again mint aUSD loan by depositing DOT as collateral', async () => {
-            await feedOraclePrice(provider, 'DOT', new BN(17.387).shiftedBy(18).toFixed(0));
-            const waitforBlocks = 5;
-            // (ferdie-random) mint aUSD by depositing DOT as collateral 
-            await new Promise((resolve) => {
-                provider.api.tx.honzon.adjustLoan(
-                    { Token: 'DOT' },
-                    "50000000000",
-                    "414334815622508"
-                ).signAndSend(testPairs.random, (result) => {
-                    if (result.status.isFinalized || result.status.isInBlock) {
-                        resolve(undefined);
-                    }
-                })
-            })
-
-            const loanPosition = await firstValueFrom(provider.api.rx.query.loans.positions({
-                Token: 'DOT',
-            }, testPairs.random.address));
-            // wait for blocks to pass
-            await createBlocks(waitforBlocks);
-            expect((+loanPosition.collateral).toString()).to.be.eq('50000000000');
-            expect((+loanPosition.debit).toString()).to.be.eq('414334815622508');
-        })
-
-        it('e2e - (ferdie-random) again get below collateral and liquidated with swap enabled', async () => {
-            await liquidation.setCollateralSwapWithUSD(DOT, true).then(res => res.wait());
-            const dot = await ethers.getContractAt(IERC20ABI, DOT);
-            const liquidationDotBalanceBefore = await dot.balanceOf(liquidation.address);
-            expect(+liquidationDotBalanceBefore).to.be.gt(40000000000);
-            const waitforBlocks = 15;
-            // Set DOT price to liquidation price
-            await feedOraclePrice(provider, 'DOT', new BN(12.2).shiftedBy(18).toFixed(0));
-
-            // wait for blocks to pass
-            await createBlocks(waitforBlocks);
-
-            const loanPositionAfter = await firstValueFrom(provider.api.rx.query.loans.positions({
-                Token: 'DOT',
-            }, testPairs.random.address));
-            expect(+loanPositionAfter.debit).to.be.eq(0);
-            expect(+loanPositionAfter.collateral).to.be.eq(0);
-
-            const liquidationDotBalanceAfter = await dot.balanceOf(liquidation.address);
-            expect(+liquidationDotBalanceAfter).to.be.eq(0);
-        })
-
-        it('e2e - (ferdie-random-liquidated-by-auction) again mint aUSD loan by depositing DOT as collateral', async () => {
-            await feedOraclePrice(provider, 'DOT', new BN(17.387).shiftedBy(18).toFixed(0));
-            const waitforBlocks = 5;
-            // (ferdie-random) mint aUSD by depositing DOT as collateral 
-            await new Promise((resolve) => {
-                provider.api.tx.honzon.adjustLoan(
-                    { Token: 'DOT' },
-                    "50000000000",
-                    "414334815622508"
-                ).signAndSend(testPairs.random, (result) => {
-                    if (result.status.isFinalized || result.status.isInBlock) {
-                        resolve(undefined);
-                    }
-                })
-            })
-
-            const loanPosition = await firstValueFrom(provider.api.rx.query.loans.positions({
-                Token: 'DOT',
-            }, testPairs.random.address));
-            // wait for blocks to pass
-            await createBlocks(waitforBlocks);
-            expect((+loanPosition.collateral).toString()).to.be.eq('50000000000');
-            expect((+loanPosition.debit).toString()).to.be.eq('414334815622508');
-        })
-
-        it('e2e - (ferdie-random-liquidated-by-auction) again get below collateral but will not be liquidated by contract because discounted < minDiscount', async () => {
-            await liquidation.setCollateralSwapWithUSD(DOT, false).then(res => res.wait());
-            await liquidation.setCollateralMinDiscount(DOT, '200000000000000000').then(res => res.wait());
-
-            const dot = await ethers.getContractAt(IERC20ABI, DOT);
-            const waitforBlocks = 15;
-            // Set DOT price to liquidation price
-            await feedOraclePrice(provider, 'DOT', new BN(12.2).shiftedBy(18).toFixed(0));
-
-            // wait for blocks to pass
-            await createBlocks(waitforBlocks);
-
-            const loanPositionAfter = await firstValueFrom(provider.api.rx.query.loans.positions({
-                Token: 'DOT',
-            }, testPairs.random.address));
-            expect(+loanPositionAfter.debit).to.be.eq(0);
-            expect(+loanPositionAfter.collateral).to.be.eq(0);
-
-            const liquidationDotBalanceAfter = await dot.balanceOf(liquidation.address);
-            expect(+liquidationDotBalanceAfter).to.be.eq(0);
+                });
         })
     })
-});
+
+    it('e2e - (ferdie-random) mint aUSD loan by depositing DOT as collateral', async () => {
+        const waitforBlocks = 7;
+        // (ferdie-random) mint aUSD by depositing DOT as collateral 
+        await new Promise((resolve) => {
+            provider.api.tx.honzon.adjustLoan(
+                { Token: 'DOT' },
+                "50000000000",
+                "414334815622508"
+            ).signAndSend(testPairs.random, (result) => {
+                if (result.status.isFinalized || result.status.isInBlock) {
+                    resolve(undefined);
+                }
+            })
+        })
+
+        const loanPosition = await firstValueFrom(provider.api.rx.query.loans.positions({
+            Token: 'DOT',
+        }, testPairs.random.address));
+        // wait for blocks to pass
+        await createBlocks(waitforBlocks);
+        expect((+loanPosition.collateral).toString()).to.be.eq('50000000000');
+        expect((+loanPosition.debit).toString()).to.be.eq('414334815622508');
+    })
+
+    it('e2e - (ferdie-random) get below collateral and liquidated', async () => {
+        const dot = await ethers.getContractAt(IERC20ABI, DOT);
+        const liquidationDotBalanceBefore = await dot.balanceOf(liquidation.address);
+        expect(+liquidationDotBalanceBefore).to.be.eq(0);
+        const waitforBlocks = 7;
+        // Set DOT price to liquidation price
+        await feedOraclePrice(provider, 'DOT', new BN(12.2).shiftedBy(18).toFixed(0));
+
+        // wait for blocks to pass
+        await createBlocks(waitforBlocks);
+
+        const loanPositionAfter = await firstValueFrom(provider.api.rx.query.loans.positions({
+            Token: 'DOT',
+        }, testPairs.random.address));
+        expect(+loanPositionAfter.debit).to.be.eq(0);
+        expect(+loanPositionAfter.collateral).to.be.eq(0);
+
+        const liquidationDotBalanceAfter = await dot.balanceOf(liquidation.address);
+        // considering fee deduction
+        expect(+liquidationDotBalanceAfter).to.be.gt(40000000000);
+    })
+
+    it('e2e - (ferdie-random) again mint aUSD loan by depositing DOT as collateral', async () => {
+        await feedOraclePrice(provider, 'DOT', new BN(17.387).shiftedBy(18).toFixed(0));
+        const waitforBlocks = 7;
+        // (ferdie-random) mint aUSD by depositing DOT as collateral 
+        await new Promise((resolve) => {
+            provider.api.tx.honzon.adjustLoan(
+                { Token: 'DOT' },
+                "50000000000",
+                "414334815622508"
+            ).signAndSend(testPairs.random, (result) => {
+                if (result.status.isFinalized || result.status.isInBlock) {
+                    resolve(undefined);
+                }
+            })
+        })
+
+        const loanPosition = await firstValueFrom(provider.api.rx.query.loans.positions({
+            Token: 'DOT',
+        }, testPairs.random.address));
+        // wait for blocks to pass
+        await createBlocks(waitforBlocks);
+        expect((+loanPosition.collateral).toString()).to.be.eq('50000000000');
+        expect((+loanPosition.debit).toString()).to.be.eq('414334815622508');
+    })
+
+    it('e2e - (ferdie-random) again get below collateral and liquidated with swap enabled', async () => {
+        await liquidation.setCollateralSwapWithUSD(DOT, true).then(res => res.wait());
+        const dot = await ethers.getContractAt(IERC20ABI, DOT);
+        const liquidationDotBalanceBefore = await dot.balanceOf(liquidation.address);
+        expect(+liquidationDotBalanceBefore).to.be.gt(40000000000);
+        const waitforBlocks = 7;
+        // Set DOT price to liquidation price
+        await feedOraclePrice(provider, 'DOT', new BN(12.2).shiftedBy(18).toFixed(0));
+
+        // wait for blocks to pass
+        await createBlocks(waitforBlocks);
+
+        const loanPositionAfter = await firstValueFrom(provider.api.rx.query.loans.positions({
+            Token: 'DOT',
+        }, testPairs.random.address));
+        expect(+loanPositionAfter.debit).to.be.eq(0);
+        expect(+loanPositionAfter.collateral).to.be.eq(0);
+
+        const liquidationDotBalanceAfter = await dot.balanceOf(liquidation.address);
+        expect(+liquidationDotBalanceAfter).to.be.eq(0);
+    })
+
+    it('e2e - (ferdie-random-liquidated-by-auction) again mint aUSD loan by depositing DOT as collateral', async () => {
+        await feedOraclePrice(provider, 'DOT', new BN(17.387).shiftedBy(18).toFixed(0));
+        const waitforBlocks = 7;
+        // (ferdie-random) mint aUSD by depositing DOT as collateral 
+        await new Promise((resolve) => {
+            provider.api.tx.honzon.adjustLoan(
+                { Token: 'DOT' },
+                "50000000000",
+                "414334815622508"
+            ).signAndSend(testPairs.random, (result) => {
+                if (result.status.isFinalized || result.status.isInBlock) {
+                    resolve(undefined);
+                }
+            })
+        })
+
+        const loanPosition = await firstValueFrom(provider.api.rx.query.loans.positions({
+            Token: 'DOT',
+        }, testPairs.random.address));
+        // wait for blocks to pass
+        await createBlocks(waitforBlocks);
+        expect((+loanPosition.collateral).toString()).to.be.eq('50000000000');
+        expect((+loanPosition.debit).toString()).to.be.eq('414334815622508');
+    })
+
+    it('e2e - (ferdie-random-liquidated-by-auction) again get below collateral but will not be liquidated by contract because discounted < minDiscount', async () => {
+        await liquidation.setCollateralSwapWithUSD(DOT, false).then(res => res.wait());
+        await liquidation.setCollateralMinDiscount(DOT, '200000000000000000').then(res => res.wait());
+
+        const dot = await ethers.getContractAt(IERC20ABI, DOT);
+        const waitforBlocks = 7;
+        // Set DOT price to liquidation price
+        await feedOraclePrice(provider, 'DOT', new BN(12.2).shiftedBy(18).toFixed(0));
+
+        // wait for blocks to pass
+        await createBlocks(waitforBlocks);
+
+        const loanPositionAfter = await firstValueFrom(provider.api.rx.query.loans.positions({
+            Token: 'DOT',
+        }, testPairs.random.address));
+        expect(+loanPositionAfter.debit).to.be.eq(0);
+        expect(+loanPositionAfter.collateral).to.be.eq(0);
+
+        const liquidationDotBalanceAfter = await dot.balanceOf(liquidation.address);
+        expect(+liquidationDotBalanceAfter).to.be.eq(0);
+    })
+})
 ```
 
 This concludes our test.

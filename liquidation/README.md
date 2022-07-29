@@ -1649,7 +1649,7 @@ describe("Liquidation", () => {
         })
 
         it('e2e - (ferdie-random) mint aUSD loan by depositing DOT as collateral', async () => {
-            const waitforBlocks = 1;
+            const waitforBlocks = 5;
             // (ferdie-random) mint aUSD by depositing DOT as collateral 
             await new Promise((resolve) => {
                 provider.api.tx.honzon.adjustLoan(
@@ -1676,7 +1676,7 @@ describe("Liquidation", () => {
             const dot = await ethers.getContractAt(IERC20ABI, DOT);
             const liquidationDotBalanceBefore = await dot.balanceOf(liquidation.address);
             expect(+liquidationDotBalanceBefore).to.be.eq(0);
-            const waitforBlocks = 5;
+            const waitforBlocks = 15;
             // Set DOT price to liquidation price
             await feedOraclePrice(provider, 'DOT', new BN(12.2).shiftedBy(18).toFixed(0));
 
@@ -1696,7 +1696,7 @@ describe("Liquidation", () => {
 
         it('e2e - (ferdie-random) again mint aUSD loan by depositing DOT as collateral', async () => {
             await feedOraclePrice(provider, 'DOT', new BN(17.387).shiftedBy(18).toFixed(0));
-            const waitforBlocks = 1;
+            const waitforBlocks = 5;
             // (ferdie-random) mint aUSD by depositing DOT as collateral 
             await new Promise((resolve) => {
                 provider.api.tx.honzon.adjustLoan(
@@ -1724,7 +1724,7 @@ describe("Liquidation", () => {
             const dot = await ethers.getContractAt(IERC20ABI, DOT);
             const liquidationDotBalanceBefore = await dot.balanceOf(liquidation.address);
             expect(+liquidationDotBalanceBefore).to.be.gt(40000000000);
-            const waitforBlocks = 5;
+            const waitforBlocks = 15;
             // Set DOT price to liquidation price
             await feedOraclePrice(provider, 'DOT', new BN(12.2).shiftedBy(18).toFixed(0));
 
@@ -1743,7 +1743,7 @@ describe("Liquidation", () => {
 
         it('e2e - (ferdie-random-liquidated-by-auction) again mint aUSD loan by depositing DOT as collateral', async () => {
             await feedOraclePrice(provider, 'DOT', new BN(17.387).shiftedBy(18).toFixed(0));
-            const waitforBlocks = 1;
+            const waitforBlocks = 5;
             // (ferdie-random) mint aUSD by depositing DOT as collateral 
             await new Promise((resolve) => {
                 provider.api.tx.honzon.adjustLoan(
@@ -1771,7 +1771,7 @@ describe("Liquidation", () => {
             await liquidation.setCollateralMinDiscount(DOT, '200000000000000000').then(res => res.wait());
 
             const dot = await ethers.getContractAt(IERC20ABI, DOT);
-            const waitforBlocks = 5;
+            const waitforBlocks = 15;
             // Set DOT price to liquidation price
             await feedOraclePrice(provider, 'DOT', new BN(12.2).shiftedBy(18).toFixed(0));
 

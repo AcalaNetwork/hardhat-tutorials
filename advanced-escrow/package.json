@@ -9,7 +9,7 @@
     "hardhat": "^2.6.8"
   },
   "devDependencies": {
-    "@acala-network/contracts": "^4.3.2",
+    "@acala-network/contracts": "^4.3.4",
     "@acala-network/eth-providers": "^2.4.11",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",

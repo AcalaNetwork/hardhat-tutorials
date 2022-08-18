@@ -228,16 +228,17 @@ To add a test, for the smart contract we just created, create a `test` directory
 mkdir test && touch test/HelloWorld.js
 ```
 
-On the first line of the test, import the `expect` from `chai` dependency and
-`calcEthereumTransactionParams` from `eth-providers`. We also set two constants to be used within
-the tests:
+**NOTE: This tutorial assumes that the tests will be run in the
+[overloaded parameters mode](https://evmdocs.acala.network/tooling/rpc-adapter/running-the-rpc-adapter#list-of-options),
+called *rich mode*. It is enabled by passing the *-r* flag when spinning up the RPC adapter.
+
+If you wish to run them without the overloaded mode, please refer to how we pass the deployment
+transaction parameters, like we do in the [Add a script](#add-a-script) section.**
+
+On the first line of the test, import the `expect` from `chai`:
 
 ```js
 const { expect } = require("chai");
-const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-const txFeePerGas = '199999946752';
-const storageByteDeposit = '100000000000000';
 ```
 
 We will be wrapping our test within a `describe` block, so add it below the import statement:
@@ -248,33 +249,18 @@ describe("HelloWorld contract", function () {
 });
 ```
 
-Within the `describe` block, we set the `ethParams` from the `eth-providers` dependency (we won't be
-using all of them, but they are added to the example for reference), then we first get the contract
-factory and then deploy it, passing the transaction parameters within the deployment transaction.
-Once the smart contract is deployed, we can call the `helloWorld()` function, that was automatically
-generated because we made the `helloWorld` variable public and store the result. We compare that
-result to the `Hello World!` string and if everything is in order, our test should pass. Adding
-these steps to the `describe` block, requires us to place them within the `it` block, which we in
-turn place within the `describe` block:
+Within the `describe` block, we first get the contract factory and then deploy it. Once the smart
+contract is deployed, we can call the `helloWorld()` function, that was automatically generated
+because we made the `helloWorld` variable public and store the result. We compare that result to the
+`Hello World!` string and if everything is in order, our test should pass. Adding these steps to the
+`describe` block, requires us to place them within the `it` block, which we in turn place within the
+`describe` block:
 
 ```js
     it("returns the right value after the contract is deployed", async function () {
-        const blockNumber = await ethers.provider.getBlockNumber();
-
-        const ethParams = calcEthereumTransactionParams({
-          gasLimit: '2100001',
-          validUntil: (blockNumber + 100).toString(),
-          storageLimit: '64001',
-          txFeePerGas,
-          storageByteDeposit
-        });
-
         const HelloWorld = await ethers.getContractFactory("HelloWorld");
 
-        const instance = await HelloWorld.deploy({
-            gasPrice: ethParams.txGasPrice,
-            gasLimit: ethParams.txGasLimit,
-        });
+        const instance = await HelloWorld.deploy();
 
         const value = await instance.helloWorld();
 
@@ -288,29 +274,12 @@ With that, our test is ready to be run.
     <summary>Your test/HelloWorld.js should look like this:</summary>
 
     const { expect } = require("chai");
-    const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-    const txFeePerGas = '199999946752';
-    const storageByteDeposit = '100000000000000';
 
     describe("HelloWorld contract", function () {
         it("returns the right value after the contract is deployed", async function () {
-            const blockNumber = await ethers.provider.getBlockNumber();
-          
-            const ethParams = calcEthereumTransactionParams({
-                gasLimit: '2100001',
-                validUntil: (blockNumber + 100).toString(),
-                storageLimit: '64001',
-                txFeePerGas,
-                storageByteDeposit
-            });
-
             const HelloWorld = await ethers.getContractFactory("HelloWorld");
             
-            const instance = await HelloWorld.deploy({
-                gasPrice: ethParams.txGasPrice,
-                gasLimit: ethParams.txGasLimit,
-            });
+            const instance = await HelloWorld.deploy();
 
             const value = await instance.helloWorld();
 
@@ -336,25 +305,24 @@ As you can see, the `test-mandala` and `test-mandala:pubDev` script differ from 
 the `--network` flag which we use to tell Hardhat to use the `mandala` or `mandalaPubDev` network
 configuration from `hardhat.config.js` that we added in the beginning of this tutorial.
 
-When you run the test with (for example) `yarn test`, your tests should pass with the following
-output:
+When you run the test with (for example) `yarn test-mandala`, your tests should pass with the
+following output:
 
 ```shell
-yarn test
+yarn test-mandala
 
 
-yarn run v1.22.15
-warning ../../../../../package.json: No license field
-$ hardhat test
+yarn run v1.22.19
+$ hardhat test test/HelloWorld.js --network mandala
 
 
   HelloWorld contract
-    ✓ returns the right value after the contract is deployed (1558ms)
+    ✔ returns the right value after the contract is deployed (3723ms)
 
 
-  1 passing (2s)
+  1 passing (4s)
 
-✨  Done in 3.53s.
+✨  Done in 4.28s.
 ```
 
 ## Add a script

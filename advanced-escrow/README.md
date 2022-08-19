@@ -711,7 +711,7 @@ and add our own test instead:
 rm test/sample-test.js && touch test/AdvancedEscrow.js
 ```
 
-At the beginning of the file, we will be importing all of the constants and methods that we will require to successfully run the tests. The predeploy smart contract addresses are imported from `@acala-network/contracts` `ADDRESS` utility. We wil be using `chai`'s `expect` and `ethers`' `Contract`, `ContractFactory` and `BigNumber`. To be able to deploy the smart contract for testing, we have to import `txParams` that we added to the `transactionHelper` utility before. We also require the compiled artifacts of the smart contracts that we will be using within the test. This is why we assign them to the `AdvancedEscrowContract`, `TokenContract` and `DEXContract` constants. In order to be able to test the block based deadlines, we need the ability to force the block generation within tests. While we could use the `loop` helper utility, we need to have reliable tests that don't fail if `loop` is not running. For this reason, we import the `ApiPromise` and `WsProvider` from `@polkadot/api`. As initating the `ApiPromise` generates a lot of output, our test output wolud get very messy if we didn't silence it. To do this we use the `console.mute` dependency, that we have to add to the project by using:
+At the beginning of the file, we will be importing all of the constants and methods that we will require to successfully run the tests. The predeploy smart contract addresses are imported from `@acala-network/contracts` `ADDRESS` utility. We wil be using `chai`'s `expect` and `ethers`' `Contract`, `ContractFactory` and `BigNumber`. We also require the compiled artifacts of the smart contracts that we will be using within the test. This is why we assign them to the `AdvancedEscrowContract`, `TokenContract` and `DEXContract` constants. In order to be able to test the block based deadlines, we need the ability to force the block generation within tests. While we could use the `loop` helper utility, we need to have reliable tests that don't fail if `loop` is not running. For this reason, we import the `ApiPromise` and `WsProvider` from `@polkadot/api`. As initating the `ApiPromise` generates a lot of output, our test output wolud get very messy if we didn't silence it. To do this we use the `console.mute` dependency, that we have to add to the project by using:
 
 ```shell
 yarn add --dev console.mute
@@ -724,7 +724,6 @@ const { ACA, AUSD, DEX, DOT } = require('@acala-network/contracts/utils/MandalaA
 const { expect } = require("chai");
 const { Contract, ContractFactory, BigNumber } = require("ethers");
 
-const { txParams } = require("../utils/transactionHelper");
 const AdvancedEscrowContract = require("../artifacts/contracts/AdvancedEscrow.sol/AdvancedEscrow.json");
 const TokenContract = require("@acala-network/contracts/build/contracts/Token.json");
 const DEXContract = require("@acala-network/contracts/build/contracts/DEX.json")
@@ -741,7 +740,7 @@ describe("AdvancedEscrow contract", function () {
 });
 ```
 
-To setup for each of the test examples we define the `AdvancedEscrow` variable that will hold the contract factory for our smart contract. The `instance` variable will hold the instance of the smart contract that we will be testing against and the `ACAinstance`, `AUSDinstance`, `DOTinstance` and `DEXinstance` hold the instances of the predeployed smart contracts. The `deployer` and `user` hold the Signers and `deployerAddress` and `userAddress` variables hold the addresses of these signers. `ethParams` variable holds the transaction values required for the deployment transaction. Finally the `api` variable holds the `ApiPromise`, which we will use to force the generation of blocks. As creation of `ApiPromise` generates a lot of console output, especially when being run before each of the test examples. This is why we have to mute the console output before we create it and resume it after, to keep the expected behaviour of the console. All of the values are assigned in the `beforeEach` action:
+To setup for each of the test examples we define the `AdvancedEscrow` variable that will hold the contract factory for our smart contract. The `instance` variable will hold the instance of the smart contract that we will be testing against and the `ACAinstance`, `AUSDinstance`, `DOTinstance` and `DEXinstance` hold the instances of the predeployed smart contracts. The `deployer` and `user` hold the Signers and `deployerAddress` and `userAddress` variables hold the addresses of these signers. Finally the `api` variable holds the `ApiPromise`, which we will use to force the generation of blocks. As creation of `ApiPromise` generates a lot of console output, especially when being run before each of the test examples. This is why we have to mute the console output before we create it and resume it after, to keep the expected behaviour of the console. All of the values are assigned in the `beforeEach` action:
 
 ```javascript
   let AdvancedEscrow;
@@ -754,7 +753,6 @@ To setup for each of the test examples we define the `AdvancedEscrow` variable t
   let user;
   let deployerAddress;
   let userAddress;
-  let ethParams;
   let api;
 
   beforeEach(async function () {
@@ -762,11 +760,7 @@ To setup for each of the test examples we define the `AdvancedEscrow` variable t
     deployerAddress = await deployer.getAddress();
     userAddress = await user.getAddress();
     AdvancedEscrow = new ContractFactory(AdvancedEscrowContract.abi, AdvancedEscrowContract.bytecode, deployer);
-    ethParams = await txParams();
-    instance = await AdvancedEscrow.deploy({
-      gasPrice: ethParams.txGasPrice,
-      gasLimit: ethParams.txGasLimit,
-    });
+    instance = await AdvancedEscrow.deploy();
     await instance.deployed();
     ACAinstance = new Contract(ACA, TokenContract.abi, deployer);
     AUSDinstance = new Contract(AUSD, TokenContract.abi, deployer);
@@ -1045,7 +1039,6 @@ This concludes our test.
     const { expect } = require("chai");
     const { Contract, ContractFactory, BigNumber } = require("ethers");
 
-    const { txParams } = require("../utils/transactionHelper");
     const AdvancedEscrowContract = require("../artifacts/contracts/AdvancedEscrow.sol/AdvancedEscrow.json");
     const TokenContract = require("@acala-network/contracts/build/contracts/Token.json");
     const DEXContract = require("@acala-network/contracts/build/contracts/DEX.json")
@@ -1068,7 +1061,6 @@ This concludes our test.
         let user;
         let deployerAddress;
         let userAddress;
-        let ethParams;
         let api;
 
         beforeEach(async function () {
@@ -1076,11 +1068,7 @@ This concludes our test.
             deployerAddress = await deployer.getAddress();
             userAddress = await user.getAddress();
             AdvancedEscrow = new ContractFactory(AdvancedEscrowContract.abi, AdvancedEscrowContract.bytecode, deployer);
-            ethParams = await txParams();
-            instance = await AdvancedEscrow.deploy({
-                gasPrice: ethParams.txGasPrice,
-                gasLimit: ethParams.txGasLimit,
-            });
+            instance = await AdvancedEscrow.deploy();
             await instance.deployed();
             ACAinstance = new Contract(ACA, TokenContract.abi, deployer);
             AUSDinstance = new Contract(AUSD, TokenContract.abi, deployer);
@@ -1323,41 +1311,42 @@ As our test is ready to be run, we have to add the scripts to be able to run the
     "test-mandala:pubDev": "hardhat test test/AdvancedEscrow.js --network mandalaPubDev"
 ```
 
-Running the tests with `test-mandala` should give you the following output:
+Running the tests with `yarn test-mandala` should give you the following output:
 
 ```shell
 yarn test-mandala
 
 
-yarn run v1.22.18
+yarn run v1.22.19
 $ hardhat test test/AdvancedEscrow.js --network mandala
+
 
   AdvancedEscrow contract
     Deployment
       ✔ should set the initial number of escrows to 0
     Operation
       ✔ should revert when beneficiary is 0x0
-      ✔ should revert when beneficiary is 0x0
+      ✔ should revert when ingress token is 0x0
       ✔ should revert when period is 0
-      ✔ should revert when balance of the contract is lower than ingressValue
-      ✔ should initate escrow and emit EscrowUpdate when initating escrow (670ms)
-      ✔ should set the values of current escrow when initiating the escrow (788ms)
-      ✔ should revert when initiating a new escrow when there is a preexiting active escrow (839ms)
-      ✔ should revert when trying to set the egress token after the escrow has already been completed (826ms)
-      ✔ should revert when trying to set the egress token while not being the beneficiary (680ms)
-      ✔ should update the egress token (1055ms)
-      ✔ should revert when trying to complete an already completed escrow (880ms)
-      ✔ should revert when trying to complete an escrow when not being the initiator (724ms)
-      ✔ should pay out the escrow in AUSD if no egress token is set (995ms)
-      ✔ should pay out the escrow in set token when egress token is set (1474ms)
-      ✔ should not pay out the escrow in set AUSD when egress token is set (1228ms)
-      ✔ should emit EscrowUpdate when escrow is completed (1175ms)
-      ✔ should automatically complete the escrow when given number of blocks has passed (886ms)
+      ✔ should revert when balance of the contract is lower than ingressValue (49ms)
+      ✔ should initate escrow and emit EscrowUpdate when initating escrow (6650ms)
+      ✔ should set the values of current escrow when initiating the escrow (5670ms)
+      ✔ should revert when initiating a new escrow when there is a preexiting active escrow (6686ms)
+      ✔ should revert when trying to set the egress token after the escrow has already been completed (6741ms)
+      ✔ should revert when trying to set the egress token while not being the beneficiary (6678ms)
+      ✔ should update the egress token (8910ms)
+      ✔ should revert when trying to complete an already completed escrow (6752ms)
+      ✔ should revert when trying to complete an escrow when not being the initiator (6676ms)
+      ✔ should pay out the escrow in AUSD if no egress token is set (8906ms)
+      ✔ should pay out the escrow in set token when egress token is set (12301ms)
+      ✔ should not pay out the escrow in set AUSD when egress token is set (12176ms)
+      ✔ should emit EscrowUpdate when escrow is completed (9930ms)
+      ✔ should automatically complete the escrow when given number of blocks has passed (5675ms)
 
 
-  18 passing (23s)
+  18 passing (3m)
 
-✨  Done in 24.07s.
+✨  Done in 170.22s.
 ```
 
 ## User journey

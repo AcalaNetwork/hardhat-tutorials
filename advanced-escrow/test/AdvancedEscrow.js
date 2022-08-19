@@ -2,7 +2,6 @@ const { ACA, AUSD, DEX, DOT } = require('@acala-network/contracts/utils/MandalaA
 const { expect } = require('chai');
 const { Contract, ContractFactory, BigNumber } = require('ethers');
 
-const { txParams } = require('../utils/transactionHelper');
 const AdvancedEscrowContract = require('../artifacts/contracts/AdvancedEscrow.sol/AdvancedEscrow.json');
 const TokenContract = require('@acala-network/contracts/build/contracts/Token.json');
 const DEXContract = require('@acala-network/contracts/build/contracts/DEX.json')
@@ -25,7 +24,6 @@ describe('AdvancedEscrow contract', function () {
   let user;
   let deployerAddress;
   let userAddress;
-  let ethParams;
   let api;
 
   beforeEach(async function () {
@@ -33,11 +31,7 @@ describe('AdvancedEscrow contract', function () {
     deployerAddress = await deployer.getAddress();
     userAddress = await user.getAddress();
     AdvancedEscrow = new ContractFactory(AdvancedEscrowContract.abi, AdvancedEscrowContract.bytecode, deployer);
-    ethParams = await txParams();
-    instance = await AdvancedEscrow.deploy({
-      gasPrice: ethParams.txGasPrice,
-      gasLimit: ethParams.txGasLimit,
-    });
+    instance = await AdvancedEscrow.deploy();
     await instance.deployed();
     ACAinstance = new Contract(ACA, TokenContract.abi, deployer);
     AUSDinstance = new Contract(AUSD, TokenContract.abi, deployer);

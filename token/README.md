@@ -99,10 +99,6 @@ should look like this:
 ```js
 const { expect } = require("chai");
 const { ContractFactory } = require("ethers");
-const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-const txFeePerGas = '199999946752';
-const storageByteDeposit = '100000000000000';
 
 const TokenContract = require("../artifacts/contracts/Token.sol/Token.json");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
@@ -113,14 +109,13 @@ describe("Token contract", function () {
 ```
 
 To prepare for the testing, we have to define global variables, `Token`, `instance`, `deployer`,
-`user`, `deployerAddress`, `userAddress`, `blockNumber` and `ethParams`. The `Token` will be used to
-store the Token contract factory and the `instance` will store the deployed Token smart contract.
-Both `deployer` and `user` will store `Signers`. The `deployer` is the account used to deploy the
-smart contract (and the one that will receive the `initialBalance`). The `user` is the account we
-will be using to transfer the tokens to and check the allowance operation. `deployerAddress` and
-`userAddress` hold the addresses of the `deployer` and `user` respecitively. They will be used to
-avoid repetitiveness in our tests. `blockNumber` and `ethParams` are used to set the transaction
-parameters of the deployment transaction.Let's assign them values in the `beforeEach` action:
+`user`, `deployerAddress` and `userAddress`. The `Token` will be used to store the Token contract
+factory and the `instance` will store the deployed Token smart contract. Both `deployer` and `user`
+will store `Signers`. The `deployer` is the account used to deploy the smart contract (and the one
+that will receive the `initialBalance`). The `user` is the account we will be using to transfer the
+tokens to and check the allowance operation. `deployerAddress` and `userAddress` hold the addresses
+of the `deployer` and `user` respecitively. They will be used to avoid repetitiveness in our tests.
+Let's assign them values in the `beforeEach` action:
 
 ```js
         let Token;
@@ -129,30 +124,13 @@ parameters of the deployment transaction.Let's assign them values in the `before
         let user;
         let deployerAddress;
         let userAddress;
-        let blockNumber;
-        let ethParams;
 
         beforeEach(async function () {
-                blockNumber = await ethers.provider.getBlockNumber();
-      
-                ethParams = calcEthereumTransactionParams({
-                        gasLimit: '2100001',
-                        validUntil: (blockNumber + 100).toString(),
-                        storageLimit: '64001',
-                        txFeePerGas,
-                        storageByteDeposit,
-                });
                 [deployer, user] = await ethers.getSigners();
                 deployerAddress = await deployer.getAddress();
                 userAddress = await user.getAddress();
                 Token = new ContractFactory(TokenContract.abi, TokenContract.bytecode, deployer);
-                instance = await Token.deploy(
-                        1234567890,
-                        {
-                                gasPrice: ethParams.txGasPrice,
-                                gasLimit: ethParams.txGasLimit
-                        }
-                );
+                instance = await Token.deploy(1234567890);
         });
 ```
 
@@ -520,10 +498,6 @@ With that, our test is ready to be run.
 
         const { expect } = require("chai");
         const { ContractFactory } = require("ethers");
-        const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-        const txFeePerGas = '199999946752';
-        const storageByteDeposit = '100000000000000';
 
         const TokenContract = require("../artifacts/contracts/Token.sol/Token.json");
         const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
@@ -535,30 +509,13 @@ With that, our test is ready to be run.
                 let user;
                 let deployerAddress;
                 let userAddress;
-                let blockNumber;
-                let ethParams;
 
                 beforeEach(async function () {
-                        blockNumber = await ethers.provider.getBlockNumber();
-        
-                        ethParams = calcEthereumTransactionParams({
-                                gasLimit: '2100001',
-                                validUntil: (blockNumber + 100).toString(),
-                                storageLimit: '64001',
-                                txFeePerGas,
-                                storageByteDeposit,
-                        });
                         [deployer, user] = await ethers.getSigners();
                         deployerAddress = await deployer.getAddress();
                         userAddress = await user.getAddress();
                         Token = new ContractFactory(TokenContract.abi, TokenContract.bytecode, deployer);
-                        instance = await Token.deploy(
-                                1234567890,
-                                {
-                                        gasPrice: ethParams.txGasPrice,
-                                        gasLimit: ethParams.txGasLimit
-                                }
-                        );
+                        instance = await Token.deploy(1234567890);
                 });
 
                 describe("Deployment", function () {
@@ -784,62 +741,61 @@ With that, our test is ready to be run.
 
 </details>
 
-When you run the test with (for example) `yarn test`, your tests should pass with the
+When you run the test with (for example) `yarn test-mandala`, your tests should pass with the
 following output:
 
 ```shell
-yarn test
+yarn test-mandala
 
 
-yarn run v1.22.15
-warning ../../../../../package.json: No license field
-$ hardhat test
+yarn run v1.22.19
+$ hardhat test test/Token.js --network mandala
 
 
   Token contract
     Deployment
-      ✓ should set the correct token name (48ms)
-      ✓ should set the correct token symbol
-      ✓ should set the correct total supply
-      ✓ should assign the initial balance to the deployer
-      ✓ should not assign value to a random address upon deployment
-      ✓ should not assign allowance upond deployment
+      ✔ should set the correct token name (1112ms)
+      ✔ should set the correct token symbol (1091ms)
+      ✔ should set the correct total supply (1100ms)
+      ✔ should assign the initial balance to the deployer (1100ms)
+      ✔ should not assign value to a random address upon deployment (1094ms)
+      ✔ should not assign allowance upon deployment (1116ms)
     Operation
       Transfer
         transfer()
-          ✓ should change the balance of the sender and receiver when transferring token (85ms)
-          ✓ should emit a Transfer event when transfering the token (86ms)
-          ✓ should revert the transfer to a 0x0 address (45ms)
-          ✓ should revert if trying to transfer amount bigger than balance
+          ✔ should change the balance of the sender and receiver when transferring token (4446ms)
+          ✔ should emit a Transfer event when transfering the token (4292ms)
+          ✔ should revert the transfer to a 0x0 address (1107ms)
+          ✔ should revert if trying to transfer amount bigger than balance (1087ms)
       Allowances
         approve()
-          ✓ should grant allowance when the caller has enough funds (55ms)
-          ✓ should grant allowance when the caller has less funds than the ize of the allowance (45ms)
-          ✓ should emit Approval event when calling approve() (45ms)
-          ✓ should revert when trying to give allowance to 0x0 address
+          ✔ should grant allowance when the caller has enough funds (4345ms)
+          ✔ should grant allowance when the caller has less funds than the ize of the allowance (4327ms)
+          ✔ should emit Approval event when calling approve() (4301ms)
+          ✔ should revert when trying to give allowance to 0x0 address (1098ms)
         increaseAllowance()
-          ✓ should allow to increase allowance (96ms)
-          ✓ should allow to increase allowance above the balance (90ms)
-          ✓ should emit Approval event (85ms)
-          ✓ should allow to increase allowance even if none was given before (42ms)
+          ✔ should allow to increase allowance (7623ms)
+          ✔ should allow to increase allowance above the balance (7616ms)
+          ✔ should emit Approval event (7602ms)
+          ✔ should allow to increase allowance even if none was given before (4363ms)
         decreaseAllowance()
-          ✓ should decrease the allowance (95ms)
-          ✓ should emit Approval event (69ms)
-          ✓ should revert when tyring to decrease the allowance below 0 (63ms)
+          ✔ should decrease the allowance (7580ms)
+          ✔ should emit Approval event (7570ms)
+          ✔ should revert when tyring to decrease the allowance below 0 (4375ms)
         transferFrom()
-          ✓ should allow to transfer tokens when allowance is given (99ms)
-          ✓ should emit Transfer event when transferring from another address (81ms)
-          ✓ should emit Approval event when transferring from another address (85ms)
-          ✓ should update the allowance when transferring from another address (93ms)
-          ✓ should revert when tring to transfer more than allowed amount (61ms)
-          ✓ should revert when transfering to 0x0 address (50ms)
-          ✓ should revert when owner doesn't have enough funds (48ms)
-          ✓ should revert when trying to transfer from without being given allowance
+          ✔ should allow to transfer tokens when allowance is given (7689ms)
+          ✔ should emit Transfer event when transferring from another address (7576ms)
+          ✔ should emit Approval event when transferring from another address (7610ms)
+          ✔ should update the allowance when transferring from another address (7604ms)
+          ✔ should revert when tring to transfer more than allowed amount (4306ms)
+          ✔ should revert when transfering to 0x0 address (4387ms)
+          ✔ should revert when owner doesn't have enough funds (4318ms)
+          ✔ should revert when trying to transfer from without being given allowance (1104ms)
 
 
-  29 passing (6s)
+  29 passing (3m)
 
-✨  Done in 8.96s.
+✨  Done in 188.19s.
 ```
 
 ## Deploy script

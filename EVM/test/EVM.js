@@ -2,8 +2,6 @@ const { expect } = require('chai');
 const { Contract, BigNumber, Wallet } = require('ethers');
 const { EVM } = require('@acala-network/contracts/utils/MandalaAddress');
 
-const { txParams } = require('../utils/transactionHelper');
-
 const EVMContract = require('@acala-network/contracts/build/contracts/EVM.json');
 const TokenContract = require('@acala-network/contracts/build/contracts/Token.json');
 const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -17,16 +15,12 @@ describe('EVM contract', function () {
   let userAddress;
 
   beforeEach(async function () {
-    const ethParams = await txParams();
     [deployer, user] = await ethers.getSigners();
     deployerAddress = await deployer.getAddress();
     userAddress = await user.getAddress();
     instance = new Contract(EVM, EVMContract.abi, deployer);
     const Token = new ethers.ContractFactory(TokenContract.abi, TokenContract.bytecode, deployer);
-    contract = await Token.deploy({
-      gasPrice: ethParams.txGasPrice,
-      gasLimit: ethParams.txGasLimit
-    });
+    contract = await Token.deploy();
   });
 
   describe('Operation', function () {

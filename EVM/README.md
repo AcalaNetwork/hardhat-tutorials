@@ -35,11 +35,10 @@ predeployed smart contract. The test file in our case is called `EVM.js`. Within
 dependency. We are using `Contract` in stead of `ContractFactory`, because the contract is already
 deployed to the network. The `EVM`, which is an export from the `ADDRESS` utility of
 `@acala-network/contracts` dependency, is imported and it holds the value of the address of the EVM
-smart contract. `txParams` from the `transactionHelper` utility is imported in order to set the
-deploy transaction parameters for our test contract. Additionally we are importing the compiled
-`EVM` smart contract from the `@acala-network/contracts` dependency, which we will use to
-instantiate the smart contract. `Token` precompile is imported from `@acala-network/contracts` so
-that we can deploy it and use it in the tests.
+smart contract. Additionally we are importing the compiled `EVM` smart contract from the
+`@acala-network/contracts` dependency, which we will use to instantiate the smart contract. `Token`
+precompile is imported from `@acala-network/contracts` so that we can deploy it and use it in the
+tests.
 
 The test file with import statements and an empty test should look like this:
 
@@ -47,8 +46,6 @@ The test file with import statements and an empty test should look like this:
 const { expect } = require("chai");
 const { Contract, BigNumber, Wallet } = require("ethers");
 const { EVM } = require("@acala-network/contracts/utils/MandalaAddress");
-
-const { txParams } = require("../utils/transactionHelper");
 
 const EVMContract = require("@acala-network/contracts/build/contracts/EVM.json");
 const TokenContract = require("@acala-network/contracts/build/contracts/Token.json");
@@ -74,16 +71,12 @@ addresses. Let's assign these values in the `beforeEach` action:
         let userAddress;
 
         beforeEach(async function () {
-                const ethParams = await txParams();
                 [deployer, user] = await ethers.getSigners();
                 deployerAddress = await deployer.getAddress();
                 userAddress = await user.getAddress();
                 instance = new Contract(EVM, EVMContract.abi, deployer);
                 const Token = new ethers.ContractFactory(TokenContract.abi, TokenContract.bytecode, deployer);
-                contract = await Token.deploy({
-                        gasPrice: ethParams.txGasPrice,
-                        gasLimit: ethParams.txGasLimit,
-                });
+                contract = await Token.deploy();
         });
 ```
 
@@ -422,8 +415,6 @@ With that, our test is ready to be run.
         const { Contract, BigNumber, Wallet } = require("ethers");
         const { EVM } = require("@acala-network/contracts/utils/MandalaAddress");
 
-        const { txParams } = require("../utils/transactionHelper");
-
         const EVMContract = require("@acala-network/contracts/build/contracts/EVM.json");
         const TokenContract = require("@acala-network/contracts/build/contracts/Token.json");
         const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
@@ -437,16 +428,12 @@ With that, our test is ready to be run.
                 let userAddress;
 
                 beforeEach(async function () {
-                        const ethParams = await txParams();
                         [deployer, user] = await ethers.getSigners();
                         deployerAddress = await deployer.getAddress();
                         userAddress = await user.getAddress();
                         instance = new Contract(EVM, EVMContract.abi, deployer);
                         const Token = new ethers.ContractFactory(TokenContract.abi, TokenContract.bytecode, deployer);
-                        contract = await Token.deploy({
-                                gasPrice: ethParams.txGasPrice,
-                                gasLimit: ethParams.txGasLimit,
-                        });
+                        contract = await Token.deploy();
                 });
 
                 describe("Operation", function () {
@@ -651,47 +638,47 @@ following output:
 yarn test-mandala
 
 
-yarn run v1.22.17
+yarn run v1.22.19
 $ hardhat test test/EVM.js --network mandala
 
 
   EVM contract
     Operation
       newContractExtraBytes()
-        ✓ should return the new contract extra bytes
+        ✔ should return the new contract extra bytes
       storageDepositPerByte()
-        ✓ should return the storage deposit (41ms)
+        ✔ should return the storage deposit
       maintainerOf()
-        ✓ should return the maintainer of the contract
+        ✔ should return the maintainer of the contract
       developerDeposit()
-        ✓ should return the developer deposit
+        ✔ should return the developer deposit
       publicationFee()
-        ✓ should return the publication fee
+        ✔ should return the publication fee
       transferMaintainter()
-        ✓ should return the storage deposit (1478ms)
-        ✓ should emit TransferredMaintainer when maintainer role of the contract is transferred (5495ms)
-        ✓ should revert if the caller is not the maintainer of the contract
-        ✓ should revert if trying to transfer maintainer of 0x0
-        ✓ should revert when trying to mainain maintainer to 0x0 address
+        ✔ should transfer the maintainer of the contract (2234ms)
+        ✔ should emit TransferredMaintainer when maintainer role of the contract is transferred (3235ms)
+        ✔ should revert if the caller is not the maintainer of the contract
+        ✔ should revert if trying to transfer maintainer of 0x0
+        ✔ should revert when trying to transfer maintainer to 0x0 address
       publishContract()
-        ✓ should emit ContractPublished event (5443ms)
-        ✓ should revert when caller is not the maintainer of the contract
-        ✓ should revert when trying to publish 0x0 contract
+        ✔ should emit ContractPublished event (3263ms)
+        ✔ should revert when caller is not the maintainer of the contract
+        ✔ should revert when trying to publish 0x0 contract
       developerStatus()
-        ✓ should return the status of the development account (102ms)
+        ✔ should return the status of the development account (83ms)
       developerDisable()
-        ✓ should disable development mode (1445ms)
-        ✓ should emit DeveloperDisabled (2662ms)
-        ✓ should revert if the development account is not enabled (52ms)
+        ✔ should disable development mode (2227ms)
+        ✔ should emit DeveloperDisabled (5425ms)
+        ✔ should revert if the development account is not enabled (39ms)
       developerEnable()
-        ✓ should enable development mode (1364ms)
-        ✓ should emit DeveloperEnabled event (2747ms)
-        ✓ should revert if the development mode is already enabled
+        ✔ should enable development mode (2235ms)
+        ✔ should emit DeveloperEnabled event (5471ms)
+        ✔ should revert if the development mode is already enabled (39ms)
 
 
-  20 passing (47s)
+  20 passing (1m)
 
-✨  Done in 48.45s.
+✨  Done in 69.30s.
 ```
 
 ## User journey

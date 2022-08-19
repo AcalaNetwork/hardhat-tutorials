@@ -140,10 +140,6 @@ should look like this:
 ```js
 const { expect, use } = require("chai");
 const { ContractFactory } = require("ethers");
-const { calcEthereumTransactionParams } = require("@acala-network/eth-providers");
-
-const txFeePerGas = '199999946752';
-const storageByteDeposit = '100000000000000';
 
 const NFTContract = require("../artifacts/contracts/NFT.sol/NFT.json");
 const NULL_ADDRESS = "0x0000000000000000000000000000000000000000";
@@ -154,14 +150,12 @@ describe("NFT contract", function () {
 ```
 
 To prepare for the testing, we have to define the global variables, `NFT`, `instance`, `deployer`,
-`user`, `deployerAddress`, `userAddress`, `blockNumber` and `ethParams`. The `NFT` will be used to
-store the NFT contract factory and the `instance` will store the deployed NFT smart contract. Both
-`deployer` and `user` will store `Signers`. The `deployer` is the account used to deploy the smart
-contract (and the one that will receive the `initialBalance`). The `user` is the account we will be
-using to transfer the tokens to and check the allowance operation. `deployerAddress` and
-`userAddress` hold the addresses of the `deployer` and `user` respecitively. They will be used to
-avoid repetitiveness in our tests. `blockNumber` and `ethParams` will be used to set the transaction
-parameters of the deploy transaction. Let's assign them values in the `beforeEach` action:
+`user`, `deployerAddress` and `userAddress`. The `NFT` will be used to store the NFT contract
+factory and the `instance` will store the deployed NFT smart contract. Both `deployer` and `user`
+will store `Signers`. The `deployer` is the account used to deploy the smart contract (and the one
+that will receive the `initialBalance`). The `user` is the account we will be using to transfer the
+tokens to and check the allowance operation. `deployerAddress` and `userAddress` hold the addresses
+of the `deployer` and `user` respecitively. Let's assign them values in the `beforeEach` action:
 
 ```js
         let NFT;
@@ -170,26 +164,13 @@ parameters of the deploy transaction. Let's assign them values in the `beforeEac
         let user;
         let deployerAddress;
         let userAddress;
-        let blockNumber;
-        let ethParams;
 
         beforeEach(async function () {
-                blockNumber = await ethers.provider.getBlockNumber();
-                ethParams = calcEthereumTransactionParams({
-                        gasLimit: '21000010',
-                        validUntil: (blockNumber + 100).toString(),
-                        storageLimit: '640010',
-                        txFeePerGas,
-                        storageByteDeposit
-                });
                 [deployer, user] = await ethers.getSigners();
                 deployerAddress = await deployer.getAddress();
                 userAddress = await user.getAddress();
                 NFT = new ContractFactory(NFTContract.abi, NFTContract.bytecode, deployer);
-                instance = await NFT.deploy({
-                        gasPrice: ethParams.txGasPrice,
-                        gasLimit: ethParams.txGasLimit,
-                });
+                instance = await NFT.deploy();
         });
 ```
 
@@ -585,10 +566,6 @@ With that, our test is ready to be run.
 
         const { expect, use } = require('chai');
         const { ContractFactory } = require('ethers');
-        const { calcEthereumTransactionParams } = require('@acala-network/eth-providers');
-
-        const txFeePerGas = '199999946752';
-        const storageByteDeposit = '100000000000000';
 
         const NFTContract = require('../artifacts/contracts/NFT.sol/NFT.json');
         const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -600,26 +577,13 @@ With that, our test is ready to be run.
                 let user;
                 let deployerAddress;
                 let userAddress;
-                let blockNumber;
-                let ethParams;
 
                 beforeEach(async function () {
-                        blockNumber = await ethers.provider.getBlockNumber();
-                        ethParams = calcEthereumTransactionParams({
-                                gasLimit: '21000010',
-                                validUntil: (blockNumber + 100).toString(),
-                                storageLimit: '640010',
-                                txFeePerGas,
-                                storageByteDeposit
-                        });
                         [deployer, user] = await ethers.getSigners();
                         deployerAddress = await deployer.getAddress();
                         userAddress = await user.getAddress();
                         NFT = new ContractFactory(NFTContract.abi, NFTContract.bytecode, deployer);
-                        instance = await NFT.deploy({
-                                gasPrice: ethParams.txGasPrice,
-                                gasLimit: ethParams.txGasLimit
-                        });
+                        instance = await NFT.deploy();
                 });
 
                 describe('Deployment', function () {
@@ -881,60 +845,59 @@ With that, our test is ready to be run.
 
 </details>
 
-When you run the test with (for example) `yarn test`, your tests should pass with the
+When you run the test with (for example) `yarn test-mandala`, your tests should pass with the
 following output:
 
 ```shell
-yarn test
+yarn test-mandala
 
 
-yarn run v1.22.15
-warning ../../../../../package.json: No license field
-$ hardhat test
+yarn run v1.22.19
+$ hardhat test test/NFT.js --network mandala
 
 
   NFT contract
     Deployment
-      ✓ should set the correct NFT name
-      ✓ should set the correct NFT symbol
-      ✓ should assign the initial balance of the deployer
-      ✓ should revert when trying to get the balance of the 0x0 address (41ms)
+      ✔ should set the correct NFT name (1105ms)
+      ✔ should set the correct NFT symbol (1114ms)
+      ✔ should assign the initial balance of the deployer (1120ms)
+      ✔ should revert when trying to get the balance of the 0x0 address (1091ms)
     Operation
       minting
-        ✓ should mint token to an address (83ms)
-        ✓ should emit Transfer event (183ms)
-        ✓ should set the expected base URI (173ms)
-        ✓ should set the expected URI (86ms)
-        ✓ should allow user to own multiple tokens (313ms)
-        ✓ should revert when trying to get an URI of an nonexistent token
+        ✔ should mint token to an address (4461ms)
+        ✔ should emit Transfer event (4315ms)
+        ✔ should set the expected base URI (4377ms)
+        ✔ should set the expected URI (4408ms)
+        ✔ should allow user to own multiple tokens (7704ms)
+        ✔ should revert when trying to get an URI of an nonexistent token (1114ms)
       balances and ownerships
-        ✓ should revert when trying to get balance of 0x0 address
-        ✓ should revert when trying to get the owner of a nonexistent token
-        ✓ should return the token owner (147ms)
+        ✔ should revert when trying to get balance of 0x0 address (1104ms)
+        ✔ should revert when trying to get the owner of a nonexistent token (1095ms)
+        ✔ should return the token owner (4349ms)
       approvals
-        ✓ should grant an approval (177ms)
-        ✓ should emit Approval event when granting approval (158ms)
-        ✓ should revert when trying to set token approval to self (138ms)
-        ✓ should revert when trying to grant approval for a token that is someone else's (138ms)
-        ✓ should revert when trying to get an approval of a nonexistent token
-        ✓ should return 0x0 address as approved for a token for which no approval is given (127ms)
-        ✓ sets approval for all
-        ✓ revokes approval for all (139ms)
-        ✓ doesn't reflect operator approval in single token approval (174ms)
-        ✓ should allow operator to grant allowance for a apecific token (194ms)
-        ✓ should emit Approval event when operator grants approval (187ms)
-        ✓ should emit ApprovalForAll event when approving for all
-        ✓ should emit ApprovalForAll event when revoking approval for all (113ms)
+        ✔ should grant an approval (7621ms)
+        ✔ should emit Approval event when granting approval (7647ms)
+        ✔ should revert when trying to set token approval to self (4418ms)
+        ✔ should revert when trying to grant approval for a token that is someone else's (4374ms)
+        ✔ should revert when trying to get an approval of a nonexistent token (1112ms)
+        ✔ should return 0x0 address as approved for a token for which no approval is given (4354ms)
+        ✔ sets approval for all (4379ms)
+        ✔ revokes approval for all (7628ms)
+        ✔ doesn't reflect operator approval in single token approval (7643ms)
+        ✔ should allow operator to grant allowance for a apecific token (10946ms)
+        ✔ should emit Approval event when operator grants approval (10918ms)
+        ✔ should emit ApprovalForAll event when approving for all (4327ms)
+        ✔ should emit ApprovalForAll event when revoking approval for all (7552ms)
       transfers
-        ✓ should transfer the token (267ms)
-        ✓ should emit Transfer event (246ms)
-        ✓ should allow transfer of the tokens if the allowance is given (271ms)
-        ✓ should reset the allowance after the token is transferred (266ms)
+        ✔ should transfer the token (7649ms)
+        ✔ should emit Transfer event (7593ms)
+        ✔ should allow transfer of the tokens if the allowance is given (10863ms)
+        ✔ should reset the allowance after the token is transferred (10935ms)
 
 
-  30 passing (7s)
+  30 passing (4m)
 
-✨  Done in 8.28s.
+✨  Done in 226.21s.
 ```
 
 ## Deploy script

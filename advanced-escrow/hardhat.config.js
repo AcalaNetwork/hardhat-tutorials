@@ -37,7 +37,7 @@ module.exports = {
       timeout: 60000
     },
     mandalaCI: {
-      url: 'http://eth-rpc-adapter-server:8545',
+      url: 'http://eth-rpc-adapter-server-rich:8545',
       accounts: {
         mnemonic: 'fox sight canyon orphan hotel grow hedgehog build bless august weather swarm',
         path: "m/44'/60'/0'/0"

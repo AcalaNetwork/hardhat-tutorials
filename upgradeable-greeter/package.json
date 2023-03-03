@@ -27,7 +27,7 @@
     "@acala-network/eth-providers": "^2.5.9",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
-    "@openzeppelin/contracts-upgradeable": "^4.6.0",
+    "@openzeppelin/contracts-upgradeable": "^4.8.2",
     "@openzeppelin/hardhat-upgrades": "^1.17.0",
     "@polkadot/api": "8.1.1",
     "chai": "^4.3.4",

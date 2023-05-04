@@ -1,0 +1,28 @@
+{
+  "name": "hardhat-tutorials",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Acala Developers <hello@acala.network>",
+  "license": "Apache-2.0",
+  "packageManager": "yarn@3.2.4",
+  "private": true,
+  "workspaces": [
+    "hello-world",
+    "echo",
+    "token",
+    "NFT",
+    "precompiled-token",
+    "DEX",
+    "EVM",
+    "upgradeable-greeter",
+    "advanced-escrow"
+  ],
+  "scripts": {
+    "build": "yarn workspaces foreach -vit run build",
+    "test:mandala": "yarn workspaces foreach -vit run test-mandala",
+    "test:mandala:ci": "yarn workspaces foreach -vit run test-mandala:CI"
+  },
+  "resolutions": {
+    "@acala-network/contracts": "4.3.4"
+  }
+}

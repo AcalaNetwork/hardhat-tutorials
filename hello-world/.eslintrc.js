@@ -1,12 +1,18 @@
 module.exports = {
-  root: true,
+  env: {
+    node: true,
+  },
   parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint', 'import', 'sort-imports-es6-autofix'],
+  plugins: [
+    '@typescript-eslint',
+    'import',
+    'sort-imports-es6-autofix',
+  ],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:import/recommended',
-    'plugin:import/typescript'
+    'plugin:import/typescript',
   ],
   rules: {
     indent: [2, 2, { SwitchCase: 1 }],
@@ -50,15 +56,8 @@ module.exports = {
       {
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
-        caughtErrorsIgnorePattern: '^_'
-      }
-    ]
+        caughtErrorsIgnorePattern: '^_',
+      },
+    ],
   },
-  settings: {
-    'import/resolver': {
-      typescript: {
-        project: 'tsconfig.json'
-      }
-    }
-  }
 };

@@ -1,5 +1,5 @@
-import { ethers } from "hardhat";
-import { expect } from "chai";
+import { ethers } from 'hardhat';
+import { expect } from 'chai';
 
 describe('HelloWorld contract', function () {
   it('returns the right value after the contract is deployed', async function () {

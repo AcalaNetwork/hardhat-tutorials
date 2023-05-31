@@ -8531,7 +8531,6 @@ __metadata:
     hardhat: ^2.13.0
     hardhat-gas-reporter: ^1.0.8
     solidity-coverage: ^0.8.1
-    t: ^0.5.1
     ts-node: ^10.9.1
     typechain: ^8.2.0
     typescript: ^5.0.4
@@ -14023,13 +14022,6 @@ __metadata:
   dependencies:
     get-port: ^3.1.0
   checksum: 4340974fb5641c2cadb9df18d6b791ed2327f28cf6d8a00c99ebc2278e37391e3f5e237596da2ff83d14d2147594c6f5b3b98a93b9327644db425d239dea172f
-  languageName: node
-  linkType: hard
-
-"t@npm:^0.5.1":
-  version: 0.5.1
-  resolution: "t@npm:0.5.1"
-  checksum: 6c310d8388beadcb6b8030febbf2c2e292d04da8babc9f400cde44a6cc404df394e08a3d91781003a12249a1c9e87374d1351d96b1de8f3dd91826676cd6180e
   languageName: node
   linkType: hard
 

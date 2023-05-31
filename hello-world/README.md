@@ -43,3 +43,6 @@ you can also run these scripts with public mandala by inserting your own account
 yarn deploy --network mandalaPub
 yarn test --network mandalaPub
 ```
+
+## More References
+[Acala EVM+ Development Doc](https://evmdocs.acala.network/)

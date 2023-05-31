@@ -19,7 +19,7 @@ const config: HardhatUserConfig = {
     mandalaPub: {
       ...commonConfig,
       url: 'https://eth-rpc-tc9.aca-staging.network',
-      accounts: ['your private key'],
+      // accounts: ['your private key'],
     },
     mandalaCI: {
       ...commonConfig,

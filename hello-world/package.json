@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",
+    "@ethersproject/providers": "~5.7.0",
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.0",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
     "@nomicfoundation/hardhat-toolbox": "^2.0.2",
@@ -41,8 +42,5 @@
     "ts-node": "^10.9.1",
     "typechain": "^8.2.0",
     "typescript": "^5.0.4"
-  },
-  "dependencies": {
-    "@ethersproject/providers": "~5.7.0"
   }
 }

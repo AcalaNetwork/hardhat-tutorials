@@ -6,13 +6,6 @@ cache/
 **/*.log
 .DS_Store
 
-.env
-coverage
-coverage.json
-typechain
-typechain-types
-
-# Yarn files
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -20,8 +13,5 @@ typechain-types
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
-.yarn/install-state.gz
 
-# Hardhat files
-cache
-artifacts
+.yarn/install-state.gz

@@ -1,9 +1,9 @@
-const { ACA, AUSD, DEX, DOT } = require('@acala-network/contracts/utils/MandalaAddress');
-const { Contract } = require('ethers');
-
-const DEXContract = require('@acala-network/contracts/build/contracts/DEX.json');
-const TokenContract = require('@acala-network/contracts/build/contracts/Token.json');
-const { formatUnits, parseUnits } = require('ethers/lib/utils');
+import { ACA, AUSD, DEX, DOT } from '@acala-network/contracts/utils/MandalaAddress';
+import { Contract } from 'ethers';
+import { ethers } from 'hardhat';
+import { formatUnits, parseUnits } from 'ethers/lib/utils';
+import DEXContract from '@acala-network/contracts/build/contracts/DEX.json';
+import TokenContract from '@acala-network/contracts/build/contracts/Token.json';
 
 async function main() {
   console.log('');

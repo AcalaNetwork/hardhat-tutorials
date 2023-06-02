@@ -29,17 +29,20 @@ yarn build
 
 deploy the contract with `scripts/deploy.ts`
 ```
-yarn deploy --network mandala
+yarn deploy:mandala
 ```
 
 run tests with `test/*.ts`
 ```
-yarn test --network mandala
+yarn test:mandala
 ```
 
 ### run with public mandala
 you can also run these scripts with public mandala by inserting your own account key to [hardhat.config.ts](./hardhat.config.ts), and then
 ```
-yarn deploy --network mandalaPub
-yarn test --network mandalaPub
+yarn deploy:mandalaPub
+yarn test:mandalaPub
 ```
+
+## More References
+[Acala EVM+ Development Doc](https://evmdocs.acala.network/)

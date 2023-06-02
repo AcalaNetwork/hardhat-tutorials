@@ -1,18 +1,16 @@
-const { EVM } = require('@acala-network/contracts/utils/MandalaAddress');
-const { Contract } = require('ethers');
-
-const { txParams } = require('../utils/transactionHelper');
-
-const EVMContract = require('@acala-network/contracts/build/contracts/EVM.json');
-const TokenContract = require('@acala-network/contracts/build/contracts/Token.json');
+import { Contract } from 'ethers';
+import { EVM } from '@acala-network/contracts/utils/MandalaAddress';
+import { ethers } from 'hardhat';
+import EVMContract from '@acala-network/contracts/build/contracts/EVM.json';
+import TokenContract from '@acala-network/contracts/build/contracts/Token.json';
 
 async function main() {
   console.log('');
   console.log('');
 
   const [deployer, user] = await ethers.getSigners();
-  const deployerAddress = await deployer.getAddress();
-  const userAddress = await user.getAddress();
+  const deployerAddress = deployer.address;
+  const userAddress = user.address;
 
   console.log(`Interacting with EVM using accounts ${deployerAddress} and ${userAddress}`);
 
@@ -51,20 +49,16 @@ async function main() {
   const midwayDeployerStatus = await instance.developerStatus(deployerAddress);
   const midwayUserStatus = await instance.developerStatus(userAddress);
 
-  console.log(`The developer status of ${deployerAddress} in ${midwayDeployerStatus}.`);
-  console.log(`The developer status of ${userAddress} in ${midwayUserStatus}.`);
+  console.log(`The developer status of ${deployerAddress} is ${midwayDeployerStatus}.`);
+  console.log(`The developer status of ${userAddress} is ${midwayUserStatus}.`);
 
   console.log('');
   console.log('');
 
   console.log('Deploying a smart contract');
 
-  const ethParams = await txParams();
   const Token = new ethers.ContractFactory(TokenContract.abi, TokenContract.bytecode, deployer);
-  const contract = await Token.deploy({
-    gasPrice: ethParams.txGasPrice,
-    gasLimit: ethParams.txGasLimit
-  });
+  const contract = await Token.deploy();
 
   const deployMaintainer = await instance.maintainerOf(contract.address);
 

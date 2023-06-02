@@ -1,18 +1,20 @@
-const { expect } = require('chai');
-const { Contract, BigNumber, Wallet } = require('ethers');
-const { EVM } = require('@acala-network/contracts/utils/MandalaAddress');
+import { BigNumber, Contract, Wallet } from 'ethers';
+import { EVM } from '@acala-network/contracts/utils/MandalaAddress';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { ethers } from 'hardhat';
+import { expect } from 'chai';
+import EVMContract from '@acala-network/contracts/build/contracts/EVM.json';
+import TokenContract from '@acala-network/contracts/build/contracts/Token.json';
 
-const EVMContract = require('@acala-network/contracts/build/contracts/EVM.json');
-const TokenContract = require('@acala-network/contracts/build/contracts/Token.json');
 const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 describe('EVM contract', function () {
-  let instance;
-  let contract;
-  let deployer;
-  let user;
-  let deployerAddress;
-  let userAddress;
+  let instance: Contract;   // TODO: use typechain
+  let contract: Contract;   // TODO: use typechain
+  let deployer: SignerWithAddress;
+  let user: SignerWithAddress;
+  let deployerAddress: string;
+  let userAddress: string;
 
   beforeEach(async function () {
     [deployer, user] = await ethers.getSigners();
@@ -24,8 +26,6 @@ describe('EVM contract', function () {
   });
 
   describe('Operation', function () {
-    this.timeout(50000);
-
     describe('newContractExtraBytes()', function () {
       it('should return the new contract extra bytes', async function () {
         const response = await instance.newContractExtraBytes();
@@ -70,7 +70,7 @@ describe('EVM contract', function () {
       it('should transfer the maintainer of the contract', async function () {
         const initialOwner = await instance.maintainerOf(contract.address);
 
-        await instance.connect(deployer).transferMaintainer(contract.address, userAddress);
+        await instance.transferMaintainer(contract.address, userAddress);
 
         const finalOwner = await instance.maintainerOf(contract.address);
 
@@ -79,7 +79,7 @@ describe('EVM contract', function () {
       });
 
       it('should emit TransferredMaintainer when maintainer role of the contract is transferred', async function () {
-        await expect(instance.connect(deployer).transferMaintainer(contract.address, userAddress))
+        await expect(instance.transferMaintainer(contract.address, userAddress))
           .to.emit(instance, 'TransferredMaintainer')
           .withArgs(contract.address, userAddress);
       });
@@ -89,13 +89,13 @@ describe('EVM contract', function () {
       });
 
       it('should revert if trying to transfer maintainer of 0x0', async function () {
-        await expect(instance.connect(deployer).transferMaintainer(NULL_ADDRESS, userAddress)).to.be.revertedWith(
+        await expect(instance.transferMaintainer(NULL_ADDRESS, userAddress)).to.be.revertedWith(
           'EVM: the contractAddress is the zero address'
         );
       });
 
       it('should revert when trying to transfer maintainer to 0x0 address', async function () {
-        await expect(instance.connect(deployer).transferMaintainer(contract.address, NULL_ADDRESS)).to.be.revertedWith(
+        await expect(instance.transferMaintainer(contract.address, NULL_ADDRESS)).to.be.revertedWith(
           'EVM: the newMaintainer is the zero address'
         );
       });
@@ -103,7 +103,7 @@ describe('EVM contract', function () {
 
     describe('publishContract()', function () {
       it('should emit ContractPublished event', async function () {
-        await expect(instance.connect(deployer).publishContract(contract.address))
+        await expect(instance.publishContract(contract.address))
           .to.emit(instance, 'ContractPublished')
           .withArgs(contract.address);
       });
@@ -113,7 +113,7 @@ describe('EVM contract', function () {
       });
 
       it('should revert when trying to publish 0x0 contract', async function () {
-        await expect(instance.connect(deployer).publishContract(NULL_ADDRESS)).to.be.revertedWith(
+        await expect(instance.publishContract(NULL_ADDRESS)).to.be.revertedWith(
           'EVM: the contractAddress is the zero address'
         );
       });
@@ -121,7 +121,7 @@ describe('EVM contract', function () {
 
     describe('developerStatus()', function () {
       it('should return the status of the development account', async function () {
-        const randomSigner = new Wallet.createRandom();
+        const randomSigner = Wallet.createRandom();
 
         const responseTrue = await instance.developerStatus(deployerAddress);
         const responseFalse = await instance.developerStatus(await randomSigner.getAddress());

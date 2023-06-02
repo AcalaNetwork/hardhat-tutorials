@@ -1,23 +1,20 @@
-const { expect } = require('chai');
-const { Contract } = require('ethers');
-const { ACA } = require('@acala-network/contracts/utils/MandalaAddress');
-
-const TokenContract = require('@acala-network/contracts/build/contracts/Token.json');
+import { ACA } from '@acala-network/contracts/utils/MandalaAddress';
+import { Contract } from 'ethers';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { ethers } from 'hardhat';
+import { expect } from 'chai';
+import TokenContract from '@acala-network/contracts/build/contracts/Token.json';
 
 describe('PrecompiledToken contract', function () {
-  let instance;
-  let deployer;
+  let instance: Contract;   // TODO: use typechain
+  let deployer: SignerWithAddress;
 
   beforeEach(async function () {
-    this.timeout(100000);
-
     [deployer] = await ethers.getSigners();
     instance = new Contract(ACA, TokenContract.abi, deployer);
   });
 
   describe('Precompiled token', function () {
-    this.timeout(100000);
-
     it('should have the correct token name', async function () {
       expect(await instance.name()).to.equal('Acala');
     });

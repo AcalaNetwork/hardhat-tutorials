@@ -33,23 +33,26 @@ yarn build
 
 deploy the the proxy contract with `scripts/deploy.ts`
 ```
-yarn deploy --network mandala
+yarn deploy:mandala
 ```
 
 upgrade the proxy contract with `scripts/upgrade.ts`
 ```
-yarn upgrade --network mandala
+yarn upgrade:mandala
 ```
 
 run tests with `test/*.ts`
 ```
-yarn test --network mandala
+yarn test:mandala
 ```
 
 ### run with public mandala
 you can also run these scripts with public mandala by inserting your own account key to [hardhat.config.ts](./hardhat.config.ts), and then
 ```
-yarn deploy --network mandalaPub
-yarn upgrade --network mandalaPub
-yarn test --network mandalaPub
+yarn deploy:mandalaPub
+yarn upgrade:mandalaPub
+yarn test:mandalaPub
 ```
+
+## More References
+[Acala EVM+ Development Doc](https://evmdocs.acala.network/)

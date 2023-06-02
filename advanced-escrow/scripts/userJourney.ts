@@ -1,30 +1,33 @@
-const { txParams } = require('../utils/transactionHelper');
-const { ACA, AUSD, DOT } = require('@acala-network/contracts/utils/MandalaAddress');
-const { Contract } = require('ethers');
-const { formatUnits } = require('ethers/lib/utils');
+import { ACA, AUSD, DOT } from '@acala-network/contracts/utils/MandalaAddress';
+import { ApiPromise, WsProvider } from '@polkadot/api';
+import { Contract } from 'ethers';
+import { ethers } from 'hardhat';
+import { formatUnits } from 'ethers/lib/utils';
+import { options } from '@acala-network/api';
+import TokenContract from '@acala-network/contracts/build/contracts/Token.json';
 
-const TokenContract = require('@acala-network/contracts/build/contracts/Token.json');
+const ENDPOINT_URL = process.env.ENDPOINT_URL || 'ws://127.0.0.1:9944';
 
 const sleep = async (time) => new Promise((resolve) => setTimeout(resolve, time));
 
 async function main() {
-  const ethParams = await txParams();
+  const api = await ApiPromise.create(options({
+    provider: new WsProvider(ENDPOINT_URL),
+  }));
 
   console.log('Getting signers');
   const [initiator, beneficiary] = await ethers.getSigners();
 
-  const initiatorAddress = await initiator.getAddress();
-  const beneficiaryAddress = await beneficiary.getAddress();
+  const initiatorAddress = initiator.address;
+  const beneficiaryAddress = beneficiary.address;
 
   console.log('Address of the initiator is', initiatorAddress);
   console.log('Address of the beneficiary is', beneficiaryAddress);
 
   console.log('Deploying AdvancedEscrow smart contract');
   const AdvancedEscrow = await ethers.getContractFactory('AdvancedEscrow');
-  const instance = await AdvancedEscrow.deploy({
-    gasPrice: ethParams.txGasPrice,
-    gasLimit: ethParams.txGasLimit
-  });
+  const instance = await AdvancedEscrow.deploy();
+  await instance.deployed();
 
   console.log('AdvancedEscrow is deployed at address:', instance.address);
 
@@ -94,7 +97,8 @@ async function main() {
       escrowBlockNumber + 10
     );
     currentBlockNumber = await ethers.provider.getBlockNumber();
-    await sleep(2500);
+    await sleep(1000);
+    await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
   }
 
   const finalBeneficiaryAusdBalance = await AusdInstance.balanceOf(beneficiaryAddress);
@@ -146,7 +150,7 @@ async function main() {
 
   await instance.connect(initiator).completeEscrow();
 
-  let currentBlockNumber2 = await ethers.provider.getBlockNumber();
+  const currentBlockNumber2 = await ethers.provider.getBlockNumber();
 
   const finalBeneficiaryAusdBalance2 = await AusdInstance.balanceOf(beneficiaryAddress);
 
@@ -201,7 +205,6 @@ async function main() {
   console.log('Waiting for automatic release of funds');
 
   let currentBlockNumber3 = await ethers.provider.getBlockNumber();
-
   while (currentBlockNumber3 <= escrowBlockNumber3 + 10) {
     console.log(
       'Still waiting. Current block number is %s. Target block number is %s.',
@@ -209,7 +212,8 @@ async function main() {
       escrowBlockNumber3 + 10
     );
     currentBlockNumber3 = await ethers.provider.getBlockNumber();
-    await sleep(2500);
+    await sleep(1000);
+    await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
   }
 
   const finalBeneficiaryDotBalance = await DotInstance.balanceOf(beneficiaryAddress);

@@ -1,15 +1,14 @@
-const { txParams } = require('../utils/transactionHelper');
+import { ethers } from 'hardhat';
+import { formatEther } from 'ethers/lib/utils';
 
 async function main() {
-  const ethParams = await txParams();
-
   const [deployer] = await ethers.getSigners();
+  console.log(`deploying contracts with the account: ${deployer.address}`);
+  console.log(`account balance: ${(formatEther(await deployer.getBalance()))}`);
 
   const AdvancedEscrow = await ethers.getContractFactory('AdvancedEscrow');
-  const instance = await AdvancedEscrow.deploy({
-    gasPrice: ethParams.txGasPrice,
-    gasLimit: ethParams.txGasLimit
-  });
+  const instance = await AdvancedEscrow.deploy();
+  await instance.deployed();
 
   console.log('AdvancedEscrow address:', instance.address);
 }

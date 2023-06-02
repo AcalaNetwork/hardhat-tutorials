@@ -1,7 +1,8 @@
-const { ACA } = require('@acala-network/contracts/utils/MandalaAddress');
-const { Contract } = require('ethers');
-
-const TokenContract = require('@acala-network/contracts/build/contracts/Token.json');
+import { ACA } from '@acala-network/contracts/utils/MandalaAddress';
+import { Contract } from 'ethers';
+import { ethers } from 'hardhat';
+import { formatUnits } from 'ethers/lib/utils';
+import TokenContract from '@acala-network/contracts/build/contracts/Token.json';
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -18,7 +19,7 @@ async function main() {
   const symbol = await instance.symbol();
   const decimals = await instance.decimals();
   const value = await instance.totalSupply();
-  const balance = await instance.balanceOf(await deployer.getAddress());
+  const balance = await instance.balanceOf(deployer.address);
 
   console.log('Token name:', name);
   console.log('Token symbol:', symbol);
@@ -26,33 +27,11 @@ async function main() {
   console.log('Total supply:', value.toString());
   console.log('Our account token balance:', balance.toString());
 
-  const formattedSuppy = balanceFormatting(value.toString(), decimals);
-  const formattedBalance = balanceFormatting(balance.toString(), decimals);
+  const formattedSuppy = formatUnits(value, decimals);
+  const formattedBalance = formatUnits(balance, decimals);
 
   console.log('Total formatted supply: %s %s', formattedSuppy, symbol);
   console.log('Total formatted account token balance: %s %s', formattedBalance, symbol);
-}
-
-function balanceFormatting(balance, decimals) {
-  const balanceLength = balance.length;
-  let output = '';
-
-  if (balanceLength > decimals) {
-    for (i = 0; i < balanceLength - decimals; i++) {
-      output += balance[i];
-    }
-    output += '.';
-    for (i = balanceLength - decimals; i < balanceLength; i++) {
-      output += balance[i];
-    }
-  } else {
-    output += '0.';
-    for (i = 0; i < decimals - balanceLength; i++) {
-      output += '0';
-    }
-    output += balance;
-  }
-  return output;
 }
 
 main()

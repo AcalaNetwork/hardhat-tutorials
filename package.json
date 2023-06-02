@@ -19,8 +19,8 @@
   ],
   "scripts": {
     "build": "yarn workspaces foreach -vit run build",
-    "test:mandala": "yarn workspaces foreach -vit run test-mandala",
-    "test:mandala:ci": "yarn workspaces foreach -vit run test-mandala:CI"
+    "test:mandala": "yarn workspaces foreach -vit run test:mandala",
+    "test:mandala:ci": "yarn workspaces foreach -vit run test:mandalaCI"
   },
   "resolutions": {
     "@acala-network/contracts": "4.3.4"

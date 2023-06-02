@@ -26,6 +26,16 @@ npx @acala-network/eth-rpc-adapter@2.7.3 --endpoint ws://localhost:9944 --local-
 
 
 ## Run
+install deps
+```
+yarn
+```
+
+install deps
+```
+yarn
+```
+
 go thorugh the user journey with `scripts/journey.ts`
 ```
 yarn journey:mandala

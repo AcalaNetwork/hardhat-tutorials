@@ -30,6 +30,11 @@ npx @acala-network/eth-rpc-adapter@2.7.3 --endpoint ws://localhost:9944 --local-
 
 
 ## Run
+install deps
+```
+yarn
+```
+
 get the predeploy ACA token info with `scripts/getACAInfo.ts`
 ```
 yarn getInfo:mandala

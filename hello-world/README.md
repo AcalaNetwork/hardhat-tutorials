@@ -22,7 +22,12 @@ npx @acala-network/eth-rpc-adapter@2.7.3 --endpoint ws://localhost:9944 --local-
 
 
 ## Run
-compile contracts
+install deps
+```
+yarn
+```
+
+compile contracts and build types
 ```
 yarn build
 ```

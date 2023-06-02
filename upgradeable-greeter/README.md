@@ -21,12 +21,17 @@ npx @acala-network/eth-rpc-adapter@2.7.3 --endpoint ws://localhost:9944 --local-
 
 
 ## Run
+install deps
+```
+yarn
+```
+
 clean up proxy info cache (optional)
 ```
 yarn clean
 ```
 
-compile contracts
+compile contracts and build types
 ```
 yarn build
 ```

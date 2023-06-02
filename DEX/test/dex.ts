@@ -28,7 +28,7 @@ describe('DEX contract', () => {
   describe('Operation', () => {
     describe('getLiquidityPool', () => {
       it('should not allow tokenA to be a 0x0 address', async () => {
-        await expect(instance.getLiquidityPool(NULL_ADDRESS, ACA)).to.be.revertedWith('xxxx');
+        await expect(instance.getLiquidityPool(NULL_ADDRESS, ACA)).to.be.revertedWith('DEX: tokenA is zero address');
       });
 
       it('should not allow tokenB to be a 0x0 address', async () => {

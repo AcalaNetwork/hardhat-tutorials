@@ -23,7 +23,7 @@ const config: HardhatUserConfig = {
     },
     mandalaCI: {
       ...commonConfig,
-      url: 'http://eth-rpc-adapter-server-rich:8545',
+      url: 'http://eth-rpc-adapter-server:8545',
     },
   },
   mocha: {

@@ -507,5 +507,5 @@ This concludes our  `AdvancedEscrow` tutorial. We hope you enjoyed this dive int
 All of the Acalanauts wish you a pleasant journey into the future of web3!
 
 ## More References
-[Acala EVM+ Development Doc](https://evmdocs.acala.network/)
-[predeploy contracts](https://github.com/AcalaNetwork/predeploy-contracts)
+- [Acala EVM+ Development Doc](https://evmdocs.acala.network/)
+- [predeploy contracts](https://github.com/AcalaNetwork/predeploy-contracts)

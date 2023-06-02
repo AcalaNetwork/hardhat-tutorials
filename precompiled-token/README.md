@@ -53,5 +53,5 @@ yarn test:mandalaPub
 ```
 
 ## More References
-[Acala EVM+ Development Doc](https://evmdocs.acala.network/)
-[predeploy contracts](https://github.com/AcalaNetwork/predeploy-contracts)
+- [Acala EVM+ Development Doc](https://evmdocs.acala.network/)
+- [predeploy contracts](https://github.com/AcalaNetwork/predeploy-contracts)

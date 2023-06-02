@@ -60,4 +60,4 @@ yarn test:mandalaPub
 ```
 
 ## More References
-[Acala EVM+ Development Doc](https://evmdocs.acala.network/)
+- [Acala EVM+ Development Doc](https://evmdocs.acala.network/)

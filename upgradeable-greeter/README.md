@@ -3,21 +3,38 @@ This tutorial addresses the use of the upgradeable smart contracts using the [tr
 
 It contains a simple [Greeter](./contracts/Greeter.sol) smart contract that can be upgraded to [Greeter V2](./contracts/GreeterV2.sol), which has a new method `setGreetingV2()`. 
 
-## Setup Local Development Stack
-run a local mandala node at port `9944`
+## Start a Local Development Stack
+clean up docker containers
 ```
-docker run -it --rm -p 9944:9944 -p 9933:9933 ghcr.io/acalanetwork/mandala-node:sha-a32c40b --dev --ws-external --rpc-port=9933 --rpc-external --rpc-cors=all --rpc-methods=unsafe -levm=debug --pruning=archive --instant-sealing
-```
-
-run an ETH RPC adapter at port `8545` with docker
-```
-docker run -p 8545:8545 acala/eth-rpc-adapter:2.7.3 --endpoint ws://host.docker.internal:9944 --local-mode
+docker compose down -v
 ```
 
-alternatively you can choose to run the ETH RPC adapter with npm
+start the local development stack
 ```
-npx @acala-network/eth-rpc-adapter@2.7.3 --endpoint ws://localhost:9944 --local-mode
+docker compose up
 ```
+
+once you see logs like this, the local development stack is ready. It's ok if there are some warnings/errors in the logs, since there is no transaction in the node yet.
+```
+ --------------------------------------------
+              🚀 SERVER STARTED 🚀
+ --------------------------------------------
+ version         : bodhi.js/eth-rpc-adapter/2.7.3
+ endpoint url    : ws://mandala-node:9944
+ subquery url    : http://graphql-engine:3001
+ listening to    : 8545
+ max blockCache  : 200
+ max batchSize   : 50
+ max storageSize : 5000
+ safe mode       : false
+ local mode      : false
+ rich mode       : false
+ http only       : false
+ verbose         : true
+ --------------------------------------------
+```
+
+For more information about the local development stack, please refer to the [doc](https://evmdocs.acala.network/network/network-setup/local-development-network).
 
 
 ## Run

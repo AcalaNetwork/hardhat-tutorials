@@ -43,7 +43,7 @@ install deps
 yarn
 ```
 
-clean up proxy info cache (optional)
+clean up proxy info cache (only required after re-starting the local development stack)
 ```
 yarn clean
 ```

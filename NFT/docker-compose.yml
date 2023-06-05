@@ -87,4 +87,5 @@ services:
     environment:
       - SUBQL_URL=http://graphql-engine:3001
       - ENDPOINT_URL=ws://mandala-node:9944
+      - LOCAL_MODE=1
     command: yarn start

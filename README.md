@@ -1,7 +1,7 @@
-# Hardhat Acala EVM+ development tutorial
+# Acala EVM+ Hardhat Examples
 
 **If you are searching for [Truffle](https://github.com/AcalaNetwork/truffle-tutorials) or
-[Waffle](https://github.com/AcalaNetwork/waffle-tutorials) tutorial, please follow the links.**
+[Waffle](https://github.com/AcalaNetwork/waffle-tutorials) examples, please follow the links.**
 
 ## Current tutorials
 

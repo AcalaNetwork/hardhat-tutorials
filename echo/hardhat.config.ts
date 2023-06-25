@@ -1,14 +1,4 @@
-/* ---------------
-   hardhat-toolbox > hardhat-chai-machers > `.revertedWith()` is incompatible
-   so we switch to legacy @nomiclabs/hardhat-waffle instead
-   if your tests doesn't need to use `.revertedWith()`
-   feel free to switch back to `@nomicfoundation/hardhat-toolbox`
-                                                              --------------- */
-import '@nomiclabs/hardhat-ethers';
-import '@nomiclabs/hardhat-waffle';
-import '@typechain/hardhat';
-// import '@nomicfoundation/hardhat-toolbox';
-
+import '@nomicfoundation/hardhat-toolbox';
 import { HardhatUserConfig } from 'hardhat/config';
 
 const commonConfig = {

@@ -219,9 +219,7 @@ describe('Token contract', () => {
 
         it('should revert when tring to transfer more than allowed amount', async () => {
           await instance.approve(userAddress, 100);
-          await expect(instance.connect(user).transferFrom(deployerAddress, userAddress, 1000)).to.be.revertedWith(
-            'allowance'
-          );
+          await expect(instance.connect(user).transferFrom(deployerAddress, userAddress, 1000)).to.be.revertedWith('insufficient allowance');
         });
 
         it('should revert when transfering to 0x0 address', async () => {
@@ -239,9 +237,7 @@ describe('Token contract', () => {
         });
 
         it('should revert when trying to transfer from without being given allowance', async () => {
-          await expect(instance.connect(user).transferFrom(deployerAddress, userAddress, 10)).to.be.revertedWith(
-            'allowance'
-          );
+          await expect(instance.connect(user).transferFrom(deployerAddress, userAddress, 10)).to.be.revertedWith('insufficient allowance');
         });
       });
     });

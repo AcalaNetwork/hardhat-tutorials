@@ -141,7 +141,7 @@ describe('NFT contract', () => {
         await instance.mintNFT(userAddress, '');
 
         await expect(instance.approve(deployerAddress, 1)).to.be.revertedWith(
-          'ERC721: approve caller is not token owner'
+          'ERC721: approve caller is not token owner or approved for all'
         );
       });
 

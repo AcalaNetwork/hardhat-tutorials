@@ -1,4 +1,4 @@
-# Acala EVM+ Hardhat Example: Dex
+# Acala EVM+ Hardhat Example: predeployed Token
 This example introduces the use of Acala EVM+ precompiles and predeploys that are present on
 every network at a fixed address (the address of a predeployed contract is the same on a local
 development network, public test network as well as the production network). As this example

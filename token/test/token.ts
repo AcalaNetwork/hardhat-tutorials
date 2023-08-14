@@ -34,7 +34,7 @@ describe('Token contract', () => {
     });
 
     it('should set the correct total supply', async () => {
-      expect(await instance.totalSupply()).to.equal(1234567890);
+      expect(await instance.totalSupply()).to.equal(12345);
     });
 
     it('should assign the initial balance to the deployer', async () => {

@@ -18,8 +18,8 @@ describe('EVM contract', function () {
 
   beforeEach(async function () {
     [deployer, user] = await ethers.getSigners();
-    deployerAddress = await deployer.getAddress();
-    userAddress = await user.getAddress();
+    deployerAddress = deployer.address;
+    userAddress = user.address;
     instance = new Contract(EVM, EVMContract.abi, deployer);
     const Token = new ethers.ContractFactory(TokenContract.abi, TokenContract.bytecode, deployer);
     contract = await Token.deploy();

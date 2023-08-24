@@ -24,7 +24,7 @@ once you see logs like this, the local development stack is ready. It's ok if th
  --------------------------------------------
               🚀 SERVER STARTED 🚀
  --------------------------------------------
- version         : bodhi.js/eth-rpc-adapter/2.7.3
+ version         : bodhi.js/eth-rpc-adapter/2.7.7
  endpoint url    : ws://mandala-node:9944
  subquery url    : http://graphql-engine:3001
  listening to    : 8545
@@ -43,11 +43,6 @@ For more information about the local development stack, please refer to the [doc
 
 
 ## Run
-install deps
-```
-yarn
-```
-
 install deps
 ```
 yarn

@@ -1,5 +1,5 @@
 import { BigNumber, Contract, Wallet } from 'ethers';
-import { EVM } from '@acala-network/contracts/utils/MandalaAddress';
+import { EVM } from '@acala-network/contracts/utils/Predeploy';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 import { expect } from 'chai';

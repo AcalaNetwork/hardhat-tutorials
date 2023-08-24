@@ -1,4 +1,4 @@
-import { ACA, AUSD, DOT } from '@acala-network/contracts/utils/MandalaAddress';
+import { ACA, AUSD, DOT } from '@acala-network/contracts/utils/MandalaTokens';
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { Contract } from 'ethers';
 import { ethers } from 'hardhat';

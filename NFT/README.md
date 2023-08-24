@@ -12,6 +12,7 @@ docker compose down -v
 
 start the local development stack
 ```
+cd ../   # compose file is at root dir
 docker compose up
 ```
 

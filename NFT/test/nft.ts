@@ -16,8 +16,8 @@ describe('NFT contract', () => {
 
   beforeEach(async () => {
     [deployer, user] = await ethers.getSigners();
-    deployerAddress = await deployer.getAddress();
-    userAddress = await user.getAddress();
+    deployerAddress = deployer.address;
+    userAddress = user.address;
 
     NFT = await ethers.getContractFactory('NFT');
     instance = await NFT.deploy();

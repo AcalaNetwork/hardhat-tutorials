@@ -5,11 +5,12 @@ import "@acala-network/contracts/dex/IDEX.sol";
 import "@acala-network/contracts/token/Token.sol";
 import "@acala-network/contracts/schedule/ISchedule.sol";
  
-import "@acala-network/contracts/utils/MandalaAddress.sol";
+import "@acala-network/contracts/utils/Predeploy.sol";
+import "@acala-network/contracts/utils/MandalaTokens.sol";
 
-contract AdvancedEscrow is ADDRESS {
-    IDEX dex = IDEX(ADDRESS.DEX);
-    ISchedule schedule = ISchedule(ADDRESS.SCHEDULE);
+contract AdvancedEscrow {
+    IDEX dex = IDEX(DEX);
+    ISchedule schedule = ISchedule(SCHEDULE);
 
     uint256 public numberOfEscrows;
 
@@ -61,12 +62,12 @@ contract AdvancedEscrow is ADDRESS {
             "Escrow: contract balance is less than ingress value"
         );
 
-        Token AUSDtoken = Token(ADDRESS.AUSD);
+        Token AUSDtoken = Token(AUSD);
         uint256 initalAusdBalance = AUSDtoken.balanceOf(address(this));
         
         address[] memory path = new address[](2);
         path[0] = ingressToken_;
-        path[1] = ADDRESS.AUSD;
+        path[1] = AUSD;
         require(dex.swapWithExactSupply(path, ingressValue, 1), "Escrow: Swap failed");
         
         uint256 finalAusdBalance = AUSDtoken.balanceOf(address(this));
@@ -118,7 +119,7 @@ contract AdvancedEscrow is ADDRESS {
             uint256 initialBalance = token.balanceOf(address(this));
             
             address[] memory path = new address[](2);
-            path[0] = ADDRESS.AUSD;
+            path[0] = AUSD;
             path[1] = currentEscrow.egressToken;
             require(
                 dex.swapWithExactSupply(path, currentEscrow.AusdValue, 1),
@@ -129,7 +130,7 @@ contract AdvancedEscrow is ADDRESS {
 
             token.transfer(currentEscrow.beneficiary, finalBalance - initialBalance);
         } else {
-            Token AusdToken = Token(ADDRESS.AUSD);
+            Token AusdToken = Token(AUSD);
             AusdToken.transfer(currentEscrow.beneficiary, currentEscrow.AusdValue);
         }
 

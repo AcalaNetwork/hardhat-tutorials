@@ -1,4 +1,4 @@
-import { ACA } from '@acala-network/contracts/utils/MandalaAddress';
+import { ACA } from '@acala-network/contracts/utils/MandalaTokens';
 import { Contract } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';

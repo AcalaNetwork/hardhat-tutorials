@@ -1,5 +1,5 @@
 import { BigNumber, Contract, Wallet } from 'ethers';
-import { EVM } from '@acala-network/contracts/utils/MandalaAddress';
+import { EVM } from '@acala-network/contracts/utils/Predeploy';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
@@ -18,8 +18,8 @@ describe('EVM contract', function () {
 
   beforeEach(async function () {
     [deployer, user] = await ethers.getSigners();
-    deployerAddress = await deployer.getAddress();
-    userAddress = await user.getAddress();
+    deployerAddress = deployer.address;
+    userAddress = user.address;
     instance = new Contract(EVM, EVMContract.abi, deployer);
     const Token = new ethers.ContractFactory(TokenContract.abi, TokenContract.bytecode, deployer);
     contract = await Token.deploy();

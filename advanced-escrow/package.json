@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "@acala-network/api": "^5.1.1",
-    "@acala-network/contracts": "^4.3.7",
+    "@acala-network/contracts": "^4.4.1",
     "@babel/runtime": "^7.22.3",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/providers": "~5.7.0",

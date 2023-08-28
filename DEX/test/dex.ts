@@ -1,5 +1,6 @@
-import { ACA, AUSD, DEX, DOT, LP_ACA_AUSD, RENBTC } from '@acala-network/contracts/utils/MandalaAddress';
+import { ACA, AUSD, DOT, LP_ACA_AUSD, RENBTC } from '@acala-network/contracts/utils/MandalaTokens';
 import { Contract } from 'ethers';
+import { DEX } from '@acala-network/contracts/utils/Predeploy';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 import { expect } from 'chai';

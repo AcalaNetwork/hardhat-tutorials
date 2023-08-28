@@ -1,7 +1,8 @@
-import { ACA, AUSD, DEX, DOT } from '@acala-network/contracts/utils/MandalaAddress';
+import { ACA, AUSD, DOT } from '@acala-network/contracts/utils/MandalaTokens';
 import { AdvancedEscrow, AdvancedEscrow__factory } from '../typechain-types';
 import { ApiPromise, WsProvider } from '@polkadot/api';
 import { Contract } from 'ethers';
+import { DEX } from '@acala-network/contracts/utils/Predeploy';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 import { expect } from 'chai';

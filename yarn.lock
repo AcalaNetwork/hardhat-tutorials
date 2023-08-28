@@ -29,10 +29,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@acala-network/contracts@npm:4.3.4":
-  version: 4.3.4
-  resolution: "@acala-network/contracts@npm:4.3.4"
-  checksum: 65cfa0dbd2aba323168232385c7651ccd4ae65262f8032780998d4a7d96b0de7066a13390628b901f05dcfc20f134dc549c8aada3ad452d9aa9b5bc673ca6ae0
+"@acala-network/contracts@npm:^4.4.1":
+  version: 4.4.1
+  resolution: "@acala-network/contracts@npm:4.4.1"
+  checksum: ed324cbfd7ceb5d51691050a0f7acf58e941eca557eaf5c7c5f72f01a0fea8edd7d94e0bf3f3cedeb5e402511e09f05c7f8f2e6835c384b18154123c51cbd01d
   languageName: node
   linkType: hard
 
@@ -7630,7 +7630,7 @@ __metadata:
   resolution: "hardhat-tutorial-advanced-escrow@workspace:advanced-escrow"
   dependencies:
     "@acala-network/api": ^5.1.1
-    "@acala-network/contracts": ^4.3.7
+    "@acala-network/contracts": ^4.4.1
     "@babel/runtime": ^7.22.3
     "@ethersproject/abi": ^5.7.0
     "@ethersproject/providers": ~5.7.0

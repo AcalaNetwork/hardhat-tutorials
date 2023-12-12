@@ -9,9 +9,22 @@ import { expect } from 'chai';
 import { options } from '@acala-network/api';
 import DEXContract from '@acala-network/contracts/build/contracts/DEX.json';
 import TokenContract from '@acala-network/contracts/build/contracts/Token.json';
+import { Provider } from '@ethersproject/providers';
 
 const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 const ENDPOINT_URL = process.env.ENDPOINT_URL || 'ws://127.0.0.1:9944';
+
+const sleep = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
+
+const nextBlock = async (provider: Provider, api: ApiPromise): Promise<void> => {
+  const nextBlockNumber = await provider.getBlockNumber() + 1;
+  await api.rpc.engine.createBlock(true /* create empty */, true);
+
+  while ((await provider.getBlockNumber()) < nextBlockNumber) {
+    // provider internal head is slightly slower than node head
+    await sleep(200);
+  }
+};
 
 describe('AdvancedEscrow contract', () => {
   let AdvancedEscrow: AdvancedEscrow__factory;
@@ -126,8 +139,8 @@ describe('AdvancedEscrow contract', () => {
       await ACAinstance.transfer(instance.address, startingBalance.div(100_000));
 
       await instance.initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1);
-      await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
-      await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
+      await nextBlock(deployer.provider!, api)
+      await nextBlock(deployer.provider!, api)
 
       await expect(instance.connect(user).setEgressToken(DOT)).to
         .be.revertedWith('Escrow: already completed');
@@ -174,8 +187,8 @@ describe('AdvancedEscrow contract', () => {
       await ACAinstance.transfer(instance.address, startingBalance.div(100_000));
 
       await instance.initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1);
-      await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
-      await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
+      await nextBlock(deployer.provider!, api)
+      await nextBlock(deployer.provider!, api)
 
       await expect(instance.completeEscrow()).to
         .be.revertedWith('Escrow: escrow already completed');
@@ -257,8 +270,8 @@ describe('AdvancedEscrow contract', () => {
       await instance.initiateEscrow(userAddress, ACA, startingBalance.div(1_000_000), 1);
       const currentEscrow = await instance.numberOfEscrows();
       const initalState = await instance.escrows(currentEscrow.sub(1));
-      await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
-      await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
+      await nextBlock(deployer.provider!, api)
+      await nextBlock(deployer.provider!, api)
       const finalState = await instance.escrows(currentEscrow.sub(1));
 
       expect(initalState.completed).to.be.false;

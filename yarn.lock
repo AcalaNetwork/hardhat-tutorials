@@ -36,6 +36,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@acala-network/contracts@npm:^4.5.0":
+  version: 4.5.0
+  resolution: "@acala-network/contracts@npm:4.5.0"
+  checksum: 7c829c1c5b280d3b75ff337820db4f16664023fa25bab967b9b16f648f9edecc4bb1f48b52744cacc5294744c8dfc36ef33386a3bb35464c6996a7b9519a8599
+  languageName: node
+  linkType: hard
+
 "@acala-network/type-definitions@npm:5.1.1":
   version: 5.1.1
   resolution: "@acala-network/type-definitions@npm:5.1.1"
@@ -7824,6 +7831,42 @@ __metadata:
     eslint: ^8.41.0
     eslint-plugin-import: ^2.27.5
     eslint-plugin-sort-imports-es6-autofix: ^0.6.0
+    ethers: ~5.7.0
+    hardhat: ^2.13.0
+    hardhat-gas-reporter: ^1.0.8
+    solidity-coverage: ^0.8.1
+    ts-node: ^10.9.1
+    typechain: ^8.2.0
+    typescript: ^5.0.4
+  languageName: unknown
+  linkType: soft
+
+"hardhat-tutorial-oracle@workspace:oracle":
+  version: 0.0.0-use.local
+  resolution: "hardhat-tutorial-oracle@workspace:oracle"
+  dependencies:
+    "@acala-network/contracts": ^4.5.0
+    "@ethersproject/abi": ^5.7.0
+    "@ethersproject/providers": ~5.7.0
+    "@nomicfoundation/hardhat-chai-matchers": ^1.0.0
+    "@nomicfoundation/hardhat-network-helpers": ^1.0.0
+    "@nomicfoundation/hardhat-toolbox": ^2.0.2
+    "@nomiclabs/hardhat-ethers": ^2.0.0
+    "@nomiclabs/hardhat-etherscan": ^3.0.0
+    "@typechain/ethers-v5": ^10.1.0
+    "@typechain/hardhat": ^6.1.2
+    "@types/chai": ^4
+    "@types/eslint": ^8
+    "@types/mocha": ^10.0.1
+    "@types/node": ^20.2.4
+    "@types/sinon-chai": ^3.2.9
+    "@typescript-eslint/eslint-plugin": ^5.59.8
+    "@typescript-eslint/parser": ^5.59.8
+    chai: ^4.3.7
+    eslint: ^8.41.0
+    eslint-plugin-import: ^2.27.5
+    eslint-plugin-sort-imports-es6-autofix: ^0.6.0
+    ethereum-waffle: ~3.4.4
     ethers: ~5.7.0
     hardhat: ^2.13.0
     hardhat-gas-reporter: ^1.0.8

@@ -15,7 +15,8 @@
     "DEX",
     "EVM",
     "upgradeable-greeter",
-    "advanced-escrow"
+    "advanced-escrow",
+    "oracle"
   ],
   "scripts": {
     "build": "yarn workspaces foreach -vit run build",

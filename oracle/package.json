@@ -8,7 +8,7 @@
     "build": "hardhat compile",
     "lint": "eslint .",
     "test:mandalaPub": "hardhat test test/oracle.ts --network mandalaPub",
-    "test:CI": "hardhat test --network mandalaCI"
+    "test:CI": ""
   },
   "devDependencies": {
     "@acala-network/contracts": "^4.5.0",

@@ -1,16 +1,15 @@
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
-import { NFT, NFT__factory } from '../typechain-types';
+import { NFT } from '../typechain-types';
 
 const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 describe('NFT contract', () => {
-  let NFT: NFT__factory;
   let instance: NFT;
-  let deployer: SignerWithAddress;
-  let user: SignerWithAddress;
+  let deployer: HardhatEthersSigner;
+  let user: HardhatEthersSigner;
   let deployerAddress: string;
   let userAddress: string;
 
@@ -19,9 +18,8 @@ describe('NFT contract', () => {
     deployerAddress = deployer.address;
     userAddress = user.address;
 
-    NFT = await ethers.getContractFactory('NFT');
-    instance = await NFT.deploy();
-    await instance.deployed();
+    instance = await ethers.deployContract('NFT');
+    await instance.waitForDeployment();
   });
 
   describe('Deployment', () => {
@@ -51,7 +49,7 @@ describe('NFT contract', () => {
 
         const finalBalance = await instance.balanceOf(userAddress);
 
-        expect(finalBalance.toNumber() - initialBalance.toNumber()).to.equal(1);
+        expect(finalBalance - initialBalance).to.equal(1);
       });
 
       it('should emit Transfer event', async () => {
@@ -84,7 +82,7 @@ describe('NFT contract', () => {
 
         const finalBalance = await instance.balanceOf(userAddress);
 
-        expect(finalBalance.toNumber() - initialBalance.toNumber()).to.equal(2);
+        expect(finalBalance - initialBalance).to.equal(2);
       });
 
       it('should revert when trying to get an URI of an nonexistent token', async () => {
@@ -236,7 +234,7 @@ describe('NFT contract', () => {
 
         const finalBalance = await instance.balanceOf(deployerAddress);
 
-        expect(finalBalance.toNumber() - initialBalance.toNumber()).to.equal(1);
+        expect(finalBalance - initialBalance).to.equal(1);
       });
 
       it('should emit Transfer event', async () => {
@@ -258,7 +256,7 @@ describe('NFT contract', () => {
 
         const finalBalance = await instance.balanceOf(deployerAddress);
 
-        expect(finalBalance.toNumber() - initialBalance.toNumber()).to.equal(1);
+        expect(finalBalance - initialBalance).to.equal(1);
       });
 
       it('should reset the allowance after the token is transferred', async () => {

@@ -1,6 +1,6 @@
-import { BigNumber, Contract, Wallet } from 'ethers';
+import { Contract, Wallet } from 'ethers';
 import { EVM } from '@acala-network/contracts/utils/Predeploy';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 import EVMContract from '@acala-network/contracts/build/contracts/EVM.json';
@@ -11,15 +11,15 @@ const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 describe('EVM contract', function () {
   let instance: Contract;   // TODO: use typechain
   let contract: Contract;   // TODO: use typechain
-  let deployer: SignerWithAddress;
-  let user: SignerWithAddress;
+  let deployer: HardhatEthersSigner;
+  let user: HardhatEthersSigner;
   let deployerAddress: string;
   let userAddress: string;
 
   beforeEach(async function () {
     [deployer, user] = await ethers.getSigners();
-    deployerAddress = deployer.address;
-    userAddress = user.address;
+    deployerAddress = await deployer.getAddress();
+    userAddress = await user.getAddress();
     instance = new Contract(EVM, EVMContract.abi, deployer);
     const Token = new ethers.ContractFactory(TokenContract.abi, TokenContract.bytecode, deployer);
     contract = await Token.deploy();
@@ -30,7 +30,7 @@ describe('EVM contract', function () {
       it('should return the new contract extra bytes', async function () {
         const response = await instance.newContractExtraBytes();
 
-        expect(response).to.be.above(BigNumber.from('0'));
+        expect(response).to.be.above(0);
       });
     });
 
@@ -38,13 +38,13 @@ describe('EVM contract', function () {
       it('should return the storage deposit', async function () {
         const response = await instance.storageDepositPerByte();
 
-        expect(response).to.be.above(BigNumber.from('0'));
+        expect(response).to.be.above(0);
       });
     });
 
     describe('maintainerOf()', function () {
       it('should return the maintainer of the contract', async function () {
-        const owner = await instance.maintainerOf(contract.address);
+        const owner = await instance.maintainerOf(await contract.getAddress());
 
         expect(owner).to.equal(deployerAddress);
       });
@@ -54,7 +54,7 @@ describe('EVM contract', function () {
       it('should return the developer deposit', async function () {
         const response = await instance.developerDeposit();
 
-        expect(response).to.be.above(BigNumber.from('0'));
+        expect(response).to.be.above(0);
       });
     });
 
@@ -62,30 +62,32 @@ describe('EVM contract', function () {
       it('should return the publication fee', async function () {
         const response = await instance.publicationFee();
 
-        expect(response).to.be.above(BigNumber.from('0'));
+        expect(response).to.be.above(0);
       });
     });
 
     describe('transferMaintainter()', function () {
       it('should transfer the maintainer of the contract', async function () {
-        const initialOwner = await instance.maintainerOf(contract.address);
+        const initialOwner = await instance.maintainerOf(await contract.getAddress());
 
-        await instance.transferMaintainer(contract.address, userAddress);
+        await instance.transferMaintainer(await contract.getAddress(), userAddress);
 
-        const finalOwner = await instance.maintainerOf(contract.address);
+        const finalOwner = await instance.maintainerOf(await contract.getAddress());
 
         expect(initialOwner).to.equal(deployerAddress);
         expect(finalOwner).to.equals(userAddress);
       });
 
       it('should emit TransferredMaintainer when maintainer role of the contract is transferred', async function () {
-        await expect(instance.transferMaintainer(contract.address, userAddress))
+        await expect(instance.transferMaintainer(await contract.getAddress(), userAddress))
           .to.emit(instance, 'TransferredMaintainer')
-          .withArgs(contract.address, userAddress);
+          .withArgs(await contract.getAddress(), userAddress);
       });
 
       it('should revert if the caller is not the maintainer of the contract', async function () {
-        await expect(instance.connect(user).transferMaintainer(contract.address, deployerAddress)).to.be.reverted;
+        await expect(
+          instance.connect(user).transferMaintainer(await contract.getAddress(), deployerAddress)
+        ).to.be.reverted;
       });
 
       it('should revert if trying to transfer maintainer of 0x0', async function () {
@@ -95,7 +97,7 @@ describe('EVM contract', function () {
       });
 
       it('should revert when trying to transfer maintainer to 0x0 address', async function () {
-        await expect(instance.transferMaintainer(contract.address, NULL_ADDRESS)).to.be.revertedWith(
+        await expect(instance.transferMaintainer(await contract.getAddress(), NULL_ADDRESS)).to.be.revertedWith(
           'EVM: the newMaintainer is the zero address'
         );
       });
@@ -103,13 +105,13 @@ describe('EVM contract', function () {
 
     describe('publishContract()', function () {
       it('should emit ContractPublished event', async function () {
-        await expect(instance.publishContract(contract.address))
+        await expect(instance.publishContract(await contract.getAddress()))
           .to.emit(instance, 'ContractPublished')
-          .withArgs(contract.address);
+          .withArgs(await contract.getAddress());
       });
 
       it('should revert when caller is not the maintainer of the contract', async function () {
-        await expect(instance.connect(user).publishContract(contract.address)).to.be.reverted;
+        await expect(instance.connect(user).publishContract(await contract.getAddress())).to.be.reverted;
       });
 
       it('should revert when trying to publish 0x0 contract', async function () {

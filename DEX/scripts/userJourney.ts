@@ -1,9 +1,8 @@
-import { ACA, AUSD, DEX, DOT } from '@acala-network/contracts/utils/MandalaAddress';
-import { Contract } from 'ethers';
+import { ACA, AUSD, DOT } from '@acala-network/contracts/utils/MandalaTokens';
+import { DEX } from '@acala-network/contracts/utils/Predeploy';
+import { DEX__factory, Token__factory } from '@acala-network/contracts/typechain';
 import { ethers } from 'hardhat';
-import { formatUnits, parseUnits } from 'ethers/lib/utils';
-import DEXContract from '@acala-network/contracts/build/contracts/DEX.json';
-import TokenContract from '@acala-network/contracts/build/contracts/Token.json';
+import { formatUnits, parseUnits } from 'ethers';
 
 async function main() {
   console.log('');
@@ -13,24 +12,24 @@ async function main() {
 
   console.log('Interacting with DEX using account:', deployer.address);
 
-  const initialBalance = await deployer.getBalance();
+  const initialBalance = await ethers.provider.getBalance(await deployer.getAddress());
 
-  console.log('Initial account balance: %s ACA', formatUnits(initialBalance.toString(), 12));
+  console.log('Initial account balance: %s ACA', formatUnits(initialBalance, 12));
 
   console.log('');
   console.log('');
 
   console.log('Instantiating DEX and token smart contracts');
 
-  const instance = new Contract(DEX, DEXContract.abi, deployer);
-  const ACAinstance = new Contract(ACA, TokenContract.abi, deployer);
-  const AUSDinstance = new Contract(AUSD, TokenContract.abi, deployer);
-  const DOTinstance = new Contract(DOT, TokenContract.abi, deployer);
+  const instance = DEX__factory.connect(DEX, deployer);
+  const ACAinstance = Token__factory.connect(ACA, deployer);
+  const AUSDinstance = Token__factory.connect(AUSD, deployer);
+  const DOTinstance = Token__factory.connect(DOT, deployer);
 
-  console.log('DEX instantiated with address', instance.address);
-  console.log('ACA token instantiated with address', ACAinstance.address);
-  console.log('AUSD token instantiated with address', AUSDinstance.address);
-  console.log('DOT token instantiated with address', DOTinstance.address);
+  console.log('DEX instantiated with address', await instance.getAddress());
+  console.log('ACA token instantiated with address', await ACAinstance.getAddress());
+  console.log('AUSD token instantiated with address', await AUSDinstance.getAddress());
+  console.log('DOT token instantiated with address', await DOTinstance.getAddress());
 
   console.log('');
   console.log('');
@@ -41,9 +40,9 @@ async function main() {
   const initialAusdBalance = await AUSDinstance.balanceOf(deployer.address);
   const initialDotBalance = await DOTinstance.balanceOf(deployer.address);
 
-  console.log('Inital %s ACA balance: %s ACA', deployer.address, formatUnits(initialAcaBalance.toString(), 12));
-  console.log('Inital %s AUSD balance: %s AUSD', deployer.address, formatUnits(initialAusdBalance.toString(), 12));
-  console.log('Inital %s DOT balance: %s DOT', deployer.address, formatUnits(initialDotBalance.toString(), 12));
+  console.log('Inital %s ACA balance: %s ACA', deployer.address, formatUnits(initialAcaBalance, 12));
+  console.log('Inital %s AUSD balance: %s AUSD', deployer.address, formatUnits(initialAusdBalance, 12));
+  console.log('Inital %s DOT balance: %s DOT', deployer.address, formatUnits(initialDotBalance, 12));
 
   console.log('');
   console.log('');
@@ -56,18 +55,18 @@ async function main() {
 
   console.log(
     'Initial ACA - AUSD liquidity pool: %s ACA - %s AUSD',
-    formatUnits(initialAcaAusdLP[0].toString(), 12),
-    formatUnits(initialAcaAusdLP[1].toString(), 12)
+    formatUnits(initialAcaAusdLP[0], 12),
+    formatUnits(initialAcaAusdLP[1], 12)
   );
   console.log(
     'Initial ACA - DOT liquidity pool: %s ACA - %s DOT',
-    formatUnits(initialAcaDotLP[0].toString(), 12),
-    formatUnits(initialAcaDotLP[1].toString(), 12)
+    formatUnits(initialAcaDotLP[0], 12),
+    formatUnits(initialAcaDotLP[1], 12)
   );
   console.log(
     'Initial DOT - AUSD liquidity pool: %s DOT - %s AUSD',
-    formatUnits(initialDotAusdLP[0].toString(), 12),
-    formatUnits(initialDotAusdLP[1].toString(), 12)
+    formatUnits(initialDotAusdLP[0], 12),
+    formatUnits(initialDotAusdLP[1], 12)
   );
 
   console.log('');
@@ -90,15 +89,15 @@ async function main() {
 
   const path1 = [ACA, AUSD];
   const path2 = [ACA, AUSD, DOT];
-  const supply = initialAcaBalance.div(1000);
+  const supply = initialAcaBalance / 1000n;
 
   const expectedTarget1 = await instance.getSwapTargetAmount(path1, supply);
   const expectedTarget2 = await instance.getSwapTargetAmount(path2, supply);
 
-  console.log('Expected target when using path ACA -> AUSD: %s AUSD', formatUnits(expectedTarget1.toString(), 12));
+  console.log('Expected target when using path ACA -> AUSD: %s AUSD', formatUnits(expectedTarget1, 12));
   console.log(
     'Expected target when using path ACA -> AUSD -> DOT: %s DOT',
-    formatUnits(expectedTarget2.toString(), 12)
+    formatUnits(expectedTarget2, 12)
   );
 
   console.log('');
@@ -113,21 +112,21 @@ async function main() {
   const halfwayAusdBalance = await AUSDinstance.balanceOf(deployer.address);
   const halfwayDotBalance = await DOTinstance.balanceOf(deployer.address);
 
-  console.log('Halfway %s ACA balance: %s ACA', deployer.address, formatUnits(halfwayAcaBalance.toString(), 12));
-  console.log('Halfway %s AUSD balance: %s AUSD', deployer.address, formatUnits(halfwayAusdBalance.toString(), 12));
-  console.log('Halfway %s DOT balance: %s DOT', deployer.address, formatUnits(halfwayDotBalance.toString(), 12));
+  console.log('Halfway %s ACA balance: %s ACA', deployer.address, formatUnits(halfwayAcaBalance, 12));
+  console.log('Halfway %s AUSD balance: %s AUSD', deployer.address, formatUnits(halfwayAusdBalance, 12));
+  console.log('Halfway %s DOT balance: %s DOT', deployer.address, formatUnits(halfwayDotBalance, 12));
 
   console.log(
     '%s AUSD balance increase was %s AUSD, while the expected increase was %s AUSD.',
     deployer.address,
-    formatUnits(halfwayAusdBalance.sub(initialAusdBalance).toString(), 12),
-    formatUnits(expectedTarget1.toString(), 12)
+    formatUnits(halfwayAusdBalance - initialAusdBalance, 12),
+    formatUnits(expectedTarget1, 12)
   );
   console.log(
     '%s DOT balance increase was %s DOT, while the expected increase was %s DOT.',
     deployer.address,
-    formatUnits(halfwayDotBalance.sub(initialDotBalance).toString(), 12),
-    formatUnits(expectedTarget2.toString(), 12)
+    formatUnits(halfwayDotBalance - initialDotBalance, 12),
+    formatUnits(expectedTarget2, 12)
   );
 
   console.log('');
@@ -143,15 +142,15 @@ async function main() {
 
   console.log(
     'Expected supply for getting %s AUSD in order to reach a total of %s AUSD is %s ACA.',
-    formatUnits(targetAusd.toString(), 12),
-    formatUnits(targetAusd.add(halfwayAusdBalance).toString(), 12),
-    formatUnits(expectedSupply1.toString(), 12)
+    formatUnits(targetAusd, 12),
+    formatUnits(targetAusd + halfwayAusdBalance, 12),
+    formatUnits(expectedSupply1, 12)
   );
   console.log(
     'Expected supply for getting %s DOT in order to reach a total of %s DOT is %s ACA.',
-    formatUnits(targetDot.toString(), 12),
-    formatUnits(targetDot.add(halfwayDotBalance).toString(), 12),
-    formatUnits(expectedSupply2.toString(), 12)
+    formatUnits(targetDot, 12),
+    formatUnits(targetDot + halfwayDotBalance, 12),
+    formatUnits(expectedSupply2, 12)
   );
 
   console.log('');
@@ -159,32 +158,32 @@ async function main() {
 
   console.log('Swapping with exact target');
 
-  await instance.swapWithExactTarget(path1, targetAusd, expectedSupply1.add(parseUnits('1', 12)));
-  await instance.swapWithExactTarget(path2, targetAusd, expectedSupply2.add(parseUnits('10', 12)));
+  await instance.swapWithExactTarget(path1, targetAusd, expectedSupply1 + parseUnits('1', 12));
+  await instance.swapWithExactTarget(path2, targetAusd, expectedSupply2 + parseUnits('10', 12));
 
   const finalAcaBalance = await ACAinstance.balanceOf(deployer.address);
   const finalAusdBalance = await AUSDinstance.balanceOf(deployer.address);
   const finalDotBalance = await DOTinstance.balanceOf(deployer.address);
 
-  console.log('Final %s ACA balance: %s ACA', deployer.address, formatUnits(finalAcaBalance.toString(), 12));
-  console.log('Final %s AUSD balance: %s AUSD', deployer.address, formatUnits(finalAusdBalance.toString(), 12));
-  console.log('Final %s DOT balance: %s DOT', deployer.address, formatUnits(finalDotBalance.toString(), 12));
+  console.log('Final %s ACA balance: %s ACA', deployer.address, formatUnits(finalAcaBalance, 12));
+  console.log('Final %s AUSD balance: %s AUSD', deployer.address, formatUnits(finalAusdBalance, 12));
+  console.log('Final %s DOT balance: %s DOT', deployer.address, formatUnits(finalDotBalance, 12));
 
   console.log(
     'AUSD balance has increased by %s AUSD, while the expected increase was %s AUSD.',
-    formatUnits(finalAusdBalance.sub(halfwayAusdBalance), 12),
-    formatUnits(targetAusd.toString(), 12)
+    formatUnits(finalAusdBalance - halfwayAusdBalance, 12),
+    formatUnits(targetAusd, 12)
   );
   console.log(
     'DOT balance has increased by %s DOT, while the expected increase was %s DOT.',
-    formatUnits(finalDotBalance.sub(halfwayDotBalance), 12),
-    formatUnits(targetDot.toString(), 12)
+    formatUnits(finalDotBalance - halfwayDotBalance, 12),
+    formatUnits(targetDot, 12)
   );
 
   console.log(
     'Expected decrease of AUSD balance was %s AUSD, while the actual decrease was %s AUSD.',
-    formatUnits(expectedSupply1.add(expectedSupply2).toString(), 12),
-    formatUnits(halfwayAcaBalance.sub(finalAcaBalance).toString(), 12)
+    formatUnits(expectedSupply1 + expectedSupply2, 12),
+    formatUnits(halfwayAcaBalance - finalAcaBalance, 12)
   );
 
   console.log('');
@@ -195,7 +194,7 @@ async function main() {
 
 main()
   .then(() => process.exit(0))
-  .catch((error) => {
+  .catch(error => {
     console.error(error);
     process.exit(1);
   });

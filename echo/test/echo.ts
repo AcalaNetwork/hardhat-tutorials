@@ -1,16 +1,14 @@
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 
-import { Echo, Echo__factory } from '../typechain-types';
+import { Echo } from '../typechain-types';
 
 describe('Echo contract', function () {
-  let Echo: Echo__factory;
   let instance: Echo;
 
   beforeEach(async () => {
-    Echo = await ethers.getContractFactory('Echo');
-    instance = await Echo.deploy();
-    await instance.deployed();
+    instance = await ethers.deployContract('Echo', []);
+    await instance.waitForDeployment();
   });
 
   it('should set the value of the echo when deploying', async () => {
@@ -39,7 +37,7 @@ describe('Echo contract', function () {
     });
 
     it('should return input value', async () => {
-      const response = await instance.callStatic.scream('Hello World!');
+      const response = await instance.scream.staticCall('Hello World!');
 
       expect(response).to.equal('Hello World!');
     });

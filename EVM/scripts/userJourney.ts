@@ -1,5 +1,5 @@
 import { Contract } from 'ethers';
-import { EVM } from '@acala-network/contracts/utils/MandalaAddress';
+import { EVM } from '@acala-network/contracts/utils/Predeploy';
 import { ethers } from 'hardhat';
 import EVMContract from '@acala-network/contracts/build/contracts/EVM.json';
 import TokenContract from '@acala-network/contracts/build/contracts/Token.json';
@@ -21,7 +21,7 @@ async function main() {
 
   const instance = new Contract(EVM, EVMContract.abi, deployer);
 
-  console.log('EVM instantiated with address', instance.address);
+  console.log('EVM instantiated with address', await instance.getAddress());
 
   console.log('');
   console.log('');
@@ -60,9 +60,9 @@ async function main() {
   const Token = new ethers.ContractFactory(TokenContract.abi, TokenContract.bytecode, deployer);
   const contract = await Token.deploy();
 
-  const deployMaintainer = await instance.maintainerOf(contract.address);
+  const deployMaintainer = await instance.maintainerOf(await contract.getAddress());
 
-  console.log(`Contract deployed at ${contract.address} has a maintainer ${deployMaintainer}`);
+  console.log(`Contract deployed at ${await contract.getAddress()} has a maintainer ${deployMaintainer}`);
 
   console.log('');
   console.log('');
@@ -71,7 +71,7 @@ async function main() {
 
   const fee = await instance.publicationFee();
 
-  await instance.connect(deployer).publishContract(contract.address);
+  await instance.connect(deployer).publishContract(await contract.getAddress());
 
   console.log(`Publication fee is ${fee}`);
   console.log('Contract is sucessfuly published!');
@@ -94,14 +94,14 @@ async function main() {
 
   console.log('Transferring maintainer of the contract to the user address');
 
-  const initialMaintainer = await instance.maintainerOf(contract.address);
+  const initialMaintainer = await instance.maintainerOf(await contract.getAddress());
 
-  await instance.connect(deployer).transferMaintainer(contract.address, userAddress);
+  await instance.connect(deployer).transferMaintainer(await contract.getAddress(), userAddress);
 
-  const finalMaintainer = await instance.maintainerOf(contract.address);
+  const finalMaintainer = await instance.maintainerOf(await contract.getAddress());
 
   console.log(
-    `Maintainer of the contract at ${contract.address} was transferred from ${initialMaintainer} to ${finalMaintainer}.`
+    `Maintainer of the contract at ${await contract.getAddress()} was transferred from ${initialMaintainer} to ${finalMaintainer}.`
   );
 
   console.log('');

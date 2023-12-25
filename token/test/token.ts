@@ -1,16 +1,16 @@
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
+import { parseEther } from 'ethers';
 
-import { Token, Token__factory } from '../typechain-types';
+import { Token } from '../typechain-types';
 
 const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 describe('Token contract', () => {
-  let Token: Token__factory;
   let instance: Token;
-  let deployer: SignerWithAddress;
-  let user: SignerWithAddress;
+  let deployer: HardhatEthersSigner;
+  let user: HardhatEthersSigner;
   let deployerAddress: string;
   let userAddress: string;
 
@@ -19,9 +19,8 @@ describe('Token contract', () => {
     deployerAddress = deployer.address;
     userAddress = user.address;
 
-    Token = await ethers.getContractFactory('Token');
-    instance = await Token.deploy(1234567890);
-    await instance.deployed();
+    instance = await ethers.deployContract('Token', [1234567890]);
+    await instance.waitForDeployment();
   });
 
   describe('Deployment', () => {
@@ -64,8 +63,8 @@ describe('Token contract', () => {
           const finalDeployerBalance = await instance.balanceOf(deployerAddress);
           const finalUserBalance = await instance.balanceOf(userAddress);
 
-          expect(initialDeployerBalance - 500).to.equal(finalDeployerBalance);
-          expect(initialUserBalance + 500).to.equal(finalUserBalance);
+          expect(initialDeployerBalance - 500n).to.equal(finalDeployerBalance);
+          expect(initialUserBalance + 500n).to.equal(finalUserBalance);
         });
 
         it('should emit a Transfer event when transfering the token', async () => {
@@ -191,7 +190,7 @@ describe('Token contract', () => {
 
           const finalBalance = await instance.balanceOf(userAddress);
 
-          expect(initialBalance + 50).to.equal(finalBalance);
+          expect(initialBalance + 50n).to.equal(finalBalance);
         });
 
         it('should emit Transfer event when transferring from another address', async () => {

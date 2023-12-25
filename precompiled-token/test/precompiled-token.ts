@@ -1,13 +1,13 @@
 import { ACA } from '@acala-network/contracts/utils/MandalaTokens';
 import { Contract } from 'ethers';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 import TokenContract from '@acala-network/contracts/build/contracts/Token.json';
 
 describe('PrecompiledToken contract', function () {
   let instance: Contract;   // TODO: use typechain
-  let deployer: SignerWithAddress;
+  let deployer: HardhatEthersSigner;
 
   beforeEach(async function () {
     [deployer] = await ethers.getSigners();

@@ -1,7 +1,6 @@
-import { ACA } from '@acala-network/contracts/utils/MandalaAddress';
-import { Contract } from 'ethers';
+import { ACA } from '@acala-network/contracts/utils/MandalaTokens';
+import { Contract, formatUnits } from 'ethers';
 import { ethers } from 'hardhat';
-import { formatUnits } from 'ethers/lib/utils';
 import TokenContract from '@acala-network/contracts/build/contracts/Token.json';
 
 async function main() {
@@ -9,11 +8,9 @@ async function main() {
 
   console.log('Getting contract info with the account:', deployer.address);
 
-  console.log('Account balance:', (await deployer.getBalance()).toString());
-
   const instance = new Contract(ACA, TokenContract.abi, deployer);
 
-  console.log('PrecompiledToken address:', instance.address);
+  console.log('PrecompiledToken address:', await instance.getAddress());
 
   const name = await instance.name();
   const symbol = await instance.symbol();
@@ -36,7 +33,7 @@ async function main() {
 
 main()
   .then(() => process.exit(0))
-  .catch((error) => {
+  .catch(error => {
     console.error(error);
     process.exit(1);
   });

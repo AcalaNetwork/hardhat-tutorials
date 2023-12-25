@@ -1,13 +1,13 @@
-import { ORACLE } from '@acala-network/contracts/utils/Predeploy';
 import * as MandalaToken from '@acala-network/contracts/utils/MandalaTokens';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
+import { ORACLE } from '@acala-network/contracts/utils/Predeploy';
+import { Oracle } from '@acala-network/contracts/typechain/contracts/oracle/Oracle';
+import { Oracle__factory } from '@acala-network/contracts/typechain/factories/contracts/oracle';
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
-import { Oracle__factory } from '@acala-network/contracts/typechain/factories/contracts/oracle';
-import { Oracle } from '@acala-network/contracts/typechain/contracts/oracle/Oracle';
 
 describe('EVM contract', function () {
-  let deployer: SignerWithAddress;
+  let deployer: HardhatEthersSigner;
   let oracle: Oracle;
 
   beforeEach(async function () {
@@ -22,7 +22,7 @@ describe('EVM contract', function () {
         const price = await oracle.getPrice(tokenAddr);
         expect(price).to.be.gt(0);
 
-        console.log(`${token} price: ${price}`)
+        console.log(`${token} price: ${price}`);
       }
     });
   });

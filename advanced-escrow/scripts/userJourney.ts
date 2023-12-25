@@ -1,14 +1,11 @@
 import { ACA, AUSD, DOT } from '@acala-network/contracts/utils/MandalaTokens';
 import { ApiPromise, WsProvider } from '@polkadot/api';
-import { Contract } from 'ethers';
+import { Contract, formatUnits } from 'ethers';
 import { ethers } from 'hardhat';
-import { formatUnits } from 'ethers/lib/utils';
 import { options } from '@acala-network/api';
 import TokenContract from '@acala-network/contracts/build/contracts/Token.json';
 
 const ENDPOINT_URL = process.env.ENDPOINT_URL || 'ws://127.0.0.1:9944';
-
-const sleep = async (time) => new Promise((resolve) => setTimeout(resolve, time));
 
 async function main() {
   const api = await ApiPromise.create(options({
@@ -25,11 +22,10 @@ async function main() {
   console.log('Address of the beneficiary is', beneficiaryAddress);
 
   console.log('Deploying AdvancedEscrow smart contract');
-  const AdvancedEscrow = await ethers.getContractFactory('AdvancedEscrow');
-  const instance = await AdvancedEscrow.deploy();
-  await instance.deployed();
+  const instance = await ethers.deployContract('AdvancedEscrow');
+  await instance.waitForDeployment();
 
-  console.log('AdvancedEscrow is deployed at address:', instance.address);
+  console.log('AdvancedEscrow is deployed at address:', await instance.getAddress());
 
   console.log('Instantiating ACA predeployed smart contract');
   const primaryTokenInstance = new Contract(ACA, TokenContract.abi, initiator);
@@ -41,7 +37,7 @@ async function main() {
   console.log(
     'Initial initiator %s token balance: %s %s',
     primaryTokenName,
-    formatUnits(intialPrimaryTokenBalance.toString(), primaryTokenDecimals),
+    formatUnits(intialPrimaryTokenBalance, primaryTokenDecimals),
     primaryTokenSymbol
   );
 
@@ -55,11 +51,14 @@ async function main() {
 
   console.log('Transferring primary token to Escrow instance');
 
-  await primaryTokenInstance.connect(initiator).transfer(instance.address, intialPrimaryTokenBalance.div(10_000));
+  await primaryTokenInstance.connect(initiator).transfer(
+    await instance.getAddress(),
+    intialPrimaryTokenBalance / 10_000n,
+  );
 
   console.log('Initiating escrow');
 
-  await instance.connect(initiator).initiateEscrow(beneficiaryAddress, ACA, intialPrimaryTokenBalance.div(100_000), 10);
+  await instance.connect(initiator).initiateEscrow(beneficiaryAddress, ACA, intialPrimaryTokenBalance / 100_000n, 10);
 
   const escrowBlockNumber = await ethers.provider.getBlockNumber();
 
@@ -75,8 +74,8 @@ async function main() {
   console.log('Escrow beneficiary:', escrow.beneficiary);
   console.log('Escrow ingress token:', escrow.ingressToken);
   console.log('Escrow egress token:', escrow.egressToken);
-  console.log('Escrow AUSD value:', escrow.AusdValue.toString());
-  console.log('Escrow deadline:', escrow.deadline.toString());
+  console.log('Escrow AUSD value:', escrow.AusdValue);
+  console.log('Escrow deadline:', escrow.deadline);
   console.log('Escrow completed:', escrow.completed);
 
   console.log('Instantiating AUSD instance');
@@ -84,7 +83,7 @@ async function main() {
 
   const initalBeneficiatyAusdBalance = await AusdInstance.balanceOf(beneficiaryAddress);
 
-  console.log('Initial aUSD balance of beneficiary: %s AUSD', formatUnits(initalBeneficiatyAusdBalance.toString(), 12));
+  console.log('Initial aUSD balance of beneficiary: %s AUSD', formatUnits(initalBeneficiatyAusdBalance, 12));
 
   console.log('Waiting for automatic release of funds');
 
@@ -97,16 +96,15 @@ async function main() {
       escrowBlockNumber + 10
     );
     currentBlockNumber = await ethers.provider.getBlockNumber();
-    await sleep(1000);
     await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
   }
 
   const finalBeneficiaryAusdBalance = await AusdInstance.balanceOf(beneficiaryAddress);
 
-  console.log('Final aUSD balance of beneficiary: %s AUSD', formatUnits(finalBeneficiaryAusdBalance.toString(), 12));
+  console.log('Final aUSD balance of beneficiary: %s AUSD', formatUnits(finalBeneficiaryAusdBalance, 12));
   console.log(
     'Beneficiary aUSD balance has increased for %s AUSD',
-    formatUnits(finalBeneficiaryAusdBalance.sub(initalBeneficiatyAusdBalance).toString(), 12)
+    formatUnits(finalBeneficiaryAusdBalance - initalBeneficiatyAusdBalance, 12)
   );
 
   console.log('');
@@ -119,7 +117,7 @@ async function main() {
 
   console.log('Initiating escrow');
 
-  await instance.connect(initiator).initiateEscrow(beneficiaryAddress, ACA, intialPrimaryTokenBalance.div(100_000), 10);
+  await instance.connect(initiator).initiateEscrow(beneficiaryAddress, ACA, intialPrimaryTokenBalance / 100_000n, 10);
 
   const escrowBlockNumber2 = await ethers.provider.getBlockNumber();
 
@@ -135,15 +133,15 @@ async function main() {
   console.log('Escrow beneficiary:', escrow2.beneficiary);
   console.log('Escrow ingress token:', escrow2.ingressToken);
   console.log('Escrow egress token:', escrow2.egressToken);
-  console.log('Escrow AUSD value:', escrow2.AusdValue.toString());
-  console.log('Escrow deadline:', escrow2.deadline.toString());
+  console.log('Escrow AUSD value:', escrow2.AusdValue);
+  console.log('Escrow deadline:', escrow2.deadline);
   console.log('Escrow completed:', escrow2.completed);
 
   const initalBeneficiatyAusdBalance2 = await AusdInstance.balanceOf(beneficiaryAddress);
 
   console.log(
     'Initial aUSD balance of beneficiary: %s AUSD',
-    formatUnits(initalBeneficiatyAusdBalance2.toString(), 12)
+    formatUnits(initalBeneficiatyAusdBalance2, 12)
   );
 
   console.log('Manually releasing the funds');
@@ -155,10 +153,10 @@ async function main() {
   const finalBeneficiaryAusdBalance2 = await AusdInstance.balanceOf(beneficiaryAddress);
 
   console.log('Escrow funds released at block %s, while the deadline was %s', currentBlockNumber2, escrow2.deadline);
-  console.log('Final aUSD balance of beneficiary: %s AUSD', formatUnits(finalBeneficiaryAusdBalance2.toString(), 12));
+  console.log('Final aUSD balance of beneficiary: %s AUSD', formatUnits(finalBeneficiaryAusdBalance2, 12));
   console.log(
     'Beneficiary aUSD balance has increased for %s AUSD',
-    formatUnits(finalBeneficiaryAusdBalance2.sub(initalBeneficiatyAusdBalance2).toString(), 12)
+    formatUnits(finalBeneficiaryAusdBalance2 - initalBeneficiatyAusdBalance2, 12)
   );
 
   console.log('');
@@ -171,7 +169,7 @@ async function main() {
 
   console.log('Initiating escrow');
 
-  await instance.connect(initiator).initiateEscrow(beneficiaryAddress, ACA, intialPrimaryTokenBalance.div(100_000), 10);
+  await instance.connect(initiator).initiateEscrow(beneficiaryAddress, ACA, intialPrimaryTokenBalance / 100_000n, 10);
 
   const escrowBlockNumber3 = await ethers.provider.getBlockNumber();
 
@@ -187,8 +185,8 @@ async function main() {
   console.log('Escrow beneficiary:', escrow3.beneficiary);
   console.log('Escrow ingress token:', escrow3.ingressToken);
   console.log('Escrow egress token:', escrow3.egressToken);
-  console.log('Escrow AUSD value:', escrow3.AusdValue.toString());
-  console.log('Escrow deadline:', escrow3.deadline.toString());
+  console.log('Escrow AUSD value:', escrow3.AusdValue);
+  console.log('Escrow deadline:', escrow3.deadline);
   console.log('Escrow completed:', escrow3.completed);
 
   console.log('Beneficiary setting the desired escrow egress token');
@@ -200,7 +198,7 @@ async function main() {
 
   const initalBeneficiatyDotBalance = await DotInstance.balanceOf(beneficiaryAddress);
 
-  console.log('Initial DOT balance of beneficiary: %s DOT', formatUnits(initalBeneficiatyDotBalance.toString(), 12));
+  console.log('Initial DOT balance of beneficiary: %s DOT', formatUnits(initalBeneficiatyDotBalance, 12));
 
   console.log('Waiting for automatic release of funds');
 
@@ -212,22 +210,21 @@ async function main() {
       escrowBlockNumber3 + 10
     );
     currentBlockNumber3 = await ethers.provider.getBlockNumber();
-    await sleep(1000);
     await api.rpc.engine.createBlock(true /* create empty */, true /* finalize it*/);
   }
 
   const finalBeneficiaryDotBalance = await DotInstance.balanceOf(beneficiaryAddress);
 
-  console.log('Final DOT balance of beneficiary: %s DOT', formatUnits(finalBeneficiaryDotBalance.toString(), 12));
+  console.log('Final DOT balance of beneficiary: %s DOT', formatUnits(finalBeneficiaryDotBalance, 12));
   console.log(
     'Beneficiary DOT balance has increased for %s DOT',
-    formatUnits(finalBeneficiaryDotBalance.sub(initalBeneficiatyDotBalance).toString(), 12)
+    formatUnits(finalBeneficiaryDotBalance - initalBeneficiatyDotBalance, 12)
   );
 }
 
 main()
   .then(() => process.exit(0))
-  .catch((error) => {
+  .catch(error => {
     console.error(error);
     process.exit(1);
   });

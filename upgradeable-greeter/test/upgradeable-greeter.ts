@@ -12,7 +12,7 @@ describe('UpgradeableGreeter contract', () => {
   beforeEach(async () => {
     Greeter = await ethers.getContractFactory('Greeter');
     GreeterV2 = await ethers.getContractFactory('GreeterV2');
-    instance = await upgrades.deployProxy(Greeter, ['Hello, Goku!']) as Greeter;
+    instance = await upgrades.deployProxy(Greeter, ['Hello, Goku!']) as unknown as Greeter;
   });
 
   describe('Deployment', () => {
@@ -28,7 +28,7 @@ describe('UpgradeableGreeter contract', () => {
 
   describe('Upgrade', () => {
     beforeEach(async () => {
-      instanceV2 = await upgrades.upgradeProxy(instance.address, GreeterV2) as GreeterV2;
+      instanceV2 = await upgrades.upgradeProxy(await instance.getAddress(), GreeterV2) as unknown as GreeterV2;
     });
 
     it('should maintain the greeting after the upgrade', async () => {

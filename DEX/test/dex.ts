@@ -1,10 +1,9 @@
 import { ACA, AUSD, DOT, LP_ACA_AUSD, RENBTC } from '@acala-network/contracts/utils/MandalaTokens';
-import { Contract } from 'ethers';
+import { Contract, parseUnits } from 'ethers';
 import { DEX } from '@acala-network/contracts/utils/Predeploy';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
-import { parseUnits } from '@ethersproject/units';
 import DEXContract from '@acala-network/contracts/build/contracts/DEX.json';
 import TokenContract from '@acala-network/contracts/build/contracts/Token.json';
 
@@ -14,7 +13,7 @@ describe('DEX contract', () => {
   let instance: Contract;   // TODO: use typechain
   let ACAinstance: Contract;
   let AUSDinstance: Contract;
-  let deployer: SignerWithAddress;
+  let deployer: HardhatEthersSigner;
   let deployerAddress: string;
 
   beforeEach(async () => {
@@ -190,8 +189,8 @@ describe('DEX contract', () => {
         const finBal = await AUSDinstance.balanceOf(deployerAddress);
 
         // The following assertion needs to check for the balance to be below the initialBalance - 100, because some of the ACA balance is used to pay for the transaction fee.
-        expect(finalBalance).to.be.below(initalBalance.sub(100));
-        expect(finBal).to.equal(initBal.add(expected_target));
+        expect(finalBalance).to.be.below(initalBalance - 100n);
+        expect(finBal).to.equal(initBal + expected_target);
       });
 
       it('should emit a Swaped event', async () => {
@@ -249,8 +248,8 @@ describe('DEX contract', () => {
         const finBal = await AUSDinstance.balanceOf(deployerAddress);
 
         // The following assertion needs to check for the balance to be below the initialBalance - 100, because some of the ACA balance is used to pay for the transaction fee.
-        expect(finalBalance).to.be.below(initalBalance.sub(expected_supply));
-        expect(finBal).to.equal(initBal.add(100));
+        expect(finalBalance).to.be.below(initalBalance - expected_supply);
+        expect(finBal).to.equal(initBal + 100n);
       });
 
       it('should emit Swaped event', async () => {
